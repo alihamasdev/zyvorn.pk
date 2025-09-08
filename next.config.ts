@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+	typedRoutes: true,
+	experimental: {
+		typedEnv: true,
+		viewTransition: true,
+		authInterrupts: true,
+		devtoolSegmentExplorer: true
+	}
 };
 
 export default nextConfig;
