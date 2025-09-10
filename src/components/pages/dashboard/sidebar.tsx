@@ -1,9 +1,12 @@
 "use client";
-import { Home, LogOut, type LucideIcon, ShoppingBag, ShoppingCart, Tag } from "lucide-react";
+
+import { useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Home, LogOut, ShoppingBag, ShoppingCart, Tag, type LucideIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 import {
 	Sidebar,
 	SidebarContent,
@@ -14,7 +17,7 @@ import {
 	SidebarMenuItem,
 	useSidebar
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+
 import { LogoutDialog } from "./logout-dialog";
 
 const items = [
@@ -33,7 +36,7 @@ export function DashboardSidebar() {
 			<Sidebar>
 				<SidebarHeader className="py-5">
 					<Link href="/">
-						<h1 className="text-center font-semibold text-3xl uppercase">ZYVORN</h1>
+						<h1 className="text-center text-3xl font-semibold uppercase">ZYVORN</h1>
 					</Link>
 				</SidebarHeader>
 				<SidebarContent className="px-2">
@@ -41,18 +44,18 @@ export function DashboardSidebar() {
 						{items.map((item, index) => (
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton
+									size="lg"
 									asChild
+									onClick={() => setOpenMobile(false)}
 									className={cn(
 										"h-10",
 										index === 0 &&
 											path === item.url &&
-											"bg-sidebar-primary font-medium text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground",
+											"bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground font-medium",
 										index !== 0 &&
 											path.startsWith(item.url) &&
-											"bg-sidebar-primary font-medium text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
+											"bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground font-medium"
 									)}
-									onClick={() => setOpenMobile(false)}
-									size="lg"
 								>
 									<Link href={item.url}>
 										<item.icon />
@@ -66,12 +69,12 @@ export function DashboardSidebar() {
 				<SidebarFooter className="pb-4">
 					<SidebarMenu>
 						<SidebarMenuButton
-							className="h-10 cursor-pointer hover:bg-destructive/15 hover:text-destructive"
+							size="lg"
+							className="hover:bg-destructive/15 hover:text-destructive h-10 cursor-pointer"
 							onClick={() => {
 								setOpenMobile(false);
 								setOpen(true);
 							}}
-							size="lg"
 						>
 							<LogOut />
 							Logout of dashboard
@@ -79,7 +82,7 @@ export function DashboardSidebar() {
 					</SidebarMenu>
 				</SidebarFooter>
 			</Sidebar>
-			<LogoutDialog onOpenChange={setOpen} open={open} />
+			<LogoutDialog open={open} onOpenChange={setOpen} />
 		</>
 	);
 }

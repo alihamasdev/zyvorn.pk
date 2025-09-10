@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+
 import { QueryProvider } from "@/lib/tanstack/query-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
+
 import "./globals.css";
 
 const poppins = Poppins({

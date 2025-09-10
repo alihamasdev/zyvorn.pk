@@ -1,7 +1,10 @@
 "use server";
+
 import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
-import { type LoginSchema, loginSchema } from "./schema";
+
+import { loginSchema, type LoginSchema } from "./schema";
 
 export async function loginAction(values: LoginSchema) {
 	const { success } = loginSchema.safeParse(values);

@@ -1,14 +1,16 @@
 "use client";
 
+import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderIcon } from "lucide-react";
-import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { type LoginSchema, loginSchema } from "@/components/pages/login/schema";
+
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { loginSchema, type LoginSchema } from "@/components/pages/login/schema";
+
 import { loginAction } from "./action";
 
 export function LoginForm() {

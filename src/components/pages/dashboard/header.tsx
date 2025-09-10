@@ -1,6 +1,8 @@
 "use client";
-import { usePathname } from "next/navigation";
+
 import { Fragment } from "react";
+import { usePathname } from "next/navigation";
+
 import {
 	Breadcrumb,
 	BreadcrumbItem,

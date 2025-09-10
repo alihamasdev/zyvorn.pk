@@ -1,9 +1,10 @@
-import { LoaderIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { LoaderIcon } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { createClient } from "@/lib/supabase/client";
 
 export function LogoutDialog({ ...props }: React.ComponentProps<typeof Dialog>) {
 	const router = useRouter();
@@ -32,7 +33,7 @@ export function LogoutDialog({ ...props }: React.ComponentProps<typeof Dialog>) 
 							Cancel
 						</Button>
 					</DialogClose>
-					<Button className="disabled:opacity-100" disabled={isPending} onClick={logoutUser} variant="destructive">
+					<Button variant="destructive" className="disabled:opacity-100" disabled={isPending} onClick={logoutUser}>
 						{isPending && <LoaderIcon className="animate-spin" />}
 						Logout
 					</Button>
