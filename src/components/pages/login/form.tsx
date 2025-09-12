@@ -2,11 +2,10 @@
 
 import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { LoaderButton } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginSchema } from "@/components/pages/login/schema";
@@ -60,16 +59,7 @@ export function LoginForm() {
 						</FormItem>
 					)}
 				/>
-				<Button className="disabled:opacity-100" disabled={isPending} type="submit">
-					{isPending ? (
-						<>
-							<LoaderIcon className="animate-spin" />
-							Submitting
-						</>
-					) : (
-						"Submit"
-					)}
-				</Button>
+				<LoaderButton type="submit" disabled={isPending} />
 			</form>
 		</Form>
 	);
