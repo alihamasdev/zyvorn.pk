@@ -1,6 +1,9 @@
 "use client";
 
 import { useTransition } from "react";
+import type { Category } from "@prisma/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button, LoaderButton } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,12 +17,18 @@ interface DeleteCategoryProps extends React.ComponentProps<typeof Dialog> {
 }
 
 export function DeleteCategory({ id, category, setOpen, ...props }: DeleteCategoryProps) {
+	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
 
 	const handleDelete = () =>
 		startTransition(async () => {
-			await deleteCategoryAction(id);
-			setOpen(false);
+			const { error } = await deleteCategoryAction(id);
+			if (error) {
+				toast.error(error);
+			} else {
+				setOpen(false);
+				queryClient.setQueryData(["categories", "dashboard"], (oldData: Category[]) => oldData.filter((val) => val.id !== id));
+			}
 		});
 
 	return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import type { Category } from "@prisma/client";
 import { EditIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 
@@ -11,26 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DeleteCategory } from "./delete-category";
 import { CategoriesForm } from "./form";
 
-export function CategoryList({ dataPromise }: { dataPromise: Promise<Category[]> }) {
-	const categories = use(dataPromise);
-	const [open, setOpen] = useState(false);
-
-	return (
-		<div className="space-y-4 p-4 md:space-y-6 md:p-6">
-			<div className="flex items-center justify-between gap-4">
-				<h1 className="text-2xl/9 font-semibold">Categories</h1>
-				<CategoriesForm title="Add Category" defaultValues={{ name: "", slug: "", id: undefined }} open={open} setOpen={setOpen} trigger />
-			</div>
-			<section className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-				{categories.map((data) => {
-					return <CategoryCard key={data.slug} {...data} />;
-				})}
-			</section>
-		</div>
-	);
-}
-
-function CategoryCard({ id, name, slug }: Category) {
+export function CategoryCard({ id, name, slug }: Category) {
 	const [open, setOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
 

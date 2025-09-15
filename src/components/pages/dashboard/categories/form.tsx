@@ -2,6 +2,8 @@
 
 import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Category } from "@prisma/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { useForm, type DefaultValues } from "react-hook-form";
 import slugify from "slugify";
@@ -32,7 +34,9 @@ interface CategoriesFormProps extends React.ComponentProps<typeof Dialog> {
 }
 
 export function CategoriesForm({ defaultValues, title, trigger, setOpen, ...props }: CategoriesFormProps) {
+	const queryClient = useQueryClient();
 	const [isPending, startTransition] = useTransition();
+
 	const form = useForm<CategoriesSchema>({
 		resolver: zodResolver(categoriesSchema),
 		defaultValues
@@ -40,13 +44,16 @@ export function CategoriesForm({ defaultValues, title, trigger, setOpen, ...prop
 
 	function onSubmit(values: CategoriesSchema) {
 		startTransition(async () => {
-			const { error } = await categoryUpsertAction(values);
-			if (error) {
+			const { error, data } = await categoryUpsertAction(values);
+			if (error || !data) {
 				toast.error(error);
 			} else {
 				setOpen(false);
+				queryClient.setQueryData(["categories", "dashboard"], (oldData: Category[]) =>
+					defaultValues?.id ? oldData.map((val) => (val.id === defaultValues.id ? { ...val, ...data } : val)) : [...oldData, data]
+				);
+				form.reset();
 			}
-			form.reset();
 		});
 	}
 
