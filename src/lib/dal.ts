@@ -5,3 +5,12 @@ import { prisma } from "@/lib/db";
 export const getCategories = cache(async () => {
 	return await prisma.category.findMany({ orderBy: { name: "asc" } });
 });
+
+export const getProducts = cache(async () => {
+	return await prisma.product.findMany({
+		include: {
+			category: { select: { name: true } },
+			colorOptions: { select: { value: true, stock: true } }
+		}
+	});
+});
