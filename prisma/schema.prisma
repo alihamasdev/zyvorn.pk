@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Product {
+  id              Int           @id @default(autoincrement())
+  title           String
+  slug            String        @unique
+  images          String[]
+  originalPrice   Int           @map("original_price")
+  discountedPrice Int?          @map("discounted_price")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  categoryId      Int           @map("category_id")
+  category        Category      @relation(fields: [categoryId], references: [id])
+  reviews         Review[]
+  colorOptions    ColorOption[]
+  orderItems      OrderItem[]
+
+  @@index([id, slug, categoryId])
+  @@map("products")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  name      String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  productId Int      @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([id, productId])
+  @@map("reviews")
+}
+
+model ColorOption {
+  id         Int         @id @default(autoincrement())
+  color      String
+  stock      Int         @default(0)
+  productId  Int         @map("product_id")
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([id, productId])
+  @@map("color_options")
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  name       String
+  phone      Int
+  email      String
+  address    String
+  province   String      @default("punjab")
+  city       String
+  zipCode    Int         @map("zip_code")
+  status     OrderStatus @default(PENDING)
+  amount     Int
+  createdAt  DateTime    @default(now()) @map("created_at")
+  orderItems OrderItem[]
+
+  @@index([id, status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            Int          @id @default(autoincrement())
+  orderId       Int          @map("order_id")
+  order         Order        @relation(fields: [orderId], references: [id])
+  productId     Int          @map("product_id")
+  product       Product      @relation(fields: [productId], references: [id])
+  colorOptionId Int?         @map("variation_option_id")
+  colorOption   ColorOption? @relation(fields: [colorOptionId], references: [id])
+
+  @@index([id, orderId, productId])
+  @@map("order_items")
+}
