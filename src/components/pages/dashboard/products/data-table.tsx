@@ -1,12 +1,9 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
 import { PlusIcon, Settings2Icon } from "lucide-react";
 
-import { getProducts } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,13 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { columns, type ProductPayload } from "./columns";
 import { ProductDeleteDialog } from "./delete-dialog";
 
-export function DataTable({ dataPromise }: { dataPromise: Promise<ProductPayload[]> }) {
-	const { data } = useQuery({
-		queryKey: ["products", "dashboard"],
-		queryFn: getProducts,
-		initialData: use(dataPromise)
-	});
-
+export function DataTable({ data }: { data: ProductPayload[] }) {
 	const table = useReactTable({
 		data,
 		columns,

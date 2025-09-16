@@ -12,7 +12,8 @@ export function CategoriesProvider({ dataPromise, children }: { children: React.
 	const { data } = useQuery({
 		queryKey: ["categories", "dashboard"],
 		initialData: use(dataPromise),
-		queryFn: getCategories
+		queryFn: getCategories,
+		staleTime: Infinity
 	});
 
 	return <CategoriesContext value={data}>{children}</CategoriesContext>;
