@@ -18,19 +18,19 @@ import {
 import { deleteProductAction } from "./action";
 import type { ProductPayload } from "./columns";
 
-export function ProductDeleteDialog({ id }: { id: number }) {
+export function ProductDeleteDialog({ slug }: { slug: string }) {
 	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
 
 	const handleDelete = () => {
 		startTransition(async () => {
-			const { error } = await deleteProductAction(id);
+			const { error } = await deleteProductAction(slug);
 			if (error) {
 				toast.error(error);
 			} else {
 				setOpen(false);
-				queryClient.setQueryData(["products", "dashboard"], (oldData: ProductPayload[]) => oldData.filter((val) => val.id !== id));
+				queryClient.setQueryData(["products", "dashboard"], (oldData: ProductPayload[]) => oldData.filter((val) => val.slug !== slug));
 			}
 		});
 	};

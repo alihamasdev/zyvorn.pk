@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export interface ProductPayload extends Product {
 	category: { name: string };
 	colorOptions: {
-		value: string;
+		color: string;
 		stock: number;
 	}[];
 }
@@ -22,26 +22,26 @@ export const columns: ColumnDef<ProductPayload>[] = [
 		cell: ({ row }) => <ProductImage src={row.original.images[0]} />
 	},
 	{ accessorKey: "title", header: "Title" },
-	{ accessorKey: "orignalPrice", header: "Original Price" },
+	{ accessorKey: "originalPrice", header: "Original Price" },
 	{ accessorKey: "discountedPrice", header: "Discounted Price", cell: ({ row }) => <span>{row.original.discountedPrice || "-"}</span> },
-	{ accessorKey: "colorOptions", header: "Colors", cell: ({ row }) => <ColorVariants colors={row.original.colorOptions} /> },
+	{ accessorKey: "colorOptions", header: "Color Variations", cell: ({ row }) => <ColorVariants colors={row.original.colorOptions} /> },
 	{ accessorKey: "category", header: "Category", cell: ({ row }) => <Badge>{row.original.category.name.toLowerCase()}</Badge> }
 ];
 
 function ProductImage({ src }: { src: string }) {
 	return (
-		<div className="aspect-square size-10 overflow-hidden rounded-md object-cover md:size-20">
-			<Image src={src} width={200} height={200} alt="product image" />
+		<div className="bg-muted aspect-square size-10 overflow-hidden rounded-md object-cover md:size-20">
+			<Image src={src} width={200} height={200} className="" alt="product image" />
 		</div>
 	);
 }
 
-function ColorVariants({ colors }: { colors: { value: string; stock: number }[] }) {
+function ColorVariants({ colors }: { colors: { color: string; stock: number }[] }) {
 	return (
 		<div className="flex items-center justify-center gap-0.5 md:gap-2">
-			{colors.map(({ value, stock }) => (
-				<Tooltip key={value}>
-					<TooltipTrigger className="size-5 rounded-full" style={{ backgroundColor: value }} />
+			{colors.map(({ color, stock }) => (
+				<Tooltip key={color}>
+					<TooltipTrigger className="size-5 rounded-full" style={{ backgroundColor: color }} />
 					<TooltipContent>Stock : {stock}</TooltipContent>
 				</Tooltip>
 			))}

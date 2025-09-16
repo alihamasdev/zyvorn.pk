@@ -4,7 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
-import { EditIcon, PlusIcon, Settings2Icon } from "lucide-react";
+import { PlusIcon, Settings2Icon } from "lucide-react";
 
 import { getProducts } from "@/lib/dal";
 import { cn } from "@/lib/utils";
@@ -78,7 +78,7 @@ export function DataTable({ dataPromise }: { dataPromise: Promise<ProductPayload
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="bg-secondary text-xs md:text-sm">
+							<TableRow key={headerGroup.id} className="bg-secondary hover:bg-secondary text-xs md:text-sm">
 								{headerGroup.headers.map((header) => (
 									<TableHead key={header.id} className="text-center first:text-left">
 										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -97,19 +97,14 @@ export function DataTable({ dataPromise }: { dataPromise: Promise<ProductPayload
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</TableCell>
 									))}
-									<TableCell className="space-x-2">
-										<Link href={`/dashboard/products/${row.original.id}`}>
-											<Button size="icon" variant="secondary" className="size-7">
-												<EditIcon className="size-3.5" />
-											</Button>
-										</Link>
-										<ProductDeleteDialog id={row.original.id} />
+									<TableCell>
+										<ProductDeleteDialog slug={row.original.slug} />
 									</TableCell>
 								</TableRow>
 							))
 						) : (
 							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
+								<TableCell colSpan={columns.length + 1} className="h-24 text-center">
 									No results.
 								</TableCell>
 							</TableRow>

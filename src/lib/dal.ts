@@ -10,7 +10,7 @@ export const getProducts = cache(async () => {
 	return await prisma.product.findMany({
 		include: {
 			category: { select: { name: true } },
-			colorOptions: { select: { value: true, stock: true } }
+			colorOptions: { select: { color: true, stock: true } }
 		}
 	});
 });
