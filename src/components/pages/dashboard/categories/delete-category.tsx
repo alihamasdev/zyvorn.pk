@@ -1,11 +1,11 @@
 "use client";
 
-import { useTransition } from "react";
-import type { Category } from "@prisma/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { Button, LoaderButton } from "@/components/ui/button";
+import type { Category } from "@/lib/prisma/client";
+import { optimisticUpdate } from "@/lib/tanstack/optimistic-update";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { deleteCategoryAction } from "./action";
@@ -16,20 +16,24 @@ interface DeleteCategoryProps extends React.ComponentProps<typeof Dialog> {
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function DeleteCategory({ id, category, setOpen, ...props }: DeleteCategoryProps) {
+export function CategoryDeleteDialog({ id, category, setOpen, ...props }: DeleteCategoryProps) {
 	const queryClient = useQueryClient();
-	const [isPending, startTransition] = useTransition();
 
-	const handleDelete = () =>
-		startTransition(async () => {
-			const { error } = await deleteCategoryAction(id);
-			if (error) {
-				toast.error(error);
-			} else {
-				setOpen(false);
-				queryClient.setQueryData(["categories", "dashboard"], (oldData: Category[]) => oldData.filter((val) => val.id !== id));
-			}
-		});
+	const queryKey: QueryKey = ["categories", "dashboard"];
+
+	const { mutate } = useMutation({
+		mutationFn: deleteCategoryAction,
+		onMutate: async () => {
+			const [previousData] = await optimisticUpdate<Category[]>(queryKey, (oldData) => oldData?.filter((val) => val.id !== id));
+			setOpen(false);
+			return previousData;
+		},
+		onError: (error, _variables, context) => {
+			toast.error(error.message);
+			queryClient.setQueryData<Category[]>(queryKey, context);
+		},
+		onSuccess: () => toast.success("Category deleted successfuly")
+	});
 
 	return (
 		<Dialog onOpenChange={setOpen} {...props}>
@@ -45,9 +49,9 @@ export function DeleteCategory({ id, category, setOpen, ...props }: DeleteCatego
 					<DialogClose asChild>
 						<Button variant="secondary">Cancel</Button>
 					</DialogClose>
-					<LoaderButton variant="destructive" loadingText="Deleting" onClick={handleDelete} loading={isPending}>
-						Confirm
-					</LoaderButton>
+					<Button variant="destructive" onClick={() => mutate(id)}>
+						Delete
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

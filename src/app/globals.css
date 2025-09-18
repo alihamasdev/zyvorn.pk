@@ -118,7 +118,14 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
 	input::-webkit-inner-spin-button {
-		@apply hidden;
+		display: none;
+	}
+	input::-webkit-color-swatch-wrapper {
+		padding: 0px 0px;
+	}
+	input::-webkit-color-swatch {
+		border: none;
 	}
 }

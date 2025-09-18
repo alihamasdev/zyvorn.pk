@@ -1,15 +1,15 @@
 "use client";
 
-import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Category } from "@prisma/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { useForm, type DefaultValues } from "react-hook-form";
 import slugify from "slugify";
 import { toast } from "sonner";
 
-import { Button, LoaderButton } from "@/components/ui/button";
+import type { Category } from "@/lib/prisma/client";
+import { optimisticUpdate } from "@/lib/tanstack/optimistic-update";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -35,26 +35,35 @@ interface CategoriesFormProps extends React.ComponentProps<typeof Dialog> {
 
 export function CategoriesForm({ defaultValues, title, trigger, setOpen, ...props }: CategoriesFormProps) {
 	const queryClient = useQueryClient();
-	const [isPending, startTransition] = useTransition();
+
+	const queryKey: QueryKey = ["categories", "dashboard"];
 
 	const form = useForm<CategoriesSchema>({
 		resolver: zodResolver(categoriesSchema),
 		defaultValues
 	});
 
+	const { mutate } = useMutation({
+		mutationFn: categoryUpsertAction,
+		onMutate: async (data) => {
+			const [previousData] = await optimisticUpdate<Category[]>(queryKey, (oldData) => {
+				if (!oldData) return oldData;
+				return data.id ? oldData.map((val) => (val.id === data.id ? { ...val, ...data } : val)) : [...oldData, { ...data, id: 100 }];
+			});
+			setOpen(false);
+			form.reset();
+			return previousData;
+		},
+		onError: (error, _variables, context) => {
+			toast.error(error.message);
+			queryClient.setQueryData<Category[]>(queryKey, context);
+		},
+		onSuccess: () => toast.success(defaultValues?.id ? "Category updated successfuly" : "Category added successfuly"),
+		onSettled: () => queryClient.invalidateQueries({ queryKey })
+	});
+
 	function onSubmit(values: CategoriesSchema) {
-		startTransition(async () => {
-			const { error, data } = await categoryUpsertAction(values);
-			if (error || !data) {
-				toast.error(error);
-			} else {
-				setOpen(false);
-				queryClient.setQueryData(["categories", "dashboard"], (oldData: Category[]) =>
-					defaultValues?.id ? oldData.map((val) => (val.id === defaultValues.id ? { ...val, ...data } : val)) : [...oldData, data]
-				);
-				form.reset();
-			}
-		});
+		mutate(values);
 	}
 
 	return (
@@ -112,7 +121,7 @@ export function CategoriesForm({ defaultValues, title, trigger, setOpen, ...prop
 							<DialogClose asChild>
 								<Button variant="secondary">Cancel</Button>
 							</DialogClose>
-							<LoaderButton type="submit" loading={isPending} />
+							<Button type="submit">Submit</Button>
 						</DialogFooter>
 					</form>
 				</Form>

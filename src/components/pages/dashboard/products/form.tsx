@@ -3,15 +3,16 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, PlusIcon, Trash2Icon, UploadIcon, XIcon } from "lucide-react";
 import { useFieldArray, useForm, type DefaultValues } from "react-hook-form";
 import generateSlug from "slugify";
 import { toast } from "sonner";
 
+import type { ProductPayload } from "@/lib/types";
 import { useCategories } from "@/context/categories-context";
 import { Button, LoaderButton } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	FileUpload,
 	FileUploadDropzone,
@@ -27,7 +28,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 import { addProductAction } from "./action";
-import type { ProductPayload } from "./columns";
 import { productSchema, type ProductSchema } from "./schema";
 
 type ProductFormProps = {
@@ -52,21 +52,22 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 		remove: removeOption
 	} = useFieldArray({
 		control: form.control,
-		name: "colorVariation"
+		name: "variations"
+	});
+
+	const { mutate } = useMutation({
+		mutationFn: addProductAction,
+		onSuccess: (data) => {
+			queryClient.setQueryData<ProductPayload[]>(["products", "dashboard"], (oldData) => (oldData ? [...oldData, data] : oldData));
+			router.push("/dashboard/products");
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		}
 	});
 
 	function onSubmit(values: ProductSchema) {
-		startTransition(async () => {
-			const { error, data } = await addProductAction(values);
-			if (error || !data) {
-				toast.error(error);
-			} else {
-				const categoryName = categories.find((val) => val.id === data.categoryId)?.name || "";
-				const payload: ProductPayload = { ...data, colorOptions: values.colorVariation, category: { name: categoryName } };
-				queryClient.setQueryData<ProductPayload[]>(["products", "dashboard"], (oldData) => (oldData ? [...oldData, payload] : oldData));
-				router.push("/dashboard/products");
-			}
-		});
+		startTransition(() => mutate(values));
 	}
 
 	return (
@@ -82,7 +83,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 								<Input
 									onChange={(e) => {
 										onChange(e.target.value);
-										form.setValue("slug", generateSlug(value, { lower: true, trim: true }));
+										form.setValue("slug", generateSlug(e.target.value, { lower: true, trim: true }));
 									}}
 									value={value}
 									{...field}
@@ -95,24 +96,13 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 
 				<FormField
 					control={form.control}
-					name="category"
-					render={({ field: { value, onChange } }) => (
+					name="slug"
+					render={({ field: { value } }) => (
 						<FormItem>
-							<FormLabel>Product Category</FormLabel>
-							<Select value={value?.toString()} onValueChange={(val) => onChange(Number(val))}>
-								<FormControl>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Select product category" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									{categories.map(({ id, name }) => (
-										<SelectItem key={id} value={id.toString()} className="capitalize">
-											{name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+							<FormLabel>Product Slug</FormLabel>
+							<FormControl>
+								<Input value={value} readOnly />
+							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
@@ -148,12 +138,37 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 
 				<FormField
 					control={form.control}
+					name="categoryId"
+					render={({ field: { value, onChange } }) => (
+						<FormItem>
+							<FormLabel>Product Category</FormLabel>
+							<Select value={value?.toString()} onValueChange={(val) => onChange(Number(val))}>
+								<FormControl>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select product category" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									{categories.map(({ id, name }) => (
+										<SelectItem key={id} value={id.toString()} className="capitalize">
+											{name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
 					name="shortDescription"
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>Short Description</FormLabel>
 							<FormControl>
-								<Textarea rows={4} className="min-h-48 resize-none" {...field} />
+								<Input {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -164,7 +179,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 					control={form.control}
 					name="longDescription"
 					render={({ field }) => (
-						<FormItem>
+						<FormItem className="md:col-span-2">
 							<FormLabel>Long Description</FormLabel>
 							<FormControl>
 								<Textarea rows={4} className="min-h-48 resize-none" {...field} />
@@ -238,27 +253,31 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 				/>
 
 				<Card className="py-4 md:col-span-2 md:py-6">
-					<CardHeader className="grid grid-cols-2 grid-rows-1 items-center px-4 md:px-6">
+					<CardHeader className="grid grid-cols-2 grid-rows-1 items-center px-2 md:px-6">
 						<CardTitle>Color Variation</CardTitle>
-						<Button className="ml-auto w-fit" onClick={() => appendOption({ color: "", stock: 0 })} variant="outline">
+						<Button className="ml-auto w-fit" onClick={() => appendOption({ name: "", color: "#000000", stock: 0 })} variant="outline">
 							<PlusIcon />
 							Add Option
 						</Button>
 					</CardHeader>
-					<CardContent className="px-4 md:px-6">
+
+					<CardContent className="px-2 md:px-6">
 						<FormField
 							control={form.control}
-							name="colorVariation"
+							name="variations"
 							render={() => (
 								<FormItem>
 									{options.map((option, optionIndex) => (
-										<div className="grid grid-cols-[1fr_1fr_40px] items-start gap-2 md:gap-4" key={option.id}>
+										<div
+											key={option.id}
+											className="grid grid-cols-[1fr_1fr_40px_40px] items-start gap-2 md:grid-cols-[1fr_1fr_1fr_40px] md:gap-4"
+										>
 											<FormField
 												control={form.control}
-												name={`colorVariation.${optionIndex}.color`}
+												name={`variations.${optionIndex}.name`}
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Color</FormLabel>
+														<FormLabel>Name</FormLabel>
 														<FormControl>
 															<Input {...field} />
 														</FormControl>
@@ -269,7 +288,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 
 											<FormField
 												control={form.control}
-												name={`colorVariation.${optionIndex}.stock`}
+												name={`variations.${optionIndex}.stock`}
 												render={({ field: { onChange, value, ...field } }) => (
 													<FormItem>
 														<FormLabel>Stock</FormLabel>
@@ -281,9 +300,23 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 												)}
 											/>
 
+											<FormField
+												control={form.control}
+												name={`variations.${optionIndex}.color`}
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Color</FormLabel>
+														<FormControl>
+															<Input type="color" className="overflow-hidden border-none p-0" {...field} />
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+
 											<Button
 												size="icon"
-												className="mt-auto"
+												className="mt-5.5"
 												variant="destructive"
 												onClick={() => removeOption(optionIndex)}
 												disabled={options.length === 1}
@@ -297,6 +330,11 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 							)}
 						/>
 					</CardContent>
+					{form.formState.errors.variations && (
+						<CardFooter className="px-2 md:px-6">
+							<span className="text-destructive text-sm">{form.formState.errors.variations?.root?.message}</span>
+						</CardFooter>
+					)}
 				</Card>
 
 				<LoaderButton type="submit" className="md:w-fit" loading={isPending} />

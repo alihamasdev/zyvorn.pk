@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, use } from "react";
-import type { Category } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 
 import { getCategories } from "@/lib/dal";
+import type { Category } from "@/lib/prisma/client";
 
 const CategoriesContext = createContext<Category[] | null>(null);
 

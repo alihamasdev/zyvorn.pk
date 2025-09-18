@@ -1,9 +1,11 @@
-import { useState, useTransition } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button, LoaderButton } from "@/components/ui/button";
+import { optimisticUpdate } from "@/lib/tanstack/optimistic-update";
+import type { ProductPayload } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogClose,
@@ -16,24 +18,25 @@ import {
 } from "@/components/ui/dialog";
 
 import { deleteProductAction } from "./action";
-import type { ProductPayload } from "./columns";
 
 export function ProductDeleteDialog({ slug }: { slug: string }) {
 	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
-	const [isPending, startTransition] = useTransition();
 
-	const handleDelete = () => {
-		startTransition(async () => {
-			const { error } = await deleteProductAction(slug);
-			if (error) {
-				toast.error(error);
-			} else {
-				setOpen(false);
-				queryClient.setQueryData(["products", "dashboard"], (oldData: ProductPayload[]) => oldData.filter((val) => val.slug !== slug));
-			}
-		});
-	};
+	const queryKey: QueryKey = ["products", "dashboard"];
+
+	const { mutate } = useMutation({
+		mutationFn: deleteProductAction,
+		onMutate: async () => {
+			const [previousData] = await optimisticUpdate<ProductPayload[]>(queryKey, (oldData) => oldData?.filter((val) => val.slug !== slug));
+			return previousData;
+		},
+		onError: (error, _variables, context) => {
+			toast.error(error.message);
+			queryClient.setQueryData<ProductPayload[]>(queryKey, context);
+		},
+		onSuccess: () => toast.success("Product deleted successfully")
+	});
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -54,9 +57,9 @@ export function ProductDeleteDialog({ slug }: { slug: string }) {
 					<DialogClose asChild>
 						<Button variant="secondary">Cancel</Button>
 					</DialogClose>
-					<LoaderButton variant="destructive" loadingText="Deleting" loading={isPending} onClick={handleDelete}>
+					<Button variant="destructive" onClick={() => mutate(slug)}>
 						Delete
-					</LoaderButton>
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
