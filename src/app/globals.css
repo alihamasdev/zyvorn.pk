@@ -5,6 +5,7 @@
 
 @theme inline {
 	--spacing: 4px;
+	--scale-x: 0;
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
@@ -118,7 +119,9 @@
 	body {
 		@apply bg-background text-foreground;
 	}
-
+	.decoration-gradient {
+		@apply before:bg-primary relative cursor-pointer before:absolute before:bottom-0 before:left-0 before:h-[3px] before:w-full before:origin-left before:scale-x-0 before:rounded-full before:transition-transform before:duration-300 hover:before:scale-x-100;
+	}
 	input::-webkit-inner-spin-button {
 		display: none;
 	}
