@@ -9,7 +9,7 @@ import { useFieldArray, useForm, type DefaultValues } from "react-hook-form";
 import generateSlug from "slugify";
 import { toast } from "sonner";
 
-import type { ProductPayload } from "@/lib/types";
+import type { DashbboardProducts } from "@/lib/dal";
 import { useCategories } from "@/context/categories-context";
 import { Button, LoaderButton } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +58,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 	const { mutate } = useMutation({
 		mutationFn: addProductAction,
 		onSuccess: (data) => {
-			queryClient.setQueryData<ProductPayload[]>(["products", "dashboard"], (oldData) => (oldData ? [...oldData, data] : oldData));
+			queryClient.setQueryData<DashbboardProducts[]>(["products", "dashboard"], (oldData) => (oldData ? [...oldData, data] : oldData));
 			router.push("/dashboard/products");
 		},
 		onError: (error) => {

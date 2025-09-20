@@ -3,14 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 
-import { getProducts } from "@/lib/dal";
-import { ErrorComp } from "@/components/error";
+import { getDashboardProducts } from "@/lib/dal";
+import { ErrorComp } from "@/components/ui/error";
 import { DataTable } from "@/components/pages/dashboard/products/data-table";
 
 export default function ProductsPage() {
 	const { data, status } = useQuery({
 		queryKey: ["products", "dashboard"],
-		queryFn: getProducts,
+		queryFn: getDashboardProducts,
 		staleTime: 15 * 60 * 1000
 	});
 

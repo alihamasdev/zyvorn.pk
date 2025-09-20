@@ -4,7 +4,7 @@ import Link from "next/link";
 import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
 import { PlusIcon, Settings2Icon } from "lucide-react";
 
-import type { ProductPayload } from "@/lib/types";
+import type { DashbboardProducts } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { columns } from "./columns";
 import { ProductDeleteDialog } from "./delete-product";
 
-export function DataTable({ data }: { data: ProductPayload[] }) {
+export function DataTable({ data }: { data: DashbboardProducts[] }) {
 	const table = useReactTable({
 		data,
 		columns,

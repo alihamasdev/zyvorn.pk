@@ -3,11 +3,11 @@
 import Image from "next/image";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { ProductPayload } from "@/lib/types";
+import type { DashbboardProducts } from "@/lib/dal";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export const columns: ColumnDef<ProductPayload>[] = [
+export const columns: ColumnDef<DashbboardProducts>[] = [
 	{
 		accessorKey: "images",
 		header: "Image",
@@ -29,7 +29,7 @@ function ProductImage({ src }: { src: string }) {
 	);
 }
 
-function ColorVariants({ data }: { data: ProductPayload["variations"] }) {
+function ColorVariants({ data }: { data: DashbboardProducts["variations"] }) {
 	return (
 		<div className="flex items-center justify-center gap-0.5 md:gap-2">
 			{data.map(({ name, color, stock }) => (

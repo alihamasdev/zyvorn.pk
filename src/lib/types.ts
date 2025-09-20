@@ -1,6 +1,33 @@
-import type { Product } from "@/lib/prisma/client";
+import type { Prisma, Product } from "@/lib/prisma/client";
 
-export interface ProductPayload extends Product {
-	category: { name: string; slug: string };
-	variations: { name: string; color: string; stock: number }[];
+export const productInclude = {
+	category: { select: { name: true, slug: true } },
+	variations: { select: { name: true, color: true, stock: true } },
+	reviews: { select: { rating: true, comment: true, name: true } }
+} satisfies Prisma.ProductInclude;
+
+export type ProductPayload = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
+
+export interface ProductData extends Product {
+	rating: number;
+	category: ProductCategory;
+	variations: ProductVariation[];
+	reviews: ProductReview[];
 }
+
+export type ProductReview = {
+	name: string;
+	rating: number;
+	comment: string | null;
+};
+
+export type ProductCategory = {
+	name: string;
+	slug: string;
+};
+
+export type ProductVariation = {
+	name: string;
+	color: string;
+	stock: number;
+};
