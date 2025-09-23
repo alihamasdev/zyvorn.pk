@@ -1,27 +1,14 @@
-"use client";
-
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { unstable_cache as cache } from "next/cache";
 
 import { axios } from "@/lib/axios";
-import type { ProductPayload } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { ProductLayout } from "@/components/product/product-layout";
+import type { ProductCardPayload } from "@/lib/types";
+import { ProductCard } from "@/components/product/product-card";
 
-export function LatestProducts() {
-	const query = useQuery({
-		queryKey: ["latest", "products"],
-		queryFn: () => axios.get<ProductPayload[]>("/api/products/latest").then((res) => res.data)
-	});
+const getLatestProduct = cache(async () => {
+	return await axios.get<ProductCardPayload[]>("/api/products/latest").then((res) => res.data);
+});
 
-	return (
-		<>
-			<ProductLayout query={query} />
-			<div className="flex justify-center">
-				<Button variant="outline" className="cursor-pointer" asChild>
-					<Link href="/collections/all-products">Show More</Link>
-				</Button>
-			</div>
-		</>
-	);
+export async function LatestProducts() {
+	const data = await getLatestProduct();
+	return data.map((product, index) => <ProductCard key={product.id} index={index} data={product} />);
 }

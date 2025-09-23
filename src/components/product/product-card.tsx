@@ -1,60 +1,39 @@
-"use client";
-
-import { useState } from "react";
+import type { Route } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 
-import type { ProductData } from "@/lib/types";
+import type { ProductCardPayload } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { StarRating } from "@/components/product/product-rating";
+import { Link } from "@/components/link";
 
-export function ProductCard({ productData }: { productData: ProductData }) {
-	const [prefetch, setPrefetch] = useState(false);
-
-	const { data } = useQuery({
-		queryKey: ["product", productData.id],
-		queryFn: () => Promise.resolve(productData),
-		initialData: productData
-	});
-
+export function ProductCard({ data, index }: { data: ProductCardPayload; index: number }) {
 	return (
-		<div className="space-y-1">
-			<Link
-				prefetch={prefetch}
-				href={`/product/${data.slug}`}
-				onMouseEnter={() => setPrefetch(true)}
-				className="relative flex shrink-0 overflow-hidden rounded-md"
-			>
-				<Image src={data.images[0]} width={200} height={200} alt={data.title} className="aspect-square size-full object-cover" />
+		<div className="relative space-y-1">
+			<Link href={`/product/${data.slug}` as Route} className="bg-muted relative flex shrink-0 overflow-hidden rounded-md">
+				<Image
+					width={200}
+					height={200}
+					alt={data.title}
+					src={data.images[0]}
+					priority={index > 5}
+					className="aspect-square size-full object-cover"
+				/>
 			</Link>
-			<Link
-				prefetch={prefetch}
-				onMouseEnter={() => setPrefetch(true)}
-				href={`/product/${data.slug}`}
-				className="pt-1 text-sm font-medium md:text-base"
-			>
+			<Link href={`/product/${data.slug}` as Route} className="text-sm font-medium md:text-base">
 				{data.title}
 			</Link>
-			<StarRating rating={data.rating} />
-			<div className="mt-1 flex items-end gap-x-1">
-				{data.discountedPrice && <span className="text-base font-medium">{`Rs.${data.discountedPrice}`}</span>}
-				<span
-					className={cn(
-						"block",
-						data.discountedPrice ? "text-muted-foreground text-xs font-normal line-through md:text-sm" : "text-sm font-medium md:text-base"
-					)}
-				>
+			<div className="flex items-end gap-x-1">
+				{data.discountedPrice && <span className="font-medium">{`Rs.${data.discountedPrice}`}</span>}
+				<span className={cn("block", data.discountedPrice ? "text-muted-foreground text-sm font-normal line-through" : "")}>
 					{`Rs.${data.originalPrice}`}
 				</span>
 			</div>
-			<div className="mt-1 flex items-center gap-x-1">
+			<div className="flex items-center gap-x-1">
 				{data.variations.map(({ name, color }) => (
 					<Tooltip key={name}>
 						<TooltipTrigger asChild>
-							<div className={cn("border-muted-foreground size-3 rounded-full border md:size-4")} style={{ backgroundColor: color }} />
+							<div className={cn("border-muted-foreground size-4 rounded-full border")} style={{ backgroundColor: color }} />
 						</TooltipTrigger>
 						<TooltipContent className="font-medium capitalize">{name}</TooltipContent>
 					</Tooltip>

@@ -1,5 +1,23 @@
 import type { Prisma, Product } from "@/lib/prisma/client";
 
+export const productCardSelect = {
+	id: true,
+	title: true,
+	slug: true,
+	images: true,
+	originalPrice: true,
+	discountedPrice: true,
+	variations: {
+		select: {
+			name: true,
+			color: true,
+			stock: true
+		}
+	}
+} satisfies Prisma.ProductSelect;
+
+export type ProductCardPayload = Prisma.ProductGetPayload<{ select: typeof productCardSelect }>;
+
 export const productInclude = {
 	category: { select: { name: true, slug: true } },
 	variations: { select: { name: true, color: true, stock: true } },

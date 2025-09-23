@@ -51,7 +51,7 @@ export function ImageCarousel({ images, autoPlay = true, autoPlayInterval = 5000
 				<CarouselContent className="m-0">
 					{images.map(({ src, alt, width, height }, index) => (
 						<CarouselItem key={index} className="bg-muted w-full p-0">
-							<img src={src} alt={alt} width={width} height={height} className="object-cover" loading="eager" />
+							<img src={src} alt={alt} width={width} height={height} className="w-full object-cover" loading="eager" />
 						</CarouselItem>
 					))}
 				</CarouselContent>
@@ -64,8 +64,8 @@ export function ImageCarousel({ images, autoPlay = true, autoPlayInterval = 5000
 						onClick={() => api?.scrollTo(index)}
 						aria-label={`Go to slide ${index + 1}`}
 						className={cn(
-							"size-1.5 rounded-full transition-all duration-200 md:size-2",
-							index + 1 === current ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+							"size-2 rounded-full transition-all duration-200",
+							index + 1 === current ? "bg-primary" : "bg-muted-foreground/30"
 						)}
 					/>
 				))}

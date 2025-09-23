@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
-import { productInclude, type ProductPayload } from "@/lib/types";
+import { productCardSelect, type ProductCardPayload } from "@/lib/types";
 
 export async function GET() {
 	try {
 		const products = (await prisma.product.findMany({
 			take: 10,
-			include: productInclude,
+			select: productCardSelect,
 			orderBy: { createdAt: "desc" }
-		})) satisfies ProductPayload[];
+		})) satisfies ProductCardPayload[];
 
 		return NextResponse.json(products);
 	} catch (error) {
