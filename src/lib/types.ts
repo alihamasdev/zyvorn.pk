@@ -19,18 +19,13 @@ export const productCardSelect = {
 export type ProductCardPayload = Prisma.ProductGetPayload<{ select: typeof productCardSelect }>;
 
 export const productInclude = {
-	category: { select: { name: true, slug: true } },
-	variations: { select: { name: true, color: true, stock: true } },
-	reviews: { select: { rating: true, comment: true, name: true } }
+	variations: { select: { name: true, color: true, stock: true } }
 } satisfies Prisma.ProductInclude;
 
 export type ProductPayload = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
 
 export interface ProductData extends Product {
-	rating: number;
-	category: ProductCategory;
 	variations: ProductVariation[];
-	reviews: ProductReview[];
 }
 
 export type ProductReview = {
