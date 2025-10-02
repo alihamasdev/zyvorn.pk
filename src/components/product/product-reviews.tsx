@@ -13,8 +13,8 @@ export default async function ProductReviews({ productId }: { productId: number 
 					<p className="line-clamp-1">{name}</p>
 					<p className="text-muted-foreground text-sm break-words whitespace-pre-line">{comment}</p>
 					{image && (
-						<div className="bg-muted relative aspect-square overflow-hidden rounded-md border">
-							<Image src={image} alt={`${name} review`} fill />
+						<div className="bg-muted relative mt-2 aspect-square overflow-hidden rounded-md border">
+							<Image src={image} alt={`${name} review`} width={250} height={250} className="aspect-square size-full object-cover" />
 						</div>
 					)}
 				</div>
