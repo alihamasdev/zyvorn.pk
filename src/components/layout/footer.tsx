@@ -30,12 +30,12 @@ export function Footer() {
 								<h2 className="leading-8 font-medium">Get in touch</h2>
 								<div className="text-muted-foreground space-y-2 text-left">
 									<a
-										href="tel:+923055540851"
+										href="tel:+923707525627"
 										target="_blank"
 										rel="noopener noreferrer"
 										className="decoration-gradient before:[h-2px] block w-fit px-1 pb-px"
 									>
-										+92 305 5540851
+										+92 370 7525627
 									</a>
 									<a
 										href="mailto:zyvorn.pk1@gmail.com"

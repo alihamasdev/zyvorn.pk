@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 
 export function ProductImages({ images }: { images: string[] }) {
 	const [api, setApi] = useState<CarouselApi>();
@@ -39,6 +39,8 @@ export function ProductImages({ images }: { images: string[] }) {
 						</CarouselItem>
 					))}
 				</CarouselContent>
+				<CarouselNext className="right-4 hidden md:inline-flex" variant="default" />
+				<CarouselPrevious className="left-4 hidden md:inline-flex" variant="default" />
 			</Carousel>
 			<div className="grid grid-cols-4 gap-2">
 				{images.map((src, index) => (
