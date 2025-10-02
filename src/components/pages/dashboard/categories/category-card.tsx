@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { Category } from "@prisma/client";
 import { EditIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 
+import type { Category } from "@/lib/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-import { DeleteCategory } from "./delete-category";
+import { CategoryDeleteDialog } from "./delete-category";
 import { CategoriesForm } from "./form";
 
 export function CategoryCard({ id, name, slug }: Category) {
@@ -40,7 +40,7 @@ export function CategoryCard({ id, name, slug }: Category) {
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 				<CategoriesForm title="Edit Category" defaultValues={{ name, slug, id }} open={open} setOpen={setOpen} />
-				<DeleteCategory id={id} category={name} open={deleteOpen} setOpen={setDeleteOpen} />
+				<CategoryDeleteDialog id={id} category={name} open={deleteOpen} setOpen={setDeleteOpen} />
 			</DropdownMenu>
 		</Card>
 	);

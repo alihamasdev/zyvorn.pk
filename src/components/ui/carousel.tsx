@@ -2,7 +2,7 @@
 
 import { createContext, use, useCallback, useEffect, useState } from "react";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -156,7 +156,7 @@ function CarouselPrevious({ className, variant = "outline", size = "icon", ...pr
 			variant={variant}
 			{...props}
 		>
-			<ArrowLeft />
+			<ChevronLeftIcon strokeWidth={2.5} />
 			<span className="sr-only">Previous slide</span>
 		</Button>
 	);
@@ -179,7 +179,7 @@ function CarouselNext({ className, variant = "outline", size = "icon", ...props 
 			variant={variant}
 			{...props}
 		>
-			<ArrowRight />
+			<ChevronRightIcon strokeWidth={2.5} />
 			<span className="sr-only">Next slide</span>
 		</Button>
 	);

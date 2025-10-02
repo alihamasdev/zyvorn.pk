@@ -5,27 +5,21 @@ import { prisma } from "@/lib/db";
 
 import { categoriesSchema, type CategoriesSchema } from "./schema";
 
-export async function categoryUpsertAction({ name, slug, id }: CategoriesSchema) {
+export async function categoryUpsertAction({ id, name, slug }: CategoriesSchema) {
 	const { success } = categoriesSchema.safeParse({ name, slug, id });
-	if (!success) return { error: "Please provide valid data", data: null };
+	if (!success) throw new Error("Please provide valid data");
 
 	await validateUser();
 
 	if (id) {
-		const data = await prisma.category.update({ where: { id }, data: { name, slug } });
-		return { error: null, data };
+		return await prisma.category.update({ where: { id }, data: { name, slug } });
 	}
 
-	const data = await prisma.category.create({ data: { name, slug } });
-	return { error: null, data };
+	return await prisma.category.create({ data: { name, slug } });
 }
 
 export async function deleteCategoryAction(id: number) {
 	await validateUser();
-
-	if (!id) return { error: "Provide id to delete category" };
-
+	if (!id) throw new Error("Please select category to delete");
 	await prisma.category.delete({ where: { id } });
-
-	return { error: null };
 }
