@@ -3,7 +3,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { LoaderIcon } from "lucide-react";
 
-import { getLimitedProducts, getProductBySlug, getProductRating } from "@/lib/dal";
+import { getProductBySlug, getProductRating } from "@/lib/dal";
+import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ProductButtons } from "@/components/product/product-buttons";
@@ -13,7 +14,7 @@ import { ProductRatingStars } from "@/components/product/product-rating-stars";
 const ProductReviews = dynamic(() => import("@/components/product/product-reviews"));
 
 export async function generateStaticParams() {
-	const products = await getLimitedProducts(30);
+	const products = await prisma.product.findMany();
 	return products.map(({ slug }) => ({ slug }));
 }
 

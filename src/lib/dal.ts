@@ -1,7 +1,6 @@
 "use server";
 
 import { cache } from "react";
-import { unstable_cache as next_cache } from "next/cache";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db";
@@ -22,15 +21,13 @@ export const getDashboardProducts = cache(async () => {
 });
 export type DashbboardProducts = Awaited<ReturnType<typeof getDashboardProducts>>[number];
 
-export const getLimitedProducts = next_cache(
-	async (limit: number, orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" }) => {
-		return (await prisma.product.findMany({
-			orderBy,
-			take: limit,
-			select: productCardSelect
-		})) satisfies ProductCardPayload[];
-	}
-);
+export const getLimitedProducts = cache(async (limit: number, orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" }) => {
+	return (await prisma.product.findMany({
+		orderBy,
+		take: limit,
+		select: productCardSelect
+	})) satisfies ProductCardPayload[];
+});
 
 export const getProductBySlug = cache(async (slug: string) => {
 	const product = (await prisma.product.findUnique({
@@ -57,5 +54,13 @@ export const getProductReviews = cache(async (productId: number) => {
 		take: 15,
 		where: { productId },
 		orderBy: { createdAt: "desc" }
+	});
+});
+
+export const getProductsByCategory = cache(async (category?: string) => {
+	return await prisma.product.findMany({
+		select: productCardSelect,
+		orderBy: { createdAt: "desc" },
+		where: category ? { category: { slug: category } } : undefined
 	});
 });

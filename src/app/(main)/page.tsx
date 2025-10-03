@@ -12,8 +12,6 @@ const images = [
 	{ src: "banner_3.webp", alt: "carousel image", width: 1248, height: 416 }
 ];
 
-export const dynamic = "force-static";
-
 export default function HomePage() {
 	return (
 		<>
@@ -27,7 +25,7 @@ export default function HomePage() {
 				</div>
 				<div className="flex justify-center">
 					<Button variant="outline" className="cursor-pointer" asChild>
-						<Link href="/collections/all-products">Show More</Link>
+						<Link href="/collections/all">Show More</Link>
 					</Button>
 				</div>
 			</section>

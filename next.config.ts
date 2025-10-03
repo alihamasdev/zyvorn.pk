@@ -10,7 +10,10 @@ const nextConfig: NextConfig = {
 		typedEnv: true,
 		viewTransition: true,
 		authInterrupts: true,
-		devtoolSegmentExplorer: true
+		devtoolSegmentExplorer: true,
+		serverActions: {
+			bodySizeLimit: "20mb"
+		}
 	}
 };
 
