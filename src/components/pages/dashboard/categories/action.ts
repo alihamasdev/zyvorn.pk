@@ -18,7 +18,7 @@ export async function categoryUpsertAction({ id, name, slug }: CategoriesSchema)
 	return await prisma.category.create({ data: { name, slug } });
 }
 
-export async function deleteCategoryAction(id: number) {
+export async function deleteCategoryAction(id: string) {
 	await validateUser();
 	if (!id) throw new Error("Please select category to delete");
 	await prisma.category.delete({ where: { id } });

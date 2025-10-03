@@ -31,7 +31,8 @@ export interface ProductData extends Product {
 export type ProductReview = {
 	name: string;
 	rating: number;
-	comment: string | null;
+	comment: string;
+	image: string | null;
 };
 
 export type ProductCategory = {

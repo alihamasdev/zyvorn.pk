@@ -14,7 +14,7 @@ import { ProductRatingStars } from "@/components/product/product-rating-stars";
 const ProductReviews = dynamic(() => import("@/components/product/product-reviews"));
 
 export async function generateStaticParams() {
-	const products = await prisma.product.findMany();
+	const products = await prisma.product.findMany({ select: { slug: true } });
 	return products.map(({ slug }) => ({ slug }));
 }
 
@@ -51,7 +51,6 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 						<ProductButtons variations={data.variations} />
 					</Suspense>
 				</div>
-				<div />
 			</section>
 			<section className="space-y-4">
 				<h1 id="description" className="scroll-m-18 text-2xl font-semibold">
@@ -63,7 +62,13 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 				<h1 id="reviews" className="scroll-m-18 text-2xl font-semibold">
 					Reviews
 				</h1>
-				<Suspense fallback={<LoaderIcon className="mx-auto animate-spin" />}>
+				<Suspense
+					fallback={
+						<div className="flex h-30 w-full items-center justify-center">
+							<LoaderIcon className="text-muted-foreground animate-spin" />
+						</div>
+					}
+				>
 					<ProductReviews productId={data.id} />
 				</Suspense>
 			</section>
@@ -71,7 +76,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 	);
 }
 
-async function ProductRating({ productId }: { productId: number }) {
+async function ProductRating({ productId }: { productId: string }) {
 	const { rating, totalRating } = await getProductRating(productId);
 	return (
 		<ProductRatingStars rating={rating} size="lg">

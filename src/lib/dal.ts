@@ -40,7 +40,7 @@ export const getProductBySlug = cache(async (slug: string) => {
 	return product;
 });
 
-export const getProductRating = cache(async (productId: number) => {
+export const getProductRating = cache(async (productId: string) => {
 	const { _avg, _count } = await prisma.review.aggregate({
 		where: { productId },
 		_avg: { rating: true },
@@ -49,7 +49,7 @@ export const getProductRating = cache(async (productId: number) => {
 	return { rating: _avg.rating ?? 0, totalRating: _count };
 });
 
-export const getProductReviews = cache(async (productId: number) => {
+export const getProductReviews = cache(async (productId: string) => {
 	return await prisma.review.findMany({
 		take: 15,
 		where: { productId },

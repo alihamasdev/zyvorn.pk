@@ -4,7 +4,7 @@ export const productSchema = z
 	.object({
 		title: z.string().min(1, "Title is required").max(255, "Title must be 255 characters or less").trim(),
 		slug: z.string().min(1, "Slug is required").trim(),
-		categoryId: z.number("Please select category"),
+		categoryId: z.string("Please select category"),
 		originalPrice: z.number().positive("Original price must be a positive integer"),
 		discountedPrice: z.number().nonnegative("Discounted price must be a positive integer").optional(),
 		shortDescription: z.string().optional(),

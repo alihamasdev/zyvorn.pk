@@ -11,7 +11,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { deleteCategoryAction } from "./action";
 
 interface DeleteCategoryProps extends React.ComponentProps<typeof Dialog> {
-	id: number;
+	id: string;
 	category: string;
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
