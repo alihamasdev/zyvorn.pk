@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db";
 import type { Category, Prisma } from "@/lib/prisma/client";
-import { productCardSelect, productInclude, type ProductCardPayload, type ProductPayload } from "@/lib/types";
+import { productCardSelect, productInclude, type CartProduct, type ProductCardPayload, type ProductPayload } from "@/lib/types";
 
 export const getCategories = cache(async () => {
 	return (await prisma.category.findMany({ orderBy: { name: "asc" } })) satisfies Category[];
@@ -62,5 +62,43 @@ export const getProductsByCategory = cache(async (category?: string) => {
 		select: productCardSelect,
 		orderBy: { createdAt: "desc" },
 		where: category ? { category: { slug: category } } : undefined
+	});
+});
+
+export const getCartProducts = cache(async (variations: { variationId: string; quantity: number }[]) => {
+	const products = await Promise.all(
+		variations.map(({ variationId }) =>
+			prisma.variation.findUnique({
+				where: { id: variationId },
+				select: {
+					id: true,
+					name: true,
+					product: {
+						select: {
+							id: true,
+							images: true,
+							discountedPrice: true,
+							originalPrice: true,
+							title: true
+						}
+					}
+				}
+			})
+		)
+	);
+
+	return products.map((product, index) => {
+		if (!product) throw new Error("Product variation not found");
+
+		return {
+			productId: product.product.id,
+			title: product.product.title,
+			image: product.product.images[0],
+			quantity: variations[index].quantity,
+			price: product.product.discountedPrice ?? product.product.originalPrice,
+			totalPrice: (product.product.discountedPrice ?? product.product.originalPrice) * variations[index].quantity,
+			variationId: product.id,
+			variationName: product.name
+		} satisfies CartProduct;
 	});
 });
