@@ -1,9 +1,8 @@
 import { getProductsByCategory } from "@/lib/dal";
 import { ProductCard } from "@/components/product/product-card";
 
-export const revalidate = 60;
-
 export default async function CollectionsPage({ params }: PageProps<"/collections/[category]">) {
+	"use cache";
 	const { category } = await params;
 	const products = await getProductsByCategory(category === "all" ? undefined : category);
 

@@ -142,7 +142,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 					render={({ field: { value, onChange } }) => (
 						<FormItem>
 							<FormLabel>Product Category</FormLabel>
-							<Select value={value?.toString()} onValueChange={(val) => onChange(Number(val))}>
+							<Select value={value} onValueChange={onChange}>
 								<FormControl>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Select product category" />
@@ -150,7 +150,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 								</FormControl>
 								<SelectContent>
 									{categories.map(({ id, name }) => (
-										<SelectItem key={id} value={id.toString()} className="capitalize">
+										<SelectItem key={id} value={id} className="capitalize">
 											{name}
 										</SelectItem>
 									))}

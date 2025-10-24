@@ -19,6 +19,7 @@ export async function generateStaticParams() {
 }
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
+	"use cache";
 	const { slug } = await params;
 	const data = await getProductBySlug(slug);
 	return (
@@ -77,6 +78,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 }
 
 async function ProductRating({ productId }: { productId: string }) {
+	"use cache";
 	const { rating, totalRating } = await getProductRating(productId);
 	return (
 		<ProductRatingStars rating={rating} size="lg">

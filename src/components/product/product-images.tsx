@@ -45,7 +45,7 @@ export function ProductImages({ images }: { images: string[] }) {
 			<div className="grid grid-cols-4 gap-2">
 				{images.map((src, index) => (
 					<button
-						key={src}
+						key={src + index}
 						type="button"
 						onClick={() => api?.scrollTo(index)}
 						className={cn(

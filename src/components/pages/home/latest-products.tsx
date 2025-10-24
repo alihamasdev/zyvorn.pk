@@ -1,3 +1,5 @@
+"use cache";
+
 import { getLimitedProducts } from "@/lib/dal";
 import { ProductCard } from "@/components/product/product-card";
 
