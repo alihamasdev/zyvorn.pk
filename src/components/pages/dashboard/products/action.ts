@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import sharp from "sharp";
 
 import { validateUser } from "@/lib/auth";
@@ -12,6 +13,7 @@ export async function deleteProductAction(slug: string) {
 	await validateUser();
 	if (!slug) throw new Error("No product selected");
 	await prisma.product.delete({ where: { slug } });
+	revalidateTag("dashboard-products", "max");
 }
 
 export async function addProductAction(values: ProductSchema) {
@@ -49,6 +51,8 @@ export async function addProductAction(values: ProductSchema) {
 	const payload = { ...data, images, variations: { createMany: { data: data.variations } } };
 
 	const newProduct = await prisma.product.create({ data: payload });
+
+	revalidateTag("dashboard-products", "max");
 
 	return await prisma.product.findUniqueOrThrow({
 		where: { id: newProduct.id },
