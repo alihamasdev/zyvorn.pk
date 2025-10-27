@@ -66,8 +66,6 @@ export const getProductsByCategory = cache(async (category?: string) => {
 });
 
 export const getCartProducts = cache(async (variations: { variationId: string; quantity: number }[]): Promise<CartProduct[]> => {
-	if (!variations.length) return [];
-
 	const products = await Promise.all(
 		variations.map(({ variationId }) =>
 			prisma.variation.findUnique({
@@ -75,24 +73,15 @@ export const getCartProducts = cache(async (variations: { variationId: string; q
 				select: {
 					id: true,
 					name: true,
-					product: {
-						select: {
-							id: true,
-							images: true,
-							discountedPrice: true,
-							originalPrice: true,
-							title: true
-						}
-					}
+					product: { select: { id: true, images: true, discountedPrice: true, originalPrice: true, title: true } }
 				}
 			})
 		)
 	);
 
-	return products.map((product, index) => {
-		if (!product) throw new Error("Product variation not found");
-
-		return {
+	return products
+		.filter((item) => item !== null)
+		.map((product, index) => ({
 			productId: product.product.id,
 			title: product.product.title,
 			image: product.product.images[0],
@@ -101,6 +90,5 @@ export const getCartProducts = cache(async (variations: { variationId: string; q
 			totalPrice: (product.product.discountedPrice ?? product.product.originalPrice) * variations[index].quantity,
 			variationId: product.id,
 			variationName: product.name
-		} satisfies CartProduct;
-	});
+		}));
 });

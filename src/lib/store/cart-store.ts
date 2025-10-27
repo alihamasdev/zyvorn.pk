@@ -13,6 +13,7 @@ interface CartState {
 	cart: CartItem[];
 	addToCart: (variationId: string, quantity?: number) => void;
 	removeFromCart: (variationId: string) => void;
+	clearCart: () => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -38,7 +39,9 @@ export const useCartStore = create<CartState>()(
 					await optimisticUpdate<CartProduct[]>(["cart-products"], (oldData) =>
 						oldData ? oldData.filter((item) => item.variationId === variationId) : oldData
 					);
-				}
+				},
+
+				clearCart: () => set({ cart: [] })
 			};
 		},
 		{ name: "cart" }

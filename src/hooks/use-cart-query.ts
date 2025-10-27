@@ -8,11 +8,11 @@ import { useCartStore } from "@/lib/store/cart-store";
 export function useCartQuery() {
 	const { cart } = useCartStore();
 
-	const { data } = useQuery({
+	const { data, status } = useQuery({
 		queryKey: ["cart-products"],
 		queryFn: () => getCartProducts(cart),
 		retry: 3
 	});
 
-	return { data, cart, totalItems: cart.reduce((total, item) => total + item.quantity, 0) };
+	return { data, status, cart, totalItems: cart.reduce((total, item) => total + item.quantity, 0) };
 }
