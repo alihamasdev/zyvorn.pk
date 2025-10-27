@@ -65,7 +65,9 @@ export const getProductsByCategory = cache(async (category?: string) => {
 	});
 });
 
-export const getCartProducts = cache(async (variations: { variationId: string; quantity: number }[]) => {
+export const getCartProducts = cache(async (variations: { variationId: string; quantity: number }[]): Promise<CartProduct[]> => {
+	if (!variations.length) return [];
+
 	const products = await Promise.all(
 		variations.map(({ variationId }) =>
 			prisma.variation.findUnique({

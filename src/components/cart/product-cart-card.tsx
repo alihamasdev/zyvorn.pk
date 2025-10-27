@@ -1,34 +1,32 @@
 import Image from "next/image";
-import { Trash2Icon } from "lucide-react";
 
-import { useCartStore } from "@/lib/store/cart-store";
 import type { CartProduct } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface ProductCartCardProps {
-	showDelete?: boolean;
-	showTotalPrice?: boolean;
 	data: CartProduct;
+	className?: string;
+	children?: React.ReactNode;
 }
 
-export function ProductCartCard({ data, showDelete, showTotalPrice }: ProductCartCardProps) {
-	const { removeFromCart } = useCartStore();
+export function ProductCartCard({ data, className, children }: ProductCartCardProps) {
 	return (
-		<div className="flex items-center gap-3 px-3 py-2">
-			<div className="bg-muted flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-				<Image width={100} height={100} alt={data.title} src={data.image} className="aspect-square size-full object-cover" />
+		<div className={cn("flex items-center gap-3 p-3", className)}>
+			<div className="relative">
+				<div className="bg-muted flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+					<Image width={100} height={100} alt={data.title} src={data.image} className="aspect-square size-full object-cover" />
+				</div>
+				<span className="bg-foreground text-background absolute -top-1.5 -left-1.5 inline-flex size-4 items-center justify-center rounded-full text-[10px] tabular-nums">
+					{data.quantity}
+				</span>
 			</div>
 			<div className="flex flex-col">
-				<h3>{data.title}</h3>
+				<h3 className="line-clamp-2">{data.title}</h3>
 				<p className="text-muted-foreground text-sm capitalize">{data.variationName}</p>
-				{showDelete && (
-					<button type="button" className="text-destructive mt-1 size-5 cursor-pointer" onClick={() => removeFromCart(data.variationId)}>
-						<Trash2Icon size={18} />
-					</button>
-				)}
+				{children}
 			</div>
 			<div className="ml-auto">
-				<p>{`Rs.${showTotalPrice ? data.totalPrice : data.price}`}</p>
-				<p className="text-sm">Quantity: {data.quantity}</p>
+				<p>{`Rs.${data.price}`}</p>
 			</div>
 		</div>
 	);

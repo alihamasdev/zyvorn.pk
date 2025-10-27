@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
 
+import { useCartStore } from "@/lib/store/cart-store";
 import type { ProductVariation } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export function ProductButtons({ variations }: { variations: ProductVariation[] }) {
+interface ProductButtonsProps {
+	variations: ProductVariation[];
+}
+
+export function ProductButtons({ variations }: ProductButtonsProps) {
+	const router = useRouter();
+	const queryClient = useQueryClient();
+
+	const { addToCart } = useCartStore();
+
 	const [count, setCount] = useState(1);
+
 	const [queryColor, setQueryColor] = useQueryState("color", { defaultValue: variations[0].name });
 
-	const variationStock = variations.find((val) => val.name === queryColor)!.stock;
+	const currentVariation = useMemo(() => variations.find((val) => val.name === queryColor), [queryColor]);
 
 	return (
 		<>
@@ -35,7 +48,7 @@ export function ProductButtons({ variations }: { variations: ProductVariation[] 
 					))}
 				</div>
 			</div>
-			{variationStock ? (
+			{currentVariation?.stock ? (
 				<>
 					<div className="inline-flex items-center justify-between overflow-hidden rounded-full border select-none">
 						<button type="button" className="h-12 cursor-pointer px-4" onClick={() => setCount((prev) => (prev > 1 ? prev - 1 : prev))}>
@@ -45,16 +58,30 @@ export function ProductButtons({ variations }: { variations: ProductVariation[] 
 						<button
 							type="button"
 							className="h-12 cursor-pointer px-4"
-							onClick={() => (count < variationStock ? setCount((prev) => prev + 1) : toast.error(`Only ${variationStock} items availabe`))}
+							onClick={() =>
+								count < currentVariation.stock ? setCount((prev) => prev + 1) : toast.error(`Only ${currentVariation.stock} items availabe`)
+							}
 						>
 							<PlusIcon size={16} />
 						</button>
 					</div>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-						<Button variant="outline" size="lg" className="h-12 font-semibold uppercase">
+						<Button
+							size="lg"
+							variant="outline"
+							className="h-12 cursor-pointer font-semibold uppercase"
+							onClick={() => router.push(`/checkout?productId=${currentVariation.id}`)}
+						>
 							Buy now
 						</Button>
-						<Button size="lg" className="h-12 font-semibold uppercase">
+						<Button
+							size="lg"
+							className="h-12 cursor-pointer font-semibold uppercase"
+							onClick={() => {
+								addToCart(currentVariation.id, count);
+								queryClient.refetchQueries({ queryKey: ["cart-products"] });
+							}}
+						>
 							Add to cart
 						</Button>
 					</div>
