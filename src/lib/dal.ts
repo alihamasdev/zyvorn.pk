@@ -92,3 +92,22 @@ export const getCartProducts = cache(async (variations: { variationId: string; q
 			variationName: product.name
 		}));
 });
+
+export const getOrders = cache(async () => {
+	return await prisma.order.findMany({
+		orderBy: { status: "asc" },
+		include: {
+			items: { select: { product: { select: { images: true, title: true } }, variation: { select: { name: true, color: true } } } }
+		}
+	});
+});
+export type Order = Awaited<ReturnType<typeof getOrders>>[number];
+
+export const getOrderDetails = cache(async (orderId: string) => {
+	return await prisma.order.findUnique({
+		where: { id: orderId },
+		include: {
+			items: { select: { product: { select: { images: true, title: true } }, variation: { select: { name: true, color: true } } } }
+		}
+	});
+});

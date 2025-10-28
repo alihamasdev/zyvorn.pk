@@ -11,7 +11,6 @@ datasource db {
 
 enum OrderStatus {
   PROCESSING
-  SHIPPING
   DELIVERED
 }
 
@@ -98,13 +97,13 @@ model Order {
 }
 
 model OrderItem {
-  id          String     @id @default(uuid())
-  orderId     String     @map("order_id")
-  order       Order      @relation(fields: [orderId], references: [id])
-  productId   String     @map("product_id")
-  product     Product    @relation(fields: [productId], references: [id])
-  variationId String     @map("variation_id")
-  variation   Variation? @relation(fields: [variationId], references: [id])
+  id          String    @id @default(uuid())
+  orderId     String    @map("order_id")
+  order       Order     @relation(fields: [orderId], references: [id])
+  productId   String    @map("product_id")
+  product     Product   @relation(fields: [productId], references: [id])
+  variationId String    @map("variation_id")
+  variation   Variation @relation(fields: [variationId], references: [id])
 
   @@index([id, orderId, productId])
   @@map("order_items")

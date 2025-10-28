@@ -21,7 +21,7 @@ export const columns: ColumnDef<DashbboardProducts>[] = [
 	{ accessorKey: "category", header: "Category", cell: ({ row }) => <Badge>{row.original.category.name.toLowerCase()}</Badge> }
 ];
 
-function ProductImage({ src }: { src: string }) {
+export function ProductImage({ src }: { src: string }) {
 	return (
 		<div className="bg-muted aspect-square size-10 overflow-hidden rounded-md object-cover md:size-20">
 			<Image src={src} width={80} height={80} alt="product image" />
