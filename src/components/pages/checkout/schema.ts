@@ -7,6 +7,7 @@ export const checkoutSchema = z.object({
 			variationId: z.uuidv4("Invalid variation ID")
 		})
 	),
+	amount: z.number().positive(),
 	name: z.string().min(1, "Name is required"),
 	email: z.email("Invalid email address"),
 	phone: z.string().min(10, "Phone number must contain 10 numbers"),

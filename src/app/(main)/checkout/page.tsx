@@ -17,7 +17,7 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/checkou
 		return (
 			<main className="flex flex-col-reverse gap-y-10 md:grid md:grid-cols-2 md:gap-x-20">
 				<section>
-					<CheckoutForm products={[{ productId: product[0].productId, variationId: product[0].variationId }]} />
+					<CheckoutForm products={[{ productId: product[0].productId, variationId: product[0].variationId }]} amount={product[0].price} />
 				</section>
 				<section className="mt-5 w-full max-w-md space-y-6">
 					<ProductCartCard data={product[0]} className="px-0 py-3" />

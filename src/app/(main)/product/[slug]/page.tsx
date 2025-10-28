@@ -4,7 +4,6 @@ import Link from "next/link";
 import { LoaderIcon } from "lucide-react";
 
 import { getProductBySlug, getProductRating } from "@/lib/dal";
-import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ProductButtons } from "@/components/product/product-buttons";
@@ -12,11 +11,6 @@ import { ProductImages } from "@/components/product/product-images";
 import { ProductRatingStars } from "@/components/product/product-rating-stars";
 
 const ProductReviews = dynamic(() => import("@/components/product/product-reviews"));
-
-export async function generateStaticParams() {
-	const products = await prisma.product.findMany({ select: { slug: true } });
-	return products.map(({ slug }) => ({ slug }));
-}
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
 	"use cache";
@@ -53,12 +47,14 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 					</Suspense>
 				</div>
 			</section>
-			<section className="space-y-4">
-				<h1 id="description" className="scroll-m-18 text-2xl font-semibold">
-					Description
-				</h1>
-				<div className="text-muted-foreground text-sm break-words whitespace-pre-line md:text-base">{data.longDescription}</div>
-			</section>
+			{data.longDescription && (
+				<section className="space-y-4">
+					<h1 id="description" className="scroll-m-18 text-2xl font-semibold">
+						Description
+					</h1>
+					<div className="text-muted-foreground text-sm break-words whitespace-pre-line md:text-base">{data.longDescription}</div>
+				</section>
+			)}
 			<section className="space-y-4">
 				<h1 id="reviews" className="scroll-m-18 text-2xl font-semibold">
 					Reviews

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,8 +21,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createOrder } from "./action";
 import { checkoutSchema } from "./schema";
 
-export function CheckoutForm({ products }: { products: { productId: string; variationId: string }[] }) {
+export function CheckoutForm({ products, amount }: { products: { productId: string; variationId: string }[]; amount: number }) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const searchParams = useSearchParams();
 	const isSingleProduct = searchParams.get("productId");
 
@@ -33,6 +35,7 @@ export function CheckoutForm({ products }: { products: { productId: string; vari
 		resolver: zodResolver(checkoutSchema),
 		defaultValues: {
 			products,
+			amount,
 			name: "",
 			email: "",
 			phone: "",
@@ -56,6 +59,7 @@ export function CheckoutForm({ products }: { products: { productId: string; vari
 		await new Promise((res) => setTimeout(res, 3000));
 		if (!isSingleProduct) {
 			clearCart();
+			queryClient.setQueryData(["cart-products"], []);
 		}
 		router.push("/");
 	}
