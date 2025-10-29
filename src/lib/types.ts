@@ -9,6 +9,7 @@ export const productCardSelect = {
 	discountedPrice: true,
 	variations: {
 		select: {
+			id: true,
 			name: true,
 			color: true,
 			stock: true
@@ -19,7 +20,7 @@ export const productCardSelect = {
 export type ProductCardPayload = Prisma.ProductGetPayload<{ select: typeof productCardSelect }>;
 
 export const productInclude = {
-	variations: { select: { name: true, color: true, stock: true } }
+	variations: { select: { id: true, name: true, color: true, stock: true } }
 } satisfies Prisma.ProductInclude;
 
 export type ProductPayload = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
@@ -31,7 +32,8 @@ export interface ProductData extends Product {
 export type ProductReview = {
 	name: string;
 	rating: number;
-	comment: string | null;
+	comment: string;
+	image: string | null;
 };
 
 export type ProductCategory = {
@@ -40,7 +42,19 @@ export type ProductCategory = {
 };
 
 export type ProductVariation = {
+	id: string;
 	name: string;
 	color: string;
 	stock: number;
+};
+
+export type CartProduct = {
+	productId: string;
+	title: string;
+	image: string;
+	price: number;
+	totalPrice: number;
+	quantity: number;
+	variationName: string;
+	variationId: string;
 };

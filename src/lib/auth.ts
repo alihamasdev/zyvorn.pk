@@ -12,12 +12,3 @@ export async function validateUser() {
 
 	return data;
 }
-
-export async function isAdmin() {
-	const { auth } = await createClient();
-	const { data, error } = await auth.getClaims();
-
-	if (error || !data) return false;
-
-	return true;
-}

@@ -3,13 +3,11 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon, PlusIcon, Trash2Icon, UploadIcon, XIcon } from "lucide-react";
 import { useFieldArray, useForm, type DefaultValues } from "react-hook-form";
 import generateSlug from "slugify";
 import { toast } from "sonner";
 
-import type { DashbboardProducts } from "@/lib/dal";
 import { useCategories } from "@/context/categories-context";
 import { Button, LoaderButton } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +34,6 @@ type ProductFormProps = {
 
 export function ProductForm({ defaultValues }: ProductFormProps) {
 	const router = useRouter();
-	const queryClient = useQueryClient();
 	const categories = useCategories();
 
 	const [isPending, startTransition] = useTransition();
@@ -55,19 +52,15 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 		name: "variations"
 	});
 
-	const { mutate } = useMutation({
-		mutationFn: addProductAction,
-		onSuccess: (data) => {
-			queryClient.setQueryData<DashbboardProducts[]>(["products", "dashboard"], (oldData) => (oldData ? [...oldData, data] : oldData));
-			router.push("/dashboard/products");
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		}
-	});
-
 	function onSubmit(values: ProductSchema) {
-		startTransition(() => mutate(values));
+		startTransition(async () => {
+			const response = await addProductAction(values);
+			if (response.error) {
+				toast.error("Something went wrong");
+				return;
+			}
+			router.push("/dashboard/products");
+		});
 	}
 
 	return (
@@ -142,7 +135,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 					render={({ field: { value, onChange } }) => (
 						<FormItem>
 							<FormLabel>Product Category</FormLabel>
-							<Select value={value?.toString()} onValueChange={(val) => onChange(Number(val))}>
+							<Select value={value} onValueChange={onChange}>
 								<FormControl>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Select product category" />
@@ -150,7 +143,7 @@ export function ProductForm({ defaultValues }: ProductFormProps) {
 								</FormControl>
 								<SelectContent>
 									{categories.map(({ id, name }) => (
-										<SelectItem key={id} value={id.toString()} className="capitalize">
+										<SelectItem key={id} value={id} className="capitalize">
 											{name}
 										</SelectItem>
 									))}

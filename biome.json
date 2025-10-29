@@ -5,20 +5,7 @@
     "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
   },
   "formatter": {
-    "enabled": true,
-    "bracketSpacing": true,
-    "indentStyle": "tab",
-    "attributePosition": "auto",
-    "indentWidth": 2,
-    "lineWidth": 140
-  },
-  "javascript": {
-    "formatter": {
-      "jsxQuoteStyle": "double",
-      "quoteStyle": "double",
-      "semicolons": "always",
-      "trailingCommas": "none"
-    }
+    "enabled": false
   },
   "linter": {
     "enabled": true,
@@ -33,7 +20,8 @@
         "noUnusedImports": "warn",
         "noUnusedVariables": "warn",
         "noEmptyPattern": "warn",
-        "useExhaustiveDependencies": "warn"
+        "noUnusedFunctionParameters": "warn",
+        "useExhaustiveDependencies": "off"
       },
       "style": {
         "recommended": true,
@@ -41,40 +29,53 @@
         "noParameterAssign": "error",
         "noUnusedTemplateLiteral": "error",
         "noUselessElse": "error",
-        "useAsConstAssertion": "error",
+        "useAsConstAssertion": "off",
         "useDefaultParameterLast": "error",
         "useEnumInitializers": "error",
-        "useNumberNamespace": "error",
+        "useNumberNamespace": "off",
         "useSingleVarDeclarator": "error",
         "useImportType": "warn",
         "useSelfClosingElements": "warn",
         "noProcessEnv": "off",
         "useBlockStatements": "off",
         "noMagicNumbers": "off",
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "noNestedTernary": "off"
       },
       "a11y": {
-        "useFocusableInteractive": "off"
+        "useFocusableInteractive": "off",
+        "noNoninteractiveElementInteractions": "off",
+        "noStaticElementInteractions": "off",
+        "noSvgWithoutTitle": "off"
       },
       "suspicious": {
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "off",
+        "noConsole": "off"
+      },
+      "performance": {
+        "noImgElement": "off"
+      },
+      "nursery": {
+        "useSortedClasses": "off"
       }
     }
   },
   "assist": {
+    "enabled": true,
     "actions": {
       "source": {
-        "recommended": true,
-        "organizeImports": "on",
-        "useSortedAttributes": "on"
+        "recommended": false,
+        "organizeImports": "off",
+        "useSortedAttributes": "off",
+        "useSortedKeys": "off",
+        "useSortedProperties": "off"
       }
-    },
-    "enabled": true
+    }
   },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
-  },
-  "extends": ["ultracite"]
+  }
 }

@@ -48,7 +48,9 @@ export function CategoriesForm({ defaultValues, title, trigger, setOpen, ...prop
 		onMutate: async (data) => {
 			const [previousData] = await optimisticUpdate<Category[]>(queryKey, (oldData) => {
 				if (!oldData) return oldData;
-				return data.id ? oldData.map((val) => (val.id === data.id ? { ...val, ...data } : val)) : [...oldData, { ...data, id: 100 }];
+				return defaultValues?.id
+					? oldData.map((val) => (defaultValues.id === val.id ? { ...val, ...data } : val))
+					: [{ ...data, id: Date.now().toString() }, ...oldData];
 			});
 			setOpen(false);
 			form.reset();

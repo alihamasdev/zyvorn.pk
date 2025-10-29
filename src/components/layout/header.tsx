@@ -17,8 +17,7 @@ import { Cart } from "@/components/cart";
 export function Header() {
 	const navLinks = [
 		{ name: "Home", link: "/" },
-		{ name: "Shop", link: "/collections/all-products" },
-		{ name: "Clothing", link: "/collections/clothing" },
+		{ name: "Shop", link: "/collections/all" },
 		{ name: "Jewellery", link: "/collections/jewellery" },
 		{ name: "Watches", link: "/collections/watches" }
 	] as { name: string; link: Route }[];

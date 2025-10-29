@@ -1,60 +1,81 @@
 "use server";
 
+import { revalidatePath, revalidateTag } from "next/cache";
+import { unstable_rethrow as rethrow } from "next/navigation";
 import sharp from "sharp";
 
 import { validateUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 
-import { productSchema, type ProductSchema } from "./schema";
+import { type ProductSchema } from "./schema";
 
 export async function deleteProductAction(slug: string) {
-	await validateUser();
-	if (!slug) throw new Error("No product selected");
-	await prisma.product.delete({ where: { slug } });
+	try {
+		await validateUser();
+		if (!slug) throw new Error("No product selected");
+		await prisma.product.delete({ where: { slug } });
+		revalidateTag("dashboard-products", "max");
+		revalidatePath("/dashboard/products");
+		return { error: null };
+	} catch (error) {
+		rethrow(error);
+		console.error(error);
+		return { error: "Something went wrong" };
+	}
 }
 
-export async function addProductAction(values: ProductSchema) {
-	const { success, data } = productSchema.safeParse(values);
-	if (!success) throw new Error("Please provide valid data");
+export async function addProductAction(data: ProductSchema) {
+	try {
+		await validateUser();
 
-	await validateUser();
+		const supabase = await createClient();
 
-	const supabase = await createClient();
+		const images = await Promise.all(
+			data.images.map(async (file, index) => {
+				const buffer = Buffer.from(await file.arrayBuffer());
 
-	const images = await Promise.all(
-		data.images.map(async (file, index) => {
-			const buffer = Buffer.from(await file.arrayBuffer());
+				const webpBuffer = await sharp(buffer)
+					.resize({ width: 1080, height: 1080, fit: "cover", position: "center" })
+					.webp({ quality: 100 })
+					.toBuffer();
 
-			const webpBuffer = await sharp(buffer)
-				.resize({ width: 1080, height: 1080, fit: "cover", position: "center" })
-				.webp({ quality: 100 })
-				.toBuffer();
+				const webpArray = new Uint8Array(webpBuffer);
+				const webpFileName = `${data.slug}/image-${index + 1}.webp`;
+				const webpFile = new File([webpArray], webpFileName, { type: "image/webp" });
 
-			const webpArray = new Uint8Array(webpBuffer);
-			const webpFileName = `${data.slug}/image-${index + 1}.webp`;
-			const webpFile = new File([webpArray], webpFileName, { type: "image/webp" });
+				const { error, data: uploadImage } = await supabase.storage.from("products").upload(webpFileName, webpFile, {
+					contentType: "image/webp",
+					upsert: true
+				});
 
-			const { error, data: uploadImage } = await supabase.storage.from("products").upload(webpFileName, webpFile, {
-				contentType: "image/webp",
-				upsert: true
-			});
+				if (error) throw new Error(error.message);
 
-			if (error) throw new Error(error.message);
+				return uploadImage.fullPath;
+			})
+		);
 
-			return uploadImage.fullPath;
-		})
-	);
+		await prisma.product.create({
+			data: {
+				images,
+				slug: data.slug,
+				title: data.title,
+				categoryId: data.categoryId,
+				originalPrice: data.originalPrice,
+				discountedPrice: data.discountedPrice,
+				longDescription: data.longDescription,
+				shortDescription: data.shortDescription,
+				variations: { createMany: { data: data.variations } }
+			}
+		});
 
-	const payload = { ...data, images, variations: { createMany: { data: data.variations } } };
+		revalidateTag("dashboard-products", "max");
+		revalidatePath("/dashboard/products");
 
-	const newProduct = await prisma.product.create({ data: payload });
-
-	return await prisma.product.findUniqueOrThrow({
-		where: { id: newProduct.id },
-		include: {
-			category: { select: { name: true, slug: true } },
-			variations: { select: { name: true, color: true, stock: true } }
-		}
-	});
+		return { error: null };
+	} catch (error) {
+		rethrow(error);
+		console.error(error);
+		return { error: "Something went wrong" };
+	}
 }

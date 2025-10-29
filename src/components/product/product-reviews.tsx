@@ -3,8 +3,17 @@ import Image from "next/image";
 import { getProductReviews } from "@/lib/dal";
 import { ProductRatingStars } from "@/components/product/product-rating-stars";
 
-export default async function ProductReviews({ productId }: { productId: number }) {
+export default async function ProductReviews({ productId }: { productId: string }) {
 	const reviews = await getProductReviews(productId);
+
+	if (!reviews.length) {
+		return (
+			<div className="text-muted-foreground text-center text-sm">
+				<p>No Reviews</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4">
 			{reviews.map(({ id, rating, comment, name, image }) => (
