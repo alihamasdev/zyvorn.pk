@@ -77,8 +77,9 @@ export function ProductButtons({ variations }: ProductButtonsProps) {
 						<Button
 							size="lg"
 							className="h-12 cursor-pointer font-semibold uppercase"
-							onClick={() => {
+							onClick={async () => {
 								addToCart(currentVariation.id, count);
+								await new Promise((res) => setTimeout(res, 2000));
 								queryClient.refetchQueries({ queryKey: ["cart-products"] });
 							}}
 						>
