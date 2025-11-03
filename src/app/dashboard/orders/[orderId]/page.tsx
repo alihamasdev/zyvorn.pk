@@ -1,4 +1,3 @@
-import { cacheTag } from "next/cache";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -8,12 +7,8 @@ import { Label } from "@/components/ui/label";
 import { OrderStatus } from "./order-status";
 
 export default async function OrderIdPage({ params }: PageProps<"/dashboard/orders/[orderId]">) {
-	"use cache";
-
 	const { orderId } = await params;
 	const order = await getOrderDetails(orderId);
-
-	cacheTag(`order-${orderId}`);
 
 	if (!order) {
 		return notFound();

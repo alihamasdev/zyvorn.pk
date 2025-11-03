@@ -1,4 +1,4 @@
-import { unauthorized } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,7 +7,7 @@ export async function validateUser() {
 	const { data, error } = await auth.getClaims();
 
 	if (error || !data) {
-		return unauthorized();
+		return redirect("/login");
 	}
 
 	return data;

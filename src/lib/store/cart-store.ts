@@ -37,7 +37,7 @@ export const useCartStore = create<CartState>()(
 				removeFromCart: async (variationId) => {
 					set((state) => ({ cart: state.cart.filter((item) => !(item.variationId === variationId)) }));
 					await optimisticUpdate<CartProduct[]>(["cart-products"], (oldData) =>
-						oldData ? oldData.filter((item) => item.variationId === variationId) : oldData
+						oldData ? oldData.filter((item) => item.variationId !== variationId) : oldData
 					);
 				},
 

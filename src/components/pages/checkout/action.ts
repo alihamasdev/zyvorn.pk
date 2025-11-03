@@ -19,7 +19,7 @@ export async function createOrder(data: z.infer<typeof checkoutSchema>) {
 			city: data.city,
 			address: data.address,
 			zipCode: Number(data.zipCode),
-			amount: 120,
+			amount: data.amount,
 			items: {
 				createMany: { data: data.products.map(({ productId, variationId }) => ({ productId, variationId })) }
 			}

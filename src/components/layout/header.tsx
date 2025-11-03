@@ -18,7 +18,7 @@ export function Header() {
 	const navLinks = [
 		{ name: "Home", link: "/" },
 		{ name: "Shop", link: "/collections/all" },
-		{ name: "Jewellery", link: "/collections/jewellery" },
+		{ name: "Jewelry", link: "/collections/jewelry" },
 		{ name: "Watches", link: "/collections/watches" }
 	] as { name: string; link: Route }[];
 

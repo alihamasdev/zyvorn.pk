@@ -7,8 +7,6 @@ const nextConfig: NextConfig = {
 		loaderFile: "./src/lib/supabase/loader.tsx"
 	},
 	experimental: {
-		viewTransition: true,
-		authInterrupts: true,
 		serverActions: {
 			bodySizeLimit: "20mb"
 		}
