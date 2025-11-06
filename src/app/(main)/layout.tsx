@@ -1,3 +1,5 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import { socialLinks } from "@/lib/data";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Footer } from "@/components/layout/footer";
@@ -7,6 +9,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 	const whatsapp = socialLinks[0];
 	return (
 		<>
+			<SpeedInsights />
 			<Header />
 			<main className="container mx-auto min-h-dvh space-y-6 px-4 py-5 md:py-10">
 				{children}
