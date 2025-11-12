@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import type { OrderStatus } from "@/lib/prisma/enums";
+import type { OrderStatus } from "@/lib/generated/prisma/enums";
 
 export async function changeOrderStatus(status: OrderStatus, orderId: string) {
 	await db.order.update({

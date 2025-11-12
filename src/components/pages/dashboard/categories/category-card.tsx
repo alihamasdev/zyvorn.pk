@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { EditIcon, EllipsisVerticalIcon, Trash2Icon } from "lucide-react";
 
-import type { Category } from "@/lib/prisma/client";
+import type { Category } from "@/lib/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

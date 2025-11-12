@@ -7,7 +7,7 @@ import { useForm, type DefaultValues } from "react-hook-form";
 import slugify from "slugify";
 import { toast } from "sonner";
 
-import type { Category } from "@/lib/prisma/client";
+import type { Category } from "@/lib/generated/prisma/client";
 import { optimisticUpdate } from "@/lib/tanstack/optimistic-update";
 import { Button } from "@/components/ui/button";
 import {

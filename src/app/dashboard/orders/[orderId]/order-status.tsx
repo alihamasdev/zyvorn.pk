@@ -1,6 +1,6 @@
 "use client";
 
-import type { OrderStatus as OrderStatusEnum } from "@/lib/prisma/enums";
+import type { OrderStatus as OrderStatusEnum } from "@/lib/generated/prisma/enums";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 

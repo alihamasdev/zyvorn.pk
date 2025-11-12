@@ -1,4 +1,4 @@
-import type { Prisma, Product } from "@/lib/prisma/client";
+import type { Prisma, Product } from "@/lib/generated/prisma/client";
 
 export const productCardSelect = {
 	id: true,

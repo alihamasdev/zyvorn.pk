@@ -4,7 +4,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 
 import { db } from "@/lib/db";
-import type { Category, Prisma } from "@/lib/prisma/client";
+import type { Category, Prisma } from "@/lib/generated/prisma/client";
 import { productCardSelect, productInclude, type CartProduct, type ProductCardPayload, type ProductPayload } from "@/lib/types";
 
 export const getCategories = cache(async () => {
