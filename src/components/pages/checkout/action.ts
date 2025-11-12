@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 import { checkoutSchema } from "./schema";
 
@@ -10,7 +10,7 @@ export async function createOrder(data: z.infer<typeof checkoutSchema>) {
 	const { success } = checkoutSchema.safeParse(data);
 	if (!success) return { error: "Please provide correct data" };
 
-	await prisma.order.create({
+	await db.order.create({
 		data: {
 			name: data.name,
 			email: data.email,

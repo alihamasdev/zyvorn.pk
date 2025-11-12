@@ -5,7 +5,7 @@ import { unstable_rethrow as rethrow } from "next/navigation";
 import sharp from "sharp";
 
 import { validateUser } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 
 import { type ProductSchema } from "./schema";
@@ -14,7 +14,7 @@ export async function deleteProductAction(slug: string) {
 	try {
 		await validateUser();
 		if (!slug) throw new Error("No product selected");
-		await prisma.product.delete({ where: { slug } });
+		await db.product.delete({ where: { slug } });
 		revalidateTag("dashboard-products", "max");
 		revalidatePath("/dashboard/products");
 		return { error: null };
@@ -55,7 +55,7 @@ export async function addProductAction(data: ProductSchema) {
 			})
 		);
 
-		await prisma.product.create({
+		await db.product.create({
 			data: {
 				images,
 				slug: data.slug,
