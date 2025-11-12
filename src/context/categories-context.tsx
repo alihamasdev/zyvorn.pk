@@ -4,7 +4,7 @@ import { createContext, use } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { getCategories } from "@/lib/dal";
-import type { Category } from "@/lib/prisma/client";
+import type { Category } from "@/lib/generated/prisma/client";
 
 const CategoriesContext = createContext<Category[] | null>(null);
 

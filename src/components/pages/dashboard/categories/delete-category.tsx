@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { Category } from "@/lib/prisma/client";
+import type { Category } from "@/lib/generated/prisma/client";
 import { optimisticUpdate } from "@/lib/tanstack/optimistic-update";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
