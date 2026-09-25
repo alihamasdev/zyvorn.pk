@@ -14,26 +14,17 @@ interface PrintOrderProps {
 
 export function PrintOrder({ orderId, order }: PrintOrderProps) {
 	const handlePrint = () => {
-		const printContent = document.getElementById("print-order-content");
-		if (!printContent) return;
-
-		const originalContent = document.body.innerHTML;
-		document.body.innerHTML = printContent.innerHTML;
-
 		window.print();
-
-		document.body.innerHTML = originalContent;
-		window.location.reload();
 	};
 
 	return (
 		<>
-			<Button variant="outline" onClick={handlePrint}>
+			<Button variant="outline" onClick={handlePrint} className="print:hidden">
 				<PrinterIcon />
 				Print
 			</Button>
 
-			<div id="print-order-content" className="hidden">
+			<div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-50 print:p-8">
 				<PrintOrderContent orderId={orderId} order={order} />
 			</div>
 		</>

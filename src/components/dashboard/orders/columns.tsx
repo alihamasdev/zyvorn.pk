@@ -15,19 +15,30 @@ export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
 	{
 		id: "product",
 		header: "Product",
-		cell: ({ row }) => (
-			<div className="flex items-center gap-2">
-				<div className="bg-muted size-15 shrink-0 overflow-hidden rounded-sm">
-					<ProductImage
-						src={row.original.items[0].product.images[0]}
-						alt={row.original.items[0].product.title}
-						size={60}
-						transformation="thumbnail"
-					/>
+		cell: ({ row }) => {
+			const firstItem = row.original.items?.[0];
+			const imageSrc = firstItem?.product?.images?.[0] ?? "";
+			const title = firstItem?.product?.title ?? "No products";
+			const additionalCount = (row.original.items?.length ?? 1) - 1;
+
+			return (
+				<div className="flex items-center gap-2">
+					<div className="bg-muted size-15 shrink-0 overflow-hidden rounded-sm">
+						{imageSrc ? (
+							<ProductImage src={imageSrc} alt={title} size={60} transformation="thumbnail" />
+						) : (
+							<div className="size-full flex items-center justify-center text-xs text-muted-foreground">N/A</div>
+						)}
+					</div>
+					<div>
+						<p className="line-clamp-2 max-w-60 font-medium text-pretty">{title}</p>
+						{additionalCount > 0 && (
+							<span className="text-xs text-muted-foreground">+{additionalCount} more item{additionalCount > 1 ? "s" : ""}</span>
+						)}
+					</div>
 				</div>
-				<p className="line-clamp-2 max-w-60 font-medium text-pretty">{row.original.items[0].product.title}</p>
-			</div>
-		)
+			);
+		}
 	},
 	{
 		header: "Customer",

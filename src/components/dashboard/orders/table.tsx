@@ -1,9 +1,17 @@
 "use client";
 
-import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
+import {
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState
+} from "@tanstack/react-table";
 
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DashboardOrdersTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -11,9 +19,12 @@ interface DashboardOrdersTableProps<TData, TValue> {
 }
 
 export function DashboardOrdersTable<TData, TValue>({ data, columns }: DashboardOrdersTableProps<TData, TValue>) {
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const table = useReactTable({
 		data,
 		columns,
+		state: { columnFilters },
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	});
@@ -22,6 +33,24 @@ export function DashboardOrdersTable<TData, TValue>({ data, columns }: Dashboard
 		<>
 			<div className="flex items-center justify-between gap-4">
 				<h1 className="text-xl font-semibold">Orders</h1>
+				<Tabs
+					defaultValue="ALL"
+					onValueChange={(val) => {
+						if (val === "ALL") {
+							table.getColumn("status")?.setFilterValue(undefined);
+						} else {
+							table.getColumn("status")?.setFilterValue(val);
+						}
+					}}
+				>
+					<TabsList>
+						<TabsTrigger value="ALL">All</TabsTrigger>
+						<TabsTrigger value="PROCESSING">Processing</TabsTrigger>
+						<TabsTrigger value="SHIPPED">Shipped</TabsTrigger>
+						<TabsTrigger value="DELIVERED">Delivered</TabsTrigger>
+						<TabsTrigger value="CANCELLED">Cancelled</TabsTrigger>
+					</TabsList>
+				</Tabs>
 			</div>
 			<div className="overflow-hidden rounded-md border">
 				<Table>
