@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogOutIcon } from "lucide-react";
 
-import { useSession } from "@/lib/auth/client";
+import { signOut, useSession } from "@/lib/auth/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
 	Sidebar,
 	SidebarContent,
@@ -14,6 +16,7 @@ import {
 	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
+	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
@@ -73,10 +76,47 @@ export function DashboardSidebar() {
 									<span className="text-muted-foreground truncate text-xs">{data.user.email}</span>
 								</div>
 							</SidebarMenuButton>
+							<SidebarMenuAction
+								title="Sign out"
+								onClick={async () => {
+									await signOut({
+										fetchOptions: {
+											onSuccess: () => {
+												window.location.href = "/login";
+											}
+										}
+									});
+								}}
+							>
+								<LogOutIcon />
+								<span className="sr-only">Sign out</span>
+							</SidebarMenuAction>
 						</SidebarMenuItem>
 					</SidebarMenu>
 				)}
 			</SidebarFooter>
 		</Sidebar>
+	);
+}
+
+export function SignOutButton({ className, ...props }: React.ComponentProps<typeof Button>) {
+	return (
+		<Button
+			variant="outline"
+			onClick={async () => {
+				await signOut({
+					fetchOptions: {
+						onSuccess: () => {
+							window.location.href = "/login";
+						}
+					}
+				});
+			}}
+			className={className}
+			{...props}
+		>
+			<LogOutIcon className="mr-2 size-4" />
+			<span>Sign out</span>
+		</Button>
 	);
 }

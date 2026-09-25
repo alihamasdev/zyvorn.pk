@@ -1,11 +1,14 @@
 import { Suspense } from "react";
 
+import { getAdminSession } from "@/lib/auth/server";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 
-export default function AdminLayout({ children }: LayoutProps<"/dashboard">) {
+export default async function AdminLayout({ children }: LayoutProps<"/dashboard">) {
+	await getAdminSession();
+
 	return (
 		<Suspense>
 			<SidebarProvider>
