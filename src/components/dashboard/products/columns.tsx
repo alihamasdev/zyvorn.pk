@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { EditIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Product } from "@/lib/prisma/client";
+import type { getDashboardProducts } from "@/lib/dal";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button, LinkButton } from "@/components/ui/button";
@@ -13,14 +13,16 @@ import { ProductImage } from "@/components/product/product-image";
 
 import { deleteProductAction } from "./action";
 
-export const dashboardProductsColumn: ColumnDef<Omit<Product, "costPrice">>[] = [
+type DashboardProduct = Awaited<ReturnType<typeof getDashboardProducts>>[number];
+
+export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 	{
 		id: "product",
 		header: "Product",
 		cell: ({ row }) => (
 			<div className="flex items-center gap-2">
 				<div className="bg-muted size-15 shrink-0 overflow-hidden rounded-md">
-					<ProductImage src={row.original.images[0]} alt={row.original.title} size={60} transformation="thumbnail" />
+					<ProductImage src={row.original.images?.[0] ?? ""} alt={row.original.title} size={60} transformation="thumbnail" />
 				</div>
 				<p className="line-clamp-2 max-w-60 font-medium text-pretty">{row.original.title}</p>
 			</div>

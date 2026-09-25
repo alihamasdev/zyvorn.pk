@@ -88,3 +88,12 @@ export const getOrderById = cache(async (id: string) => {
 		}
 	});
 });
+
+export async function getDashboardProducts() {
+	return await db.product.findMany({
+		orderBy: { createdAt: "desc" },
+		include: {
+			category: { select: { name: true } }
+		}
+	});
+}

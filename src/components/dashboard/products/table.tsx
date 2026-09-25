@@ -1,10 +1,19 @@
 "use client";
 
-import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
+import {
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState
+} from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
 
 import { LinkButton } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DashboardCategoriesTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -12,9 +21,12 @@ interface DashboardCategoriesTableProps<TData, TValue> {
 }
 
 export function DashboardProductsTable<TData, TValue>({ data, columns }: DashboardCategoriesTableProps<TData, TValue>) {
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const table = useReactTable({
 		data,
 		columns,
+		state: { columnFilters },
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	});
@@ -30,6 +42,23 @@ export function DashboardProductsTable<TData, TValue>({ data, columns }: Dashboa
 					</LinkButton>
 				</div>
 			</div>
+			<Tabs
+				defaultValue="ALL"
+				onValueChange={(val) => {
+					if (val === "ALL") {
+						table.getColumn("status")?.setFilterValue(undefined);
+					} else {
+						table.getColumn("status")?.setFilterValue(val);
+					}
+				}}
+			>
+				<TabsList>
+					<TabsTrigger value="ALL">All</TabsTrigger>
+					<TabsTrigger value="PUBLISHED">Published</TabsTrigger>
+					<TabsTrigger value="DRAFT">Draft</TabsTrigger>
+					<TabsTrigger value="ARCHIVED">Archived</TabsTrigger>
+				</TabsList>
+			</Tabs>
 			<div className="overflow-hidden rounded-md border">
 				<Table>
 					<TableHeader className="bg-muted/70">

@@ -17,7 +17,7 @@ import { TextEditor } from "@/components/ui/text-editor";
 import { productSchema, type ProductSchema } from "@/components/dashboard/products/schema";
 import { ImageUpload } from "@/components/image-upload";
 
-import { upserProductAction } from "./action";
+import { upsertProductAction } from "./action";
 
 interface ProductFormProps {
 	defaultValues: ProductSchema;
@@ -35,7 +35,7 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 		validators: { onSubmit: productSchema },
 		onSubmit: ({ value }) => {
 			startTransition(async () => {
-				const { error } = await upserProductAction(value, productId);
+				const { error } = await upsertProductAction(value, productId);
 				if (error) {
 					toast.error(error);
 					return;
