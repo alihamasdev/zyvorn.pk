@@ -26,7 +26,7 @@ export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 				</div>
 				<p className="line-clamp-2 max-w-60 font-medium text-pretty">{row.original.title}</p>
 			</div>
-		)
+		),
 	},
 	{ id: "price", header: "Price", cell: ({ row }) => `Rs.${row.original.discountPrice ?? row.original.salePrice}` },
 	{ accessorKey: "stock", header: "Stock" },
@@ -36,7 +36,7 @@ export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 		cell: ({ row }) => {
 			const status = row.original.status;
 			return <Badge variant={status === "ARCHIVED" ? "destructive" : status === "PUBLISHED" ? "secondary" : "default"}>{status}</Badge>;
-		}
+		},
 	},
 	{ id: "createdAt", header: "Date", cell: ({ row }) => formatDate(row.original.createdAt) },
 	{
@@ -62,6 +62,6 @@ export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 					</DeleteDialog>
 				</div>
 			);
-		}
-	}
+		},
+	},
 ];

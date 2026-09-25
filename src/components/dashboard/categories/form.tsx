@@ -31,7 +31,7 @@ export function CategoryForm({ defaultValues, categoryId }: { defaultValues: Cat
 				toast.success(categoryId ? "Category updated successfuly" : "New category has been created");
 				router.push("/dashboard/categories");
 			});
-		}
+		},
 	});
 
 	return (

@@ -61,7 +61,7 @@ export function ImageCarousel({ autoPlay = true, autoPlayInterval = 5000, ...pro
 							onClick={() => api?.scrollTo(index)}
 							className={cn(
 								"size-2 rounded-full transition-all duration-200",
-								index + 1 === current ? "bg-primary" : "bg-muted-foreground/30"
+								index + 1 === current ? "bg-primary" : "bg-muted-foreground/30",
 							)}
 						/>
 					))}

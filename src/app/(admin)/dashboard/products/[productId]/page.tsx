@@ -12,7 +12,7 @@ async function getProductById(productId: string) {
 
 	const product = await db.product.findUnique({
 		where: { id: productId },
-		omit: { createdAt: true, updatedAt: true, id: true }
+		omit: { createdAt: true, updatedAt: true, id: true },
 	});
 
 	if (!product) return notFound();
@@ -21,7 +21,7 @@ async function getProductById(productId: string) {
 		...product,
 		images: product.images || [],
 		description: product.description || "",
-		discountPrice: product.discountPrice || undefined
+		discountPrice: product.discountPrice || undefined,
 	};
 }
 

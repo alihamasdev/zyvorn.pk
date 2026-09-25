@@ -6,29 +6,29 @@ import { db } from "@/lib/db";
 
 export const auth = betterAuth({
 	database: prismaAdapter(db, {
-		provider: "postgresql"
+		provider: "postgresql",
 	}),
 	socialProviders: {
 		google: {
 			clientId: process.env.GOOGLE_CLIENT_ID!,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET!
-		}
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+		},
 	},
 	plugins: [
 		magicLink({
 			sendMagicLink: async ({ email, token, url }, request) => {
 				console.log({ email, token, url });
-			}
-		})
+			},
+		}),
 	],
 	user: {
 		additionalFields: {
 			role: {
 				type: "string",
-				input: false
-			}
-		}
-	}
+				input: false,
+			},
+		},
+	},
 });
 
 export type Session = typeof auth.$Infer.Session;

@@ -13,9 +13,9 @@ const cartSelect = {
 		orderBy: { createdAt: "asc" },
 		select: {
 			quantity: true,
-			product: { select: { id: true, title: true, slug: true, images: true, salePrice: true, discountPrice: true } }
-		}
-	}
+			product: { select: { id: true, title: true, slug: true, images: true, salePrice: true, discountPrice: true } },
+		},
+	},
 } satisfies Prisma.CartSelect;
 
 const setCartCookie = async (cartId: string) => {
@@ -24,14 +24,14 @@ const setCartCookie = async (cartId: string) => {
 		path: "/",
 		secure: process.env.NODE_ENV === "production",
 		sameSite: "lax",
-		httpOnly: false
+		httpOnly: false,
 	});
 };
 
 const createCartAndReturn = async (userId?: string | null) => {
 	const cart = await db.cart.create({
 		data: { userId },
-		select: cartSelect
+		select: cartSelect,
 	});
 
 	await setCartCookie(cart.id);
@@ -50,7 +50,7 @@ export async function getCart(cartId?: string) {
 	if (cartId) {
 		const cart = await db.cart.findUnique({
 			where: { id: cartId },
-			select: cartSelect
+			select: cartSelect,
 		});
 
 		if (cart) return cart;
@@ -64,7 +64,7 @@ export async function getCart(cartId?: string) {
 	// If user is found, check for the user's cart
 	const cart = await db.cart.findFirst({
 		where: { userId: user.user.id },
-		select: cartSelect
+		select: cartSelect,
 	});
 
 	// If user's cart is found, return it
@@ -90,17 +90,17 @@ export async function addToCart(productId: string, quantity: number = 1, cartId?
 	}
 
 	const existingItem = await db.cartItem.findFirst({
-		where: { cartId, productId }
+		where: { cartId, productId },
 	});
 
 	if (existingItem) {
 		await db.cartItem.update({
 			where: { id: existingItem.id },
-			data: { quantity: existingItem.quantity + quantity }
+			data: { quantity: existingItem.quantity + quantity },
 		});
 	} else {
 		await db.cartItem.create({
-			data: { cartId, productId, quantity }
+			data: { cartId, productId, quantity },
 		});
 	}
 }
@@ -116,12 +116,12 @@ export async function removeFromCart(productId: string, cartId?: string) {
 	}
 
 	const item = await db.cartItem.findFirst({
-		where: { cartId, productId }
+		where: { cartId, productId },
 	});
 
 	if (item) {
 		await db.cartItem.delete({
-			where: { id: item.id }
+			where: { id: item.id },
 		});
 	}
 }

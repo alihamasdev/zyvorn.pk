@@ -17,7 +17,7 @@ export function OrderSummary({ cart }: { cart: Awaited<ReturnType<typeof getCart
 			slug: product.slug,
 			quantity: item.quantity,
 			price,
-			image
+			image,
 		};
 	});
 

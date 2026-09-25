@@ -51,7 +51,7 @@ export function ProductImageCarousel({ images, title, stock }: { images: string[
 						onClick={() => api?.scrollTo(index)}
 						className={cn(
 							"cursor-pointer overflow-hidden transition-opacity duration-300 hover:opacity-100",
-							index + 1 === current ? "opacity-100" : "opacity-50"
+							index + 1 === current ? "opacity-100" : "opacity-50",
 						)}
 					>
 						<ProductImage src={src} size={150} alt={title} transformation="thumbnail" loading="eager" priority />

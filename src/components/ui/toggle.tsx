@@ -11,19 +11,19 @@ const toggleVariants = cva(
 		variants: {
 			variant: {
 				default: "bg-transparent",
-				outline: "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground"
+				outline: "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
 			},
 			size: {
 				default: "h-9 px-2 min-w-9",
 				sm: "h-7 px-1.5 min-w-7",
-				lg: "h-10 px-2.5 min-w-10"
-			}
+				lg: "h-10 px-2.5 min-w-10",
+			},
 		},
 		defaultVariants: {
 			variant: "default",
-			size: "default"
-		}
-	}
+			size: "default",
+		},
+	},
 );
 
 function Toggle({

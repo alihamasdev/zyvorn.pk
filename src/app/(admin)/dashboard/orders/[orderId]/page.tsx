@@ -1,16 +1,16 @@
-import { MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 
 import { getOrderById } from "@/lib/dal";
 import { ORDER_STATUS } from "@/lib/prisma/enums";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { OrderDetails } from "@/components/dashboard/orders/order-details";
-import { ProductImage } from "@/components/product/product-image";
 import { PrintOrder } from "@/components/dashboard/orders/print-order";
+import { ProductImage } from "@/components/product/product-image";
 
 export default async function DashboardOrderByIdPage({ params }: { params: Promise<{ orderId: string }> }) {
 	const { orderId } = await params;
@@ -25,41 +25,41 @@ export default async function DashboardOrderByIdPage({ params }: { params: Promi
 			? digitsOnly
 			: `92${digitsOnly}`;
 	const whatsappUrl = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
-		`Hello ${order.name}, regarding your Zyvorn Order #${orderId.toUpperCase()}:`
+		`Hello ${order.name}, regarding your Zyvorn Order #${orderId.toUpperCase()}:`,
 	)}`;
 
 	const customerDetails = [
 		{
 			label: "Name",
-			value: order.name
+			value: order.name,
 		},
 		{
 			label: "Phone",
-			value: order.phone
+			value: order.phone,
 		},
 		{
 			label: "Email",
-			value: order.email
-		}
+			value: order.email,
+		},
 	];
 
 	const shippingDetails = [
 		{
 			label: "Address",
-			value: order.address
+			value: order.address,
 		},
 		{
 			label: "City",
-			value: order.city
+			value: order.city,
 		},
 		{
 			label: "Province",
-			value: order.province
+			value: order.province,
 		},
 		{
 			label: "Country",
-			value: order.country
-		}
+			value: order.country,
+		},
 	];
 
 	return (

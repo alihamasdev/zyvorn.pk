@@ -19,18 +19,18 @@ const itemVariants = cva(
 			variant: {
 				default: "bg-transparent",
 				outline: "border-border",
-				muted: "bg-muted/50"
+				muted: "bg-muted/50",
 			},
 			size: {
 				default: "p-4 gap-4 ",
-				sm: "py-3 px-4 gap-2.5"
-			}
+				sm: "py-3 px-4 gap-2.5",
+			},
 		},
 		defaultVariants: {
 			variant: "default",
-			size: "default"
-		}
-	}
+			size: "default",
+		},
+	},
 );
 
 function Item({
@@ -53,13 +53,13 @@ const itemMediaVariants = cva(
 			variant: {
 				default: "bg-transparent",
 				icon: "size-8 border rounded-sm bg-muted [&_svg:not([class*='size-'])]:size-4",
-				image: "size-10 bg-muted shrink-0 overflow-hidden rounded-md"
-			}
+				image: "size-10 bg-muted shrink-0 overflow-hidden rounded-md",
+			},
 		},
 		defaultVariants: {
-			variant: "default"
-		}
-	}
+			variant: "default",
+		},
+	},
 );
 
 function ItemMedia({ className, variant = "default", ...props }: React.ComponentProps<"div"> & VariantProps<typeof itemMediaVariants>) {
@@ -89,7 +89,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
 			className={cn(
 				"text-muted-foreground line-clamp-2 text-sm leading-normal font-normal text-balance",
 				"[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
-				className
+				className,
 			)}
 			{...props}
 		/>

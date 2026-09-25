@@ -12,12 +12,12 @@ async function getDashboardStats() {
 		db.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
 		db.product.findMany({
 			where: { status: "PUBLISHED" },
-			select: { costPrice: true, stock: true }
+			select: { costPrice: true, stock: true },
 		}),
 		db.orderItem.findMany({
 			where: { order: { NOT: { status: "CANCELLED" } } },
-			select: { price: true, quantity: true, product: { select: { costPrice: true } } }
-		})
+			select: { price: true, quantity: true, product: { select: { costPrice: true } } },
+		}),
 	]);
 
 	const totalInventory = products.reduce((acc, p) => acc + p.costPrice * p.stock, 0);
@@ -28,7 +28,7 @@ async function getDashboardStats() {
 		productsCount,
 		totalRevenue: totalRevenue._sum.total ?? 0,
 		totalInventory,
-		totalProfit: totalProfit.reduce((acc, item) => acc + item.price * item.quantity - item.product.costPrice * item.quantity, 0) ?? 0
+		totalProfit: totalProfit.reduce((acc, item) => acc + item.price * item.quantity - item.product.costPrice * item.quantity, 0) ?? 0,
 	};
 }
 

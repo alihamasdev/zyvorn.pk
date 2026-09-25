@@ -24,7 +24,7 @@ export function PrintOrder({ orderId, order }: PrintOrderProps) {
 				Print
 			</Button>
 
-			<div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-50 print:p-8">
+			<div className="hidden print:fixed print:inset-0 print:z-50 print:block print:bg-white print:p-8">
 				<PrintOrderContent orderId={orderId} order={order} />
 			</div>
 		</>

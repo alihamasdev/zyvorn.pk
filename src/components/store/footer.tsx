@@ -6,26 +6,26 @@ const socialLinks = [
 		title: "WhatsApp",
 		tooltip: "Chat on whatsapp",
 		link: "https://api.whatsapp.com/send?phone=%2B923707525627",
-		icon: <WhatsAppIcon />
+		icon: <WhatsAppIcon />,
 	},
 	{
 		title: "Facebook",
 		tooltip: "Visit our facebook",
 		link: "https://www.facebook.com/zyvorn.pk",
-		icon: <FacebookIcon />
+		icon: <FacebookIcon />,
 	},
 	{
 		title: "Instagram",
 		tooltip: "Follow on instagram",
 		link: "https://www.instagram.com/zyvorn.pk",
-		icon: <InstagramIcon />
+		icon: <InstagramIcon />,
 	},
 	{
 		title: "TikTok",
 		tooltip: "Find us on tiktok",
 		link: "https://www.tiktok.com/@zyvorn.pk",
-		icon: <TiktokIcon />
-	}
+		icon: <TiktokIcon />,
+	},
 ];
 
 export function StoreFooter() {

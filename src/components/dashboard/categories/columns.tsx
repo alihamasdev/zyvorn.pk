@@ -20,7 +20,7 @@ export const dashboardCategoriesColumn: ColumnDef<Category>[] = [
 			<a href={`/collections/${row.original.slug}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
 				{`/collections/${row.original.slug}`}
 			</a>
-		)
+		),
 	},
 	{ accessorKey: "createdAt", header: "Date", cell: ({ row }) => formatDate(row.original.createdAt) },
 	{
@@ -46,6 +46,6 @@ export const dashboardCategoriesColumn: ColumnDef<Category>[] = [
 					</DeleteDialog>
 				</div>
 			);
-		}
-	}
+		},
+	},
 ];

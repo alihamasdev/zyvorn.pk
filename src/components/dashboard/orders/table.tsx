@@ -7,7 +7,7 @@ import {
 	getFilteredRowModel,
 	useReactTable,
 	type ColumnDef,
-	type ColumnFiltersState
+	type ColumnFiltersState,
 } from "@tanstack/react-table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,7 +26,7 @@ export function DashboardOrdersTable<TData, TValue>({ data, columns }: Dashboard
 		state: { columnFilters },
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
 	});
 
 	return (

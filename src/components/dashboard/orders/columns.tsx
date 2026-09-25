@@ -27,18 +27,20 @@ export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
 						{imageSrc ? (
 							<ProductImage src={imageSrc} alt={title} size={60} transformation="thumbnail" />
 						) : (
-							<div className="size-full flex items-center justify-center text-xs text-muted-foreground">N/A</div>
+							<div className="text-muted-foreground flex size-full items-center justify-center text-xs">N/A</div>
 						)}
 					</div>
 					<div>
 						<p className="line-clamp-2 max-w-60 font-medium text-pretty">{title}</p>
 						{additionalCount > 0 && (
-							<span className="text-xs text-muted-foreground">+{additionalCount} more item{additionalCount > 1 ? "s" : ""}</span>
+							<span className="text-muted-foreground text-xs">
+								+{additionalCount} more item{additionalCount > 1 ? "s" : ""}
+							</span>
 						)}
 					</div>
 				</div>
 			);
-		}
+		},
 	},
 	{
 		header: "Customer",
@@ -47,7 +49,7 @@ export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
 				<span className="font-medium">{row.original.name}</span>
 				<span className="text-muted-foreground text-xs">{row.original.email}</span>
 			</div>
-		)
+		),
 	},
 	{
 		accessorKey: "status",
@@ -55,17 +57,17 @@ export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
 		cell: ({ row }) => {
 			const status = row.original.status;
 			return <Badge variant={status === "DELIVERED" ? "default" : status === "CANCELLED" ? "destructive" : "secondary"}>{status}</Badge>;
-		}
+		},
 	},
 	{
 		accessorKey: "total",
 		header: "Total",
-		cell: ({ row }) => <span className="font-medium">Rs.{row.original.total.toLocaleString()}</span>
+		cell: ({ row }) => <span className="font-medium">Rs.{row.original.total.toLocaleString()}</span>,
 	},
 	{
 		accessorKey: "createdAt",
 		header: "Date",
-		cell: ({ row }) => <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>
+		cell: ({ row }) => <span className="text-muted-foreground">{formatDate(row.original.createdAt)}</span>,
 	},
 	{
 		id: "actions",
@@ -78,6 +80,6 @@ export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
 					</LinkButton>
 				</div>
 			);
-		}
-	}
+		},
+	},
 ];

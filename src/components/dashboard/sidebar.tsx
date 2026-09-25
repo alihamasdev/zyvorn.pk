@@ -19,7 +19,7 @@ import {
 	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	useSidebar
+	useSidebar,
 } from "@/components/ui/sidebar";
 
 import { sidebarRoutes } from "./routes";
@@ -83,8 +83,8 @@ export function DashboardSidebar() {
 										fetchOptions: {
 											onSuccess: () => {
 												window.location.href = "/login";
-											}
-										}
+											},
+										},
 									});
 								}}
 							>
@@ -108,8 +108,8 @@ export function SignOutButton({ className, ...props }: React.ComponentProps<type
 					fetchOptions: {
 						onSuccess: () => {
 							window.location.href = "/login";
-						}
-					}
+						},
+					},
 				});
 			}}
 			className={className}

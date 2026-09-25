@@ -30,7 +30,7 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 			for (const item of cart.items) {
 				const product = await tx.product.findUnique({
 					where: { id: item.product.id },
-					select: { stock: true, title: true, status: true }
+					select: { stock: true, title: true, status: true },
 				});
 
 				if (!product || product.status !== "PUBLISHED") {
@@ -46,7 +46,7 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 			for (const item of cart.items) {
 				await tx.product.update({
 					where: { id: item.product.id },
-					data: { stock: { decrement: item.quantity } }
+					data: { stock: { decrement: item.quantity } },
 				});
 			}
 
@@ -68,15 +68,15 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 						create: cart.items.map((item) => ({
 							quantity: item.quantity,
 							productId: item.product.id,
-							price: item.product.discountPrice ?? item.product.salePrice
-						}))
-					}
-				}
+							price: item.product.discountPrice ?? item.product.salePrice,
+						})),
+					},
+				},
 			});
 
 			// 4. Delete the cart
 			await tx.cart.delete({
-				where: { id: cartId }
+				where: { id: cartId },
 			});
 
 			return createdOrder;

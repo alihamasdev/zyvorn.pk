@@ -27,7 +27,7 @@ export function FloatingLabelSelect({ placeholder, value, isInvalid, errors, cla
 						"focus-visible:border-ring focus-visible:ring-ring/70 focus-visible:ring-1",
 						"aria-invalid:ring-destructive/70 aria-invalid:border-destructive aria-invalid:ring-1",
 						"[&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-						className
+						className,
 					)}
 				>
 					<SelectValue placeholder={placeholder} className="line-clamp-1 flex items-center gap-2" />
@@ -41,7 +41,7 @@ export function FloatingLabelSelect({ placeholder, value, isInvalid, errors, cla
 				htmlFor={id}
 				className={cn(
 					"text-muted-foreground absolute left-3 text-xs transition-all duration-200",
-					value ? "top-1.5 text-xs opacity-100" : "top-3 opacity-0"
+					value ? "top-1.5 text-xs opacity-100" : "top-3 opacity-0",
 				)}
 			>
 				{placeholder}

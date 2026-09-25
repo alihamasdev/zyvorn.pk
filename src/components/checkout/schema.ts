@@ -12,7 +12,7 @@ export const checkoutSchema = z.object({
 	postalCode: z.string().min(3, "Zip code must be at least 3 characters long").or(z.literal("")),
 	province: z.enum(["PUNJAB", "SINDH", "BALOCHISTAN", "KHYBER_PAKHTUNKHWA", "AZAD_KASHMIR"]),
 	country: z.enum(["PAKISTAN"]),
-	paymentMethod: z.enum(["CASH_ON_DELIVERY", "BANK_TRANSFER"])
+	paymentMethod: z.enum(["CASH_ON_DELIVERY", "BANK_TRANSFER"]),
 });
 
 export type CheckoutSchema = z.infer<typeof checkoutSchema>;

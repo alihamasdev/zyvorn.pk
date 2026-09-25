@@ -13,7 +13,7 @@ export async function StoreHeader() {
 	const navLinks = [
 		{ label: "Home", href: "/" },
 		{ label: "Shop", href: "/collections/all" },
-		...categories.map((category) => ({ label: category.name, href: `/collections/${category.slug}` }))
+		...categories.map((category) => ({ label: category.name, href: `/collections/${category.slug}` })),
 	];
 
 	return (

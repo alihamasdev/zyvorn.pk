@@ -14,7 +14,7 @@ import {
 	StrikethroughIcon,
 	TypeIcon,
 	UnderlineIcon,
-	Undo2Icon
+	Undo2Icon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -45,9 +45,9 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 				isBulletList: ctx.editor.isActive("bulletList") ?? false,
 				isOrderedList: ctx.editor.isActive("orderedList") ?? false,
 				canUndo: ctx.editor.can().chain().undo().run() ?? false,
-				canRedo: ctx.editor.can().chain().redo().run() ?? false
+				canRedo: ctx.editor.can().chain().redo().run() ?? false,
 			};
-		}
+		},
 	});
 
 	const currentBlock = editorState.isHeading1
@@ -163,7 +163,7 @@ export function TextEditor({ value, onChange }: { value: string; onChange: (valu
 		content: value,
 		immediatelyRender: false,
 		onUpdate: ({ editor }) => onChange(editor.getHTML()),
-		editorProps: { attributes: { class: "px-3 py-2 min-h-80 text-sm" } }
+		editorProps: { attributes: { class: "px-3 py-2 min-h-80 text-sm" } },
 	});
 	return (
 		<div className="overflow-hidden rounded-lg border shadow-xs">
@@ -173,7 +173,7 @@ export function TextEditor({ value, onChange }: { value: string; onChange: (valu
 				className={cn(
 					"**:[h1]:text-xl **:[h1]:font-semibold **:[h2]:text-lg **:[h2]:font-semibold **:[h3]:text-base **:[h3]:font-semibold",
 					"**:[ol]:list-inside **:[ol]:list-decimal **:[ul]:list-inside **:[ul]:list-disc",
-					"**:[li>p]:inline"
+					"**:[li>p]:inline",
 				)}
 			/>
 		</div>

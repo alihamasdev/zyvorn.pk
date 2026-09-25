@@ -30,7 +30,7 @@ export default async function CheckoutPage({ params }: PageProps<"/checkout/[car
 							postalCode: "",
 							province: "PUNJAB",
 							country: "PAKISTAN",
-							paymentMethod: "CASH_ON_DELIVERY"
+							paymentMethod: "CASH_ON_DELIVERY",
 						}}
 					>
 						<OrderSummary cart={cart} />

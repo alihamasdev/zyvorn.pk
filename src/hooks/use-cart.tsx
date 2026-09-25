@@ -12,7 +12,7 @@ export interface CartItem extends Pick<Product, "id" | "title" | "slug"> {
 export function useCart() {
 	const { data: cart, status } = useQuery({
 		queryKey: ["cart"],
-		queryFn: () => getCart()
+		queryFn: () => getCart(),
 	});
 
 	const cartItems: CartItem[] =
@@ -22,7 +22,7 @@ export function useCart() {
 			slug: item.product.slug,
 			quantity: item.quantity,
 			image: item.product.images?.[0] ?? "",
-			price: item.product.discountPrice ?? item.product.salePrice
+			price: item.product.discountPrice ?? item.product.salePrice,
 		})) ?? [];
 
 	const totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);

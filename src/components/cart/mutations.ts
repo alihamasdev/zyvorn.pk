@@ -19,7 +19,7 @@ export function addItemMutation() {
 		onError: (error) => {
 			console.error("Failed to add to cart", error);
 			toast.error("Failed to add to cart");
-		}
+		},
 	});
 }
 
@@ -49,6 +49,6 @@ export function removeItemMutation() {
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["cart"] });
-		}
+		},
 	});
 }

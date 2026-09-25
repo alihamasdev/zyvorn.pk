@@ -16,12 +16,12 @@ export async function upsertProductAction(data: ProductSchema, productId?: strin
 
 		if (!productId) {
 			await db.product.create({
-				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null }
+				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null },
 			});
 		} else {
 			await db.product.update({
 				where: { id: productId },
-				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null }
+				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null },
 			});
 			updateTag(`dashboard-product-${productId}`);
 		}
@@ -55,7 +55,7 @@ export async function deleteProductAction(productId: string) {
 			// Cannot hard delete an ordered product; archive it instead to preserve sales history
 			const product = await db.product.update({
 				where: { id: productId },
-				data: { status: "ARCHIVED" }
+				data: { status: "ARCHIVED" },
 			});
 			categoryId = product.categoryId;
 		} else {

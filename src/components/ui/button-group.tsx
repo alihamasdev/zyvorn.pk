@@ -10,13 +10,14 @@ const buttonGroupVariants = cva(
 		variants: {
 			orientation: {
 				horizontal: "[&>*:not(:first-child)]:rounded-l-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-r-none",
-				vertical: "flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none"
-			}
+				vertical:
+					"flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none",
+			},
 		},
 		defaultVariants: {
-			orientation: "horizontal"
-		}
-	}
+			orientation: "horizontal",
+		},
+	},
 );
 
 function ButtonGroup({ className, orientation, ...props }: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
@@ -44,7 +45,7 @@ function ButtonGroupText({
 		<Comp
 			className={cn(
 				"bg-muted flex items-center gap-2 rounded-md border px-4 text-sm font-medium shadow-xs [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
-				className
+				className,
 			)}
 			{...props}
 		/>

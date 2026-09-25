@@ -78,7 +78,7 @@ function Carousel({
 				scrollNext();
 			}
 		},
-		[scrollPrev, scrollNext]
+		[scrollPrev, scrollNext],
 	);
 
 	useEffect(() => {
@@ -107,7 +107,7 @@ function Carousel({
 				scrollPrev,
 				scrollNext,
 				canScrollPrev,
-				canScrollNext
+				canScrollNext,
 			}}
 		>
 			<div className={cn("relative", className)} data-slot="carousel" onKeyDownCapture={handleKeyDown} {...props}>
@@ -147,7 +147,7 @@ function CarouselPrevious({ className, variant = "outline", size = "icon", ...pr
 			className={cn(
 				"absolute size-8 rounded-full",
 				orientation === "horizontal" ? "top-1/2 -left-12 -translate-y-1/2" : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
-				className
+				className,
 			)}
 			data-slot="carousel-previous"
 			disabled={!canScrollPrev}
@@ -170,7 +170,7 @@ function CarouselNext({ className, variant = "outline", size = "icon", ...props 
 			className={cn(
 				"absolute size-8 rounded-full",
 				orientation === "horizontal" ? "top-1/2 -right-12 -translate-y-1/2" : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-				className
+				className,
 			)}
 			data-slot="carousel-next"
 			disabled={!canScrollNext}

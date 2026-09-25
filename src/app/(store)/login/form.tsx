@@ -14,7 +14,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { GoogleIcon } from "@/components/icons";
 
 const loginSchema = z.object({
-	email: z.email("Invalid email address")
+	email: z.email("Invalid email address"),
 });
 
 export function LoginForm() {
@@ -33,11 +33,11 @@ export function LoginForm() {
 						},
 						onError: ({ error }) => {
 							toast.error(error.message || "Something went wrong");
-						}
-					}
+						},
+					},
 				);
 			});
-		}
+		},
 	});
 
 	return (
@@ -105,8 +105,8 @@ function GoogleLoginButton() {
 						{
 							onError: () => {
 								toast.error("Something went wrong, please try again");
-							}
-						}
+							},
+						},
 					);
 				})
 			}

@@ -5,15 +5,15 @@ function makeQueryClient(): QueryClient {
 	return new QueryClient({
 		defaultOptions: {
 			queries: {
-				staleTime: Infinity
+				staleTime: Infinity,
 			},
 			mutations: {
 				onError(error) {
 					console.error(error);
 					toast.error(error.message ?? "Something went wrong");
-				}
-			}
-		}
+				},
+			},
+		},
 	});
 }
 

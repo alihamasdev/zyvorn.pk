@@ -13,7 +13,7 @@ import {
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
-	SheetTrigger
+	SheetTrigger,
 } from "@/components/ui/sheet";
 
 export function MobileNav({ navLinks }: { navLinks: { label: string; href: string }[] }) {

@@ -23,7 +23,7 @@ export function FloatingLabelInput({ className, placeholder, isInvalid, errors, 
 					"disabled:bg-muted disabled:pointer-events-none",
 					"focus-visible:border-ring focus-visible:ring-ring/70 focus-visible:ring-1",
 					"aria-invalid:ring-destructive/70 aria-invalid:border-destructive aria-invalid:ring-1",
-					"selection:bg-primary selection:text-primary-foreground"
+					"selection:bg-primary selection:text-primary-foreground",
 				)}
 				{...props}
 			/>
@@ -31,7 +31,7 @@ export function FloatingLabelInput({ className, placeholder, isInvalid, errors, 
 				htmlFor={id}
 				className={cn(
 					"text-muted-foreground absolute top-1.5 left-3 cursor-text text-xs opacity-100 transition-all duration-200",
-					"peer-placeholder-shown:top-3 peer-placeholder-shown:opacity-0"
+					"peer-placeholder-shown:top-3 peer-placeholder-shown:opacity-0",
 				)}
 			>
 				{placeholder}

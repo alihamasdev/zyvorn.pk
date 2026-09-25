@@ -32,7 +32,7 @@ export function AnimatedRadioGroup({ items, className, isInvalid, errors, ...pro
 								"border-input relative flex cursor-pointer flex-col border bg-transparent text-sm first:rounded-t-md last:rounded-b-md",
 								"has-data-[state=checked]:border-primary/70 has-data-[state=checked]:bg-primary/5",
 								"has-disabled:cursor-not-allowed has-disabled:opacity-50",
-								className
+								className,
 							)}
 						>
 							<RadioGroupPrimitive.Item value={item.value} id={id} className="group flex cursor-pointer flex-col p-3">
@@ -43,7 +43,7 @@ export function AnimatedRadioGroup({ items, className, isInvalid, errors, ...pro
 								<div
 									className={cn(
 										"grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-in-out",
-										item.description && "group-data-[state=checked]:grid-rows-[1fr]"
+										item.description && "group-data-[state=checked]:grid-rows-[1fr]",
 									)}
 								>
 									<div className="overflow-hidden">

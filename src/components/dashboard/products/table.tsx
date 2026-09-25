@@ -7,7 +7,7 @@ import {
 	getFilteredRowModel,
 	useReactTable,
 	type ColumnDef,
-	type ColumnFiltersState
+	type ColumnFiltersState,
 } from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
 
@@ -28,7 +28,7 @@ export function DashboardProductsTable<TData, TValue>({ data, columns }: Dashboa
 		state: { columnFilters },
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
 	});
 
 	return (

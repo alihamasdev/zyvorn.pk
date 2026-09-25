@@ -44,7 +44,7 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 				router.push("/dashboard/products");
 				toast.success(productId ? "Product updated successfuly" : "New Product has been created");
 			});
-		}
+		},
 	});
 
 	return (
@@ -174,9 +174,9 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 										pre: "n-default",
 										post: [
 											{ type: "transformation", value: "n-listing" },
-											{ type: "transformation", value: "n-thumbnail" }
-										]
-									}
+											{ type: "transformation", value: "n-thumbnail" },
+										],
+									},
 								}}
 							/>
 							{isInvalid && <FieldError className="text-sm" errors={field.state.meta.errors} />}

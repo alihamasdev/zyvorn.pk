@@ -14,7 +14,7 @@ import {
 	FileUploadItemPreview,
 	FileUploadItemProgress,
 	FileUploadList,
-	type OnUploadOptions
+	type OnUploadOptions,
 } from "@/components/ui/file-upload";
 
 interface ImageUploadProps extends Omit<React.ComponentProps<typeof FileUpload>, "onUpload" | "value" | "onValueChange"> {
@@ -37,7 +37,7 @@ export function ImageUpload({ transition, uploadOptions, pushValue, removeValue,
 						...uploadOptions,
 						file,
 						fileName: Date.now().toString(),
-						onProgress: (e) => onProgress(file, (e.loaded / e.total) * 100)
+						onProgress: (e) => onProgress(file, (e.loaded / e.total) * 100),
 					});
 					if (!filePath) throw new Error("Upload failed");
 					pushValue(filePath);

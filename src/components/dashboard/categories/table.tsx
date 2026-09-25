@@ -16,7 +16,7 @@ export function DashboardCategoriesTable<TData, TValue>({ data, columns }: Dashb
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
+		getFilteredRowModel: getFilteredRowModel(),
 	});
 
 	return (

@@ -46,17 +46,13 @@ export function CheckoutForm({ className, cartId, defaultValues, provinces, chil
 				setIsSucceed(true);
 				queryClient.refetchQueries({ queryKey: ["cart"] });
 			});
-		}
+		},
 	});
 
 	return (
 		<>
 			{isSucceed && (
-				<SuccessCheckout
-					orderId={orderId ?? undefined}
-					paymentMethod={form.state.values.paymentMethod}
-					isLogin={!!defaultValues.email}
-				/>
+				<SuccessCheckout orderId={orderId ?? undefined} paymentMethod={form.state.values.paymentMethod} isLogin={!!defaultValues.email} />
 			)}
 			<form
 				className={cn("space-y-6", className)}
@@ -242,8 +238,8 @@ export function CheckoutForm({ className, cartId, defaultValues, provinces, chil
 												<br />
 												<p>WhatsApp Deposit Slip / Transfer Message with Your Order Number to us 0370-7525627</p>
 											</>
-										)
-									}
+										),
+									},
 								]}
 							/>
 						)}

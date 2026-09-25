@@ -27,7 +27,7 @@ export const getLatestProducts = cache(async () => {
 		take: 10,
 		omit: { costPrice: true },
 		where: { status: "PUBLISHED" },
-		orderBy: { createdAt: "desc" }
+		orderBy: { createdAt: "desc" },
 	});
 });
 
@@ -39,7 +39,7 @@ export const getCollectionProducts = cache(async (slug: string) => {
 		return await db.product.findMany({
 			omit: { costPrice: true },
 			orderBy: { createdAt: "desc" },
-			where: { status: "PUBLISHED" }
+			where: { status: "PUBLISHED" },
 		});
 	}
 
@@ -49,7 +49,7 @@ export const getCollectionProducts = cache(async (slug: string) => {
 	return await db.product.findMany({
 		omit: { costPrice: true },
 		orderBy: { createdAt: "desc" },
-		where: { status: "PUBLISHED", categoryId: category.id }
+		where: { status: "PUBLISHED", categoryId: category.id },
 	});
 });
 
@@ -65,7 +65,7 @@ export const getCategoryProducts = cache(async (categoryId: string, productId: s
 	return await db.product.findMany({
 		take: 4,
 		omit: { costPrice: true },
-		where: { categoryId, status: "PUBLISHED", id: { not: productId } }
+		where: { categoryId, status: "PUBLISHED", id: { not: productId } },
 	});
 });
 
@@ -74,7 +74,7 @@ export const getOrders = cache(async () => {
 	cacheTag("orders");
 	return await db.order.findMany({
 		orderBy: { createdAt: "desc" },
-		include: { items: { select: { product: { select: { images: true, title: true } } } } }
+		include: { items: { select: { product: { select: { images: true, title: true } } } } },
 	});
 });
 
@@ -84,8 +84,8 @@ export const getOrderById = cache(async (id: string) => {
 	return await db.order.findUnique({
 		where: { id },
 		include: {
-			items: { include: { product: true } }
-		}
+			items: { include: { product: true } },
+		},
 	});
 });
 
@@ -93,7 +93,7 @@ export async function getDashboardProducts() {
 	return await db.product.findMany({
 		orderBy: { createdAt: "desc" },
 		include: {
-			category: { select: { name: true } }
-		}
+			category: { select: { name: true } },
+		},
 	});
 }

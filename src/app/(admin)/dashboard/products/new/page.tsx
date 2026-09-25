@@ -15,7 +15,7 @@ export default async function NewDashboardProductPage() {
 				stock: 0,
 				status: "PUBLISHED",
 				categoryId: "",
-				images: []
+				images: [],
 			}}
 		/>
 	);

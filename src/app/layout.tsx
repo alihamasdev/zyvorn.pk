@@ -10,12 +10,12 @@ import "./globals.css";
 
 const outfit = Outfit({
 	weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-	subsets: ["latin"]
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
 	title: "E-commerce",
-	description: "Full stack e-commerce application built with Next.js, TypeScript, and Tailwind CSS."
+	description: "Full stack e-commerce application built with Next.js, TypeScript, and Tailwind CSS.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

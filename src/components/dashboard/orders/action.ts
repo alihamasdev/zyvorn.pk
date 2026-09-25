@@ -12,7 +12,7 @@ export async function updateOrderStatusAction(orderId: string, status: ORDER_STA
 
 		await db.order.update({
 			where: { id: orderId },
-			data: { status }
+			data: { status },
 		});
 
 		updateTag("orders");
