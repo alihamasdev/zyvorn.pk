@@ -51,7 +51,13 @@ export function CheckoutForm({ className, cartId, defaultValues, provinces, chil
 
 	return (
 		<>
-			{isSucceed && <SuccessCheckout isLogin={!!defaultValues.email} />}
+			{isSucceed && (
+				<SuccessCheckout
+					orderId={orderId ?? undefined}
+					paymentMethod={form.state.values.paymentMethod}
+					isLogin={!!defaultValues.email}
+				/>
+			)}
 			<form
 				className={cn("space-y-6", className)}
 				{...props}

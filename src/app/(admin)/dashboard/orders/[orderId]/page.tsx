@@ -1,3 +1,5 @@
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 
 import { getOrderById } from "@/lib/dal";
@@ -15,6 +17,16 @@ export default async function DashboardOrderByIdPage({ params }: { params: Promi
 	const order = await getOrderById(orderId);
 
 	if (!order) return notFound();
+
+	const digitsOnly = order.phone.replace(/\D/g, "");
+	const sanitizedPhone = digitsOnly.startsWith("0")
+		? `92${digitsOnly.slice(1)}`
+		: digitsOnly.startsWith("92")
+			? digitsOnly
+			: `92${digitsOnly}`;
+	const whatsappUrl = `https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
+		`Hello ${order.name}, regarding your Zyvorn Order #${orderId.toUpperCase()}:`
+	)}`;
 
 	const customerDetails = [
 		{
@@ -66,9 +78,26 @@ export default async function DashboardOrderByIdPage({ params }: { params: Promi
 				</CardHeader>
 				<CardContent className="space-y-2">
 					{customerDetails.map((detail) => (
-						<div key={detail.label} className="flex justify-between gap-x-6">
+						<div key={detail.label} className="flex items-center justify-between gap-x-6">
 							<span className="text-muted-foreground">{detail.label}:</span>
-							<span className="text-right">{detail.value}</span>
+							{detail.label === "Phone" ? (
+								<div className="flex items-center gap-1.5">
+									<span className="text-right">{detail.value}</span>
+									<Button
+										asChild
+										variant="ghost"
+										size="icon-sm"
+										className="size-6 text-[#25D366] hover:bg-emerald-50 hover:text-[#20ba5a] dark:hover:bg-emerald-950/40"
+										title="Chat on WhatsApp"
+									>
+										<a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+											<MessageCircle className="size-3.5" />
+										</a>
+									</Button>
+								</div>
+							) : (
+								<span className="text-right">{detail.value}</span>
+							)}
 						</div>
 					))}
 				</CardContent>
