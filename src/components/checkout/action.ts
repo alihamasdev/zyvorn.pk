@@ -25,31 +25,61 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 
 		const totalAmount = cart.items.reduce((acc, item) => acc + (item.product.discountPrice ?? item.product.salePrice) * item.quantity, 0);
 
-		await db.order.create({
-			data: {
-				name: data.name,
-				email: data.email,
-				phone: data.phone,
-				address: data.address,
-				city: data.city,
-				postalCode: data.postalCode || null,
-				province: data.province,
-				country: data.country,
-				paymentMethod: data.paymentMethod,
-				total: totalAmount,
-				userId: user?.user.id ?? null,
-				items: {
-					create: cart.items.map((item) => ({
-						quantity: item.quantity,
-						productId: item.product.id,
-						price: item.product.discountPrice ?? item.product.salePrice
-					}))
+		const order = await db.$transaction(async (tx) => {
+			// 1. Verify stock for each cart item
+			for (const item of cart.items) {
+				const product = await tx.product.findUnique({
+					where: { id: item.product.id },
+					select: { stock: true, title: true, status: true }
+				});
+
+				if (!product || product.status !== "PUBLISHED") {
+					throw new Error(`Product "${item.product.title}" is no longer available.`);
+				}
+
+				if (product.stock < item.quantity) {
+					throw new Error(`Insufficient stock for "${item.product.title}". Only ${product.stock} left.`);
 				}
 			}
-		});
 
-		await db.cart.delete({
-			where: { id: cartId }
+			// 2. Decrement stock for each item
+			for (const item of cart.items) {
+				await tx.product.update({
+					where: { id: item.product.id },
+					data: { stock: { decrement: item.quantity } }
+				});
+			}
+
+			// 3. Create the order
+			const createdOrder = await tx.order.create({
+				data: {
+					name: data.name,
+					email: data.email,
+					phone: data.phone.replace(/[\s-]/g, ""),
+					address: data.address,
+					city: data.city,
+					postalCode: data.postalCode || null,
+					province: data.province,
+					country: data.country,
+					paymentMethod: data.paymentMethod,
+					total: totalAmount,
+					userId: user?.user.id ?? null,
+					items: {
+						create: cart.items.map((item) => ({
+							quantity: item.quantity,
+							productId: item.product.id,
+							price: item.product.discountPrice ?? item.product.salePrice
+						}))
+					}
+				}
+			});
+
+			// 4. Delete the cart
+			await tx.cart.delete({
+				where: { id: cartId }
+			});
+
+			return createdOrder;
 		});
 
 		const cookieStore = await cookies();
@@ -57,10 +87,10 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 
 		updateTag("orders");
 
-		return { error: null };
+		return { error: null, orderId: order.id };
 	} catch (error) {
 		rethrow(error);
 		console.error(error);
-		return { error: "Something went wrong, please try again" };
+		return { error: error instanceof Error ? error.message : "Something went wrong" };
 	}
 }

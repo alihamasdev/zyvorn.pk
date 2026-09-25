@@ -28,6 +28,7 @@ interface CheckoutFormProps extends React.ComponentProps<"form"> {
 export function CheckoutForm({ className, cartId, defaultValues, provinces, children, ...props }: CheckoutFormProps) {
 	const queryClient = useQueryClient();
 
+	const [orderId, setOrderId] = useState<string | null>(null);
 	const [isSucceed, setIsSucceed] = useState(false);
 	const [isPending, startTransition] = useTransition();
 
@@ -36,11 +37,12 @@ export function CheckoutForm({ className, cartId, defaultValues, provinces, chil
 		validators: { onSubmit: checkoutSchema },
 		onSubmit: ({ value }) => {
 			startTransition(async () => {
-				const { error } = await checkoutAction(value, cartId);
-				if (error) {
-					toast.error(error);
+				const res = await checkoutAction(value, cartId);
+				if (res.error) {
+					toast.error(res.error);
 					return;
 				}
+				setOrderId(res.orderId ?? null);
 				setIsSucceed(true);
 				queryClient.refetchQueries({ queryKey: ["cart"] });
 			});
