@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-interface SuccessCheckoutProps {
+type SuccessCheckoutProps = {
 	isLogin?: boolean;
 	orderId?: string;
 	paymentMethod?: "CASH_ON_DELIVERY" | "BANK_TRANSFER";
-}
+};
 
 export default function SuccessCheckout({ isLogin, orderId, paymentMethod }: SuccessCheckoutProps) {
 	const router = useRouter();

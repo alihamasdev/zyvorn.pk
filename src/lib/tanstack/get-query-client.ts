@@ -1,4 +1,4 @@
-import { isServer, QueryClient } from "@tanstack/react-query";
+import { environmentManager, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 function makeQueryClient(): QueryClient {
@@ -20,7 +20,7 @@ function makeQueryClient(): QueryClient {
 let browserQueryClient: QueryClient | undefined;
 
 export function getQueryClient() {
-	if (isServer) {
+	if (environmentManager.isServer()) {
 		return makeQueryClient();
 	}
 	if (!browserQueryClient) browserQueryClient = makeQueryClient();

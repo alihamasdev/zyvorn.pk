@@ -19,11 +19,11 @@ import { checkoutSchema, type CheckoutSchema } from "@/components/checkout/schem
 
 const SuccessCheckout = dynamic(() => import("./success-checkout"), { ssr: false });
 
-interface CheckoutFormProps extends React.ComponentProps<"form"> {
+type CheckoutFormProps = React.ComponentProps<"form"> & {
 	cartId: string;
 	provinces: string[];
 	defaultValues: CheckoutSchema;
-}
+};
 
 export function CheckoutForm({ className, cartId, defaultValues, provinces, children, ...props }: CheckoutFormProps) {
 	const queryClient = useQueryClient();

@@ -14,6 +14,7 @@ export function AccountButton() {
 		<Button
 			size="icon"
 			variant="ghost"
+			aria-label="Account"
 			onClick={() => {
 				if (isPending) return;
 				router.push(data ? "/account" : "/login");

@@ -5,12 +5,12 @@ import { PrinterIcon } from "lucide-react";
 import type { Order, OrderItem } from "@/lib/prisma/browser";
 import { Button } from "@/components/ui/button";
 
-interface PrintOrderProps {
+type PrintOrderProps = {
 	orderId: string;
 	order: Order & {
 		items: Array<OrderItem & { product: { title: string } }>;
 	};
-}
+};
 
 export function PrintOrder({ orderId, order }: PrintOrderProps) {
 	const handlePrint = () => {

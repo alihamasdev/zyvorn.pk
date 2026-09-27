@@ -6,17 +6,17 @@ import { Label as LabelPrimitive, RadioGroup as RadioGroupPrimitive } from "radi
 import { cn } from "@/lib/utils";
 import { Field, FieldError } from "@/components/ui/field";
 
-export interface AnimatedRadioGroupItem {
+export type AnimatedRadioGroupItem = {
 	label: string;
 	value: string;
 	description?: React.ReactNode;
-}
+};
 
-export interface AnimatedRadioGroupProps extends React.ComponentProps<typeof RadioGroupPrimitive.Root> {
+export type AnimatedRadioGroupProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
 	isInvalid?: boolean;
 	items: AnimatedRadioGroupItem[];
 	errors?: Array<{ message?: string } | undefined>;
-}
+};
 
 export function AnimatedRadioGroup({ items, className, isInvalid, errors, ...props }: AnimatedRadioGroupProps) {
 	return (

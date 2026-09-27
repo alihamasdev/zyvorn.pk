@@ -1,17 +1,18 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { EyeIcon } from "lucide-react";
 
-import type { getOrders } from "@/lib/dal";
+import { type getOrders } from "@/lib/dal";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
+import { type DashboardTableFeatures } from "@/components/dashboard/table-features";
 import { ProductImage } from "@/components/product/product-image";
 
 type OrderDetails = Awaited<ReturnType<typeof getOrders>>[number];
 
-export const dashboardOrdersColumn: ColumnDef<OrderDetails>[] = [
+export const dashboardOrdersColumn: ColumnDef<DashboardTableFeatures, OrderDetails>[] = [
 	{
 		id: "product",
 		header: "Product",

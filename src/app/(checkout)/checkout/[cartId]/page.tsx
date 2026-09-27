@@ -1,12 +1,50 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/server";
 import { PROVINCE } from "@/lib/prisma/enums";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCart } from "@/components/cart/actions";
 import { CheckoutForm } from "@/components/checkout/form";
 import { OrderSummary } from "@/components/checkout/order-summary";
 
-export default async function CheckoutPage({ params }: PageProps<"/checkout/[cartId]">) {
+export default function CheckoutPage({ params }: PageProps<"/checkout/[cartId]">) {
+	return (
+		<Suspense fallback={<CheckoutSkeleton />}>
+			<CheckoutContent params={params} />
+		</Suspense>
+	);
+}
+
+function CheckoutSkeleton() {
+	return (
+		<div className="grid flex-1 grid-cols-1 md:divide-x lg:grid-cols-2">
+			<section className="flex justify-center lg:justify-end">
+				<div className="w-full space-y-6 p-4 md:max-w-150 md:p-8">
+					<Skeleton className="h-8 w-48" />
+					<div className="space-y-4">
+						<Skeleton className="h-12 w-full" />
+						<Skeleton className="h-12 w-full" />
+						<Skeleton className="h-12 w-full" />
+						<Skeleton className="h-12 w-full" />
+					</div>
+				</div>
+			</section>
+			<section className="bg-muted/75 hidden justify-center md:*:max-w-120 lg:flex lg:justify-start">
+				<div className="w-full space-y-4 p-4 md:max-w-120 md:p-8">
+					<Skeleton className="h-8 w-36" />
+					<div className="space-y-3">
+						<Skeleton className="h-16 w-full" />
+						<Skeleton className="h-16 w-full" />
+					</div>
+					<Skeleton className="h-10 w-full" />
+				</div>
+			</section>
+		</div>
+	);
+}
+
+async function CheckoutContent({ params }: { params: Promise<{ cartId: string }> }) {
 	const { cartId } = await params;
 	const [cart, user] = await Promise.all([getCart(cartId), getSession()]);
 

@@ -6,10 +6,10 @@ import { Image } from "@imagekit/next";
 import { cn } from "@/lib/utils";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 
-interface ImageCarouselProps extends React.ComponentProps<"section"> {
+type ImageCarouselProps = React.ComponentProps<"section"> & {
 	autoPlay?: boolean;
 	autoPlayInterval?: number;
-}
+};
 
 export function ImageCarousel({ autoPlay = true, autoPlayInterval = 5000, ...props }: ImageCarouselProps) {
 	const images = ["banners/banner_1.webp", "banners/banner_2.webp", "banners/banner_3.webp"];
@@ -59,6 +59,7 @@ export function ImageCarousel({ autoPlay = true, autoPlayInterval = 5000, ...pro
 							key={index}
 							type="button"
 							onClick={() => api?.scrollTo(index)}
+							aria-label={`Go to slide ${index + 1}`}
 							className={cn(
 								"size-2 rounded-full transition-all duration-200",
 								index + 1 === current ? "bg-primary" : "bg-muted-foreground/30",

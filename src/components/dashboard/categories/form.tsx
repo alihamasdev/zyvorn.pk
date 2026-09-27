@@ -54,7 +54,7 @@ export function CategoryForm({ defaultValues, categoryId }: { defaultValues: Cat
 						isInvalid={field.state.meta.isTouched && !field.state.meta.isValid}
 						onChange={(e) => {
 							field.handleChange(e.target.value);
-							!form.state.fieldMeta.slug.isBlurred && form.setFieldValue("slug", formatSlug(e.target.value));
+							!form.state.fieldMeta.slug?.isBlurred && form.setFieldValue("slug", formatSlug(e.target.value));
 						}}
 					/>
 				)}

@@ -6,7 +6,7 @@ import { ImageCarousel } from "./image-carousel";
 
 async function LatestProducts() {
 	const products = await getLatestProducts();
-	return products.map((product) => <ProductCard key={product.id} product={product} />);
+	return products.map((product, index) => <ProductCard key={product.id} product={product} priority={index < 4} />);
 }
 
 export default function StoreHomePage() {

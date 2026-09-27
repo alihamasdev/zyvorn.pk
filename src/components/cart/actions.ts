@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/server";
 import { db } from "@/lib/db";
-import type { Prisma } from "@/lib/prisma/client";
+import { type Prisma } from "@/lib/prisma/client";
 
 const cartSelect = {
 	id: true,
@@ -19,13 +19,17 @@ const cartSelect = {
 } satisfies Prisma.CartSelect;
 
 const setCartCookie = async (cartId: string) => {
-	const cookieStore = await cookies();
-	return cookieStore.set("cartId", cartId, {
-		path: "/",
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "lax",
-		httpOnly: false,
-	});
+	try {
+		const cookieStore = await cookies();
+		return cookieStore.set("cartId", cartId, {
+			path: "/",
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+			httpOnly: false,
+		});
+	} catch {
+		// Ignore if called in a read-only Server Component rendering context
+	}
 };
 
 const createCartAndReturn = async (userId?: string | null) => {
@@ -40,6 +44,7 @@ const createCartAndReturn = async (userId?: string | null) => {
 };
 
 export async function getCart(cartId?: string) {
+	const requestedCartId = cartId;
 	// If no cartId is provided, check cookies for cartId
 	if (!cartId) {
 		const cookieStore = await cookies();
@@ -54,6 +59,8 @@ export async function getCart(cartId?: string) {
 		});
 
 		if (cart) return cart;
+		// If a specific cartId was explicitly queried and does not exist, return null
+		if (requestedCartId) return null;
 	}
 
 	// If no cartId is found, check for user session
@@ -87,6 +94,7 @@ export async function addToCart(productId: string, quantity: number = 1, cartId?
 		const user = await getSession();
 		const cart = await db.cart.create({ data: { userId: user?.user.id } });
 		cartId = cart.id;
+		await setCartCookie(cart.id);
 	}
 
 	const existingItem = await db.cartItem.findFirst({

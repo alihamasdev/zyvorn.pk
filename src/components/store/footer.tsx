@@ -76,8 +76,9 @@ export function StoreFooter() {
 										{socialLinks.map(({ title, tooltip, link, icon }) => (
 											<Tooltip key={title}>
 												<TooltipTrigger asChild>
-													<a href={link} target="_blank" rel="noopener noreferrer">
+													<a href={link} target="_blank" rel="noopener noreferrer" aria-label={title}>
 														{icon}
+														<span className="sr-only">{title}</span>
 													</a>
 												</TooltipTrigger>
 												<TooltipContent>{tooltip}</TooltipContent>

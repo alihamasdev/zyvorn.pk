@@ -2,10 +2,10 @@ import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
-import type { getCart } from "@/components/cart/actions";
+import { type getCart } from "@/components/cart/actions";
 import { ProductImage } from "@/components/product/product-image";
 
-export function OrderSummary({ cart }: { cart: Awaited<ReturnType<typeof getCart>> }) {
+export function OrderSummary({ cart }: { cart: NonNullable<Awaited<ReturnType<typeof getCart>>> }) {
 	const cartItems = cart.items.map((item) => {
 		const product = item.product;
 		const price = product.discountPrice ?? product.salePrice;

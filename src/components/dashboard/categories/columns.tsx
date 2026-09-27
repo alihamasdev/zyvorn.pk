@@ -1,17 +1,18 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { EditIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Category } from "@/lib/prisma/client";
+import { type Category } from "@/lib/prisma/client";
 import { formatDate } from "@/lib/utils";
 import { Button, LinkButton } from "@/components/ui/button";
+import { type DashboardTableFeatures } from "@/components/dashboard/table-features";
 import { DeleteDialog } from "@/components/delete-dialog";
 
 import { deleteCategoryAction } from "./action";
 
-export const dashboardCategoriesColumn: ColumnDef<Category>[] = [
+export const dashboardCategoriesColumn: ColumnDef<DashboardTableFeatures, Category>[] = [
 	{ accessorKey: "name", header: "Name" },
 	{
 		accessorKey: "slug",
@@ -29,7 +30,12 @@ export const dashboardCategoriesColumn: ColumnDef<Category>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className="inline-flex items-center">
-					<LinkButton href={`/dashboard/categories/${row.original.id}`} variant="ghost" size="icon-sm">
+					<LinkButton
+						href={`/dashboard/categories/${row.original.id}`}
+						variant="ghost"
+						size="icon-sm"
+						aria-label={`Edit ${row.original.name}`}
+					>
 						<EditIcon className="text-muted-foreground" />
 					</LinkButton>
 					<DeleteDialog
@@ -40,7 +46,7 @@ export const dashboardCategoriesColumn: ColumnDef<Category>[] = [
 							error ? toast.error(error) : toast.success("Category deleted successfuly");
 						}}
 					>
-						<Button variant="ghost" size="icon-sm">
+						<Button variant="ghost" size="icon-sm" aria-label={`Delete ${row.original.name}`}>
 							<Trash2Icon className="text-destructive" />
 						</Button>
 					</DeleteDialog>

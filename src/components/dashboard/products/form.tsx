@@ -19,11 +19,11 @@ import { ImageUpload } from "@/components/image-upload";
 
 import { upsertProductAction } from "./action";
 
-interface ProductFormProps {
+type ProductFormProps = {
 	defaultValues: ProductSchema;
 	categories: Category[];
 	productId?: string;
-}
+};
 
 export function ProductForm({ defaultValues, productId, categories }: ProductFormProps) {
 	const router = useRouter();
@@ -67,7 +67,7 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 						isInvalid={field.state.meta.isTouched && !field.state.meta.isValid}
 						onChange={(e) => {
 							field.handleChange(e.target.value);
-							!form.state.fieldMeta.slug.isBlurred && form.setFieldValue("slug", formatSlug(e.target.value));
+							!form.state.fieldMeta.slug?.isBlurred && form.setFieldValue("slug", formatSlug(e.target.value));
 						}}
 					/>
 				)}

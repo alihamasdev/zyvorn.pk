@@ -6,12 +6,12 @@ import { cn } from "@/lib/utils";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectValue } from "@/components/ui/select";
 
-interface FloatingLabelSelectProps extends React.ComponentProps<typeof Select> {
+type FloatingLabelSelectProps = React.ComponentProps<typeof Select> & {
 	placeholder: string;
 	isInvalid?: boolean;
 	className?: string;
 	errors?: Array<{ message?: string } | undefined>;
-}
+};
 
 export function FloatingLabelSelect({ placeholder, value, isInvalid, errors, className, children, ...props }: FloatingLabelSelectProps) {
 	const id = useId();

@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { Product } from "@/lib/prisma/client";
+import { type Product } from "@/lib/prisma/client";
 import { getCart } from "@/components/cart/actions";
 
-export interface CartItem extends Pick<Product, "id" | "title" | "slug"> {
+export type CartItem = Pick<Product, "id" | "title" | "slug"> & {
 	image: string;
 	quantity: number;
 	price: number;
-}
+};
 
 export function useCart() {
 	const { data: cart, status } = useQuery({

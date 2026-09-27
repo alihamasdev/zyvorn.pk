@@ -49,12 +49,13 @@ export function ProductImageCarousel({ images, title, stock }: { images: string[
 						type="button"
 						key={src + index}
 						onClick={() => api?.scrollTo(index)}
+						aria-label={`View image ${index + 1} of ${title}`}
 						className={cn(
 							"cursor-pointer overflow-hidden transition-opacity duration-300 hover:opacity-100",
 							index + 1 === current ? "opacity-100" : "opacity-50",
 						)}
 					>
-						<ProductImage src={src} size={150} alt={title} transformation="thumbnail" loading="eager" priority />
+						<ProductImage src={src} size={150} alt="" transformation="thumbnail" loading="eager" priority />
 					</button>
 				))}
 			</div>

@@ -17,12 +17,12 @@ import {
 	type OnUploadOptions,
 } from "@/components/ui/file-upload";
 
-interface ImageUploadProps extends Omit<React.ComponentProps<typeof FileUpload>, "onUpload" | "value" | "onValueChange"> {
+type ImageUploadProps = Omit<React.ComponentProps<typeof FileUpload>, "onUpload" | "value" | "onValueChange"> & {
 	transition: TransitionStartFunction;
 	pushValue: (value: string) => void;
 	removeValue: (index: number, options?: UpdateMetaOptions) => void;
 	uploadOptions?: Omit<UploadOptions, "file" | "publicKey" | "token" | "signature" | "expire" | "fileName" | "onProgress">;
-}
+};
 
 export function ImageUpload({ transition, uploadOptions, pushValue, removeValue, maxFiles = 4, className, ...props }: ImageUploadProps) {
 	const [files, setFiles] = useState<File[]>([]);

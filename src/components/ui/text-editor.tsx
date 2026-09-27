@@ -1,6 +1,5 @@
 import { TextStyleKit } from "@tiptap/extension-text-style";
-import type { Editor } from "@tiptap/react";
-import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
 	BoldIcon,
@@ -65,10 +64,22 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 	return (
 		<div className={cn("flex items-center gap-2 border-b", className)}>
 			<ButtonGroup>
-				<Button size="icon-sm" variant="outline" onClick={() => editor.chain().focus().undo().run()} disabled={!editorState.canUndo}>
+				<Button
+					size="icon-sm"
+					variant="outline"
+					aria-label="Undo"
+					onClick={() => editor.chain().focus().undo().run()}
+					disabled={!editorState.canUndo}
+				>
 					<Undo2Icon />
 				</Button>
-				<Button size="icon-sm" variant="outline" onClick={() => editor.chain().focus().redo().run()} disabled={!editorState.canRedo}>
+				<Button
+					size="icon-sm"
+					variant="outline"
+					aria-label="Redo"
+					onClick={() => editor.chain().focus().redo().run()}
+					disabled={!editorState.canRedo}
+				>
 					<Redo2Icon />
 				</Button>
 			</ButtonGroup>
@@ -84,7 +95,7 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 					value === "number-list" && editor.chain().focus().toggleOrderedList().run();
 				}}
 			>
-				<SelectTrigger className="min-w-40" size="sm">
+				<SelectTrigger className="min-w-40" size="sm" aria-label="Text block format">
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
@@ -119,6 +130,7 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 				<Toggle
 					size="sm"
 					variant="outline"
+					aria-label="Bold"
 					pressed={editorState.isBold}
 					onPressedChange={() => editor.chain().focus().toggleBold().run()}
 					disabled={!editorState.canBold}
@@ -128,6 +140,7 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 				<Toggle
 					size="sm"
 					variant="outline"
+					aria-label="Italic"
 					pressed={editorState.isItalic}
 					onPressedChange={() => editor.chain().focus().toggleItalic().run()}
 					disabled={!editorState.canItalic}
@@ -137,6 +150,7 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 				<Toggle
 					size="sm"
 					variant="outline"
+					aria-label="Underline"
 					pressed={editorState.isUnderline}
 					onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
 					disabled={!editorState.canUnderline}
@@ -146,6 +160,7 @@ function MenuBar({ editor, className }: { editor: Editor; className?: string }) 
 				<Toggle
 					size="sm"
 					variant="outline"
+					aria-label="Strikethrough"
 					pressed={editorState.isStrike}
 					onPressedChange={() => editor.chain().focus().toggleStrike().run()}
 					disabled={!editorState.canStrike}

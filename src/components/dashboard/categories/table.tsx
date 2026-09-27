@@ -1,22 +1,22 @@
 "use client";
 
-import { flexRender, getCoreRowModel, getFilteredRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { useTable, type ColumnDef } from "@tanstack/react-table";
 import { PlusIcon } from "lucide-react";
 
 import { LinkButton } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { dashboardTableFeatures, type DashboardTableFeatures } from "@/components/dashboard/table-features";
 
-interface DashboardCategoriesTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
+type DashboardCategoriesTableProps<TData extends object> = {
+	columns: ColumnDef<DashboardTableFeatures, TData>[];
 	data: TData[];
-}
+};
 
-export function DashboardCategoriesTable<TData, TValue>({ data, columns }: DashboardCategoriesTableProps<TData, TValue>) {
-	const table = useReactTable({
+export function DashboardCategoriesTable<TData extends object>({ data, columns }: DashboardCategoriesTableProps<TData>) {
+	const table = useTable({
 		data,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
+		features: dashboardTableFeatures,
 	});
 
 	return (
@@ -38,7 +38,7 @@ export function DashboardCategoriesTable<TData, TValue>({ data, columns }: Dashb
 								{headerGroup.headers.map((header) => {
 									return (
 										<TableHead key={header.id} className="font-semibold">
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											{header.isPlaceholder ? null : <table.FlexRender header={header} />}
 										</TableHead>
 									);
 								})}
@@ -50,7 +50,9 @@ export function DashboardCategoriesTable<TData, TValue>({ data, columns }: Dashb
 							table.getRowModel().rows.map((row) => (
 								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+										<TableCell key={cell.id}>
+											<table.FlexRender cell={cell} />
+										</TableCell>
 									))}
 								</TableRow>
 							))

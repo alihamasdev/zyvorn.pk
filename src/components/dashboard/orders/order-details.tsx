@@ -3,17 +3,17 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import type { ORDER_STATUS } from "@/lib/prisma/enums";
+import { type ORDER_STATUS } from "@/lib/prisma/enums";
 import { FloatingLabelSelect } from "@/components/ui/floating-label-select";
 import { SelectItem } from "@/components/ui/select";
 
 import { updateOrderStatusAction } from "./action";
 
-interface OrderDetailsProps {
+type OrderDetailsProps = {
 	status: ORDER_STATUS;
 	orderId: string;
 	statusList: string[];
-}
+};
 
 export function OrderDetails({ status, orderId, statusList }: OrderDetailsProps) {
 	const [isPending, startTransition] = useTransition();

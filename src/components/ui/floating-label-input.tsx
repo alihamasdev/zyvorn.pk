@@ -3,11 +3,11 @@ import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 
-export interface FloatingLabelInputProps extends React.ComponentProps<"input"> {
+export type FloatingLabelInputProps = React.ComponentProps<"input"> & {
 	placeholder: string;
 	isInvalid?: boolean;
 	errors?: Array<{ message?: string } | undefined>;
-}
+};
 
 export function FloatingLabelInput({ className, placeholder, isInvalid, errors, ...props }: FloatingLabelInputProps) {
 	const id = useId();

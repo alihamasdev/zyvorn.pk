@@ -1,32 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import {
-	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	useReactTable,
-	type ColumnDef,
-	type ColumnFiltersState,
-} from "@tanstack/react-table";
+import { useTable, type ColumnDef, type ColumnFiltersState } from "@tanstack/react-table";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { dashboardTableFeatures, type DashboardTableFeatures } from "@/components/dashboard/table-features";
 
-interface DashboardOrdersTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
+type DashboardOrdersTableProps<TData extends object> = {
+	columns: ColumnDef<DashboardTableFeatures, TData>[];
 	data: TData[];
-}
+};
 
-export function DashboardOrdersTable<TData, TValue>({ data, columns }: DashboardOrdersTableProps<TData, TValue>) {
+export function DashboardOrdersTable<TData extends object>({ data, columns }: DashboardOrdersTableProps<TData>) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const table = useReactTable({
+	const table = useTable({
 		data,
 		columns,
+		features: dashboardTableFeatures,
 		state: { columnFilters },
 		onColumnFiltersChange: setColumnFilters,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 	});
 
 	return (
@@ -60,7 +53,7 @@ export function DashboardOrdersTable<TData, TValue>({ data, columns }: Dashboard
 								{headerGroup.headers.map((header) => {
 									return (
 										<TableHead key={header.id} className="font-semibold">
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											{header.isPlaceholder ? null : <table.FlexRender header={header} />}
 										</TableHead>
 									);
 								})}
@@ -72,7 +65,9 @@ export function DashboardOrdersTable<TData, TValue>({ data, columns }: Dashboard
 							table.getRowModel().rows.map((row) => (
 								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+										<TableCell key={cell.id}>
+											<table.FlexRender cell={cell} />
+										</TableCell>
 									))}
 								</TableRow>
 							))

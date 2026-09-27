@@ -24,7 +24,7 @@ export function MobileNav({ navLinks }: { navLinks: { label: string; href: strin
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
-				<Button size="icon" variant="link">
+				<Button size="icon" variant="link" aria-label="Open menu">
 					<MenuIcon />
 				</Button>
 			</SheetTrigger>

@@ -2,12 +2,17 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { StarIcon } from "lucide-react";
 
-import { getCategoryProducts, getProductBySlug } from "@/lib/dal";
+import { getCategoryProducts, getLatestProducts, getProductBySlug } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ProductButtons } from "@/components/product/product-buttons";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductImageCarousel } from "@/components/product/product-image-carousel";
+
+export async function generateStaticParams() {
+	const products = await getLatestProducts();
+	return products.map((product) => ({ slug: product.slug }));
+}
 
 export default async function StoreProductPage({ params }: PageProps<"/products/[slug]">) {
 	const { slug } = await params;

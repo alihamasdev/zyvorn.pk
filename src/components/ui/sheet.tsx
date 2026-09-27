@@ -18,11 +18,12 @@ function SheetClose({ ...props }: React.ComponentProps<typeof SheetPrimitive.Clo
 	return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-function SheetCloseButton({ ...props }: React.ComponentProps<typeof Button>) {
+function SheetCloseButton({ "aria-label": ariaLabel = "Close", ...props }: React.ComponentProps<typeof Button>) {
 	return (
 		<SheetPrimitive.Close asChild>
-			<Button data-slot="sheet-close-button" variant="ghost" size="icon-sm" {...props}>
+			<Button data-slot="sheet-close-button" variant="ghost" size="icon-sm" aria-label={ariaLabel} {...props}>
 				<XIcon />
+				<span className="sr-only">{ariaLabel}</span>
 			</Button>
 		</SheetPrimitive.Close>
 	);

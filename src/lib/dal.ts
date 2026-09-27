@@ -89,11 +89,43 @@ export const getOrderById = cache(async (id: string) => {
 	});
 });
 
-export async function getDashboardProducts() {
+export const getDashboardProducts = cache(async () => {
+	cacheLife("days");
+	cacheTag("dashboard-products");
 	return await db.product.findMany({
 		orderBy: { createdAt: "desc" },
 		include: {
 			category: { select: { name: true } },
 		},
 	});
-}
+});
+
+export const getDashboardStats = cache(async () => {
+	cacheLife("hours");
+	cacheTag("dashboard-stats");
+	const [ordersCount, cancelledOrdersCount, productsCount, totalRevenue, products, totalProfit] = await Promise.all([
+		db.order.count(),
+		db.order.count({ where: { status: "CANCELLED" } }),
+		db.product.count({ where: { status: "PUBLISHED" } }),
+		db.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
+		db.product.findMany({
+			where: { status: "PUBLISHED" },
+			select: { costPrice: true, stock: true },
+		}),
+		db.orderItem.findMany({
+			where: { order: { NOT: { status: "CANCELLED" } } },
+			select: { price: true, quantity: true, product: { select: { costPrice: true } } },
+		}),
+	]);
+
+	const totalInventory = products.reduce((acc, p) => acc + p.costPrice * p.stock, 0);
+
+	return {
+		ordersCount,
+		cancelledOrdersCount,
+		productsCount,
+		totalRevenue: totalRevenue._sum.total ?? 0,
+		totalInventory,
+		totalProfit: totalProfit.reduce((acc, item) => acc + item.price * item.quantity - item.product.costPrice * item.quantity, 0) ?? 0,
+	};
+});

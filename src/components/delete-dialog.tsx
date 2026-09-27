@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
 
-interface DeleteDialogProps extends React.ComponentProps<typeof Dialog> {
+type DeleteDialogProps = React.ComponentProps<typeof Dialog> & {
 	title: string;
 	description: string;
 	children: React.ReactNode;
 	closeOnDelete?: boolean;
 	onDelete: (close: (open: boolean) => void) => Promise<void> | void;
-}
+};
 
 export function DeleteDialog({ title, description, onDelete, closeOnDelete = true, children, ...props }: DeleteDialogProps) {
 	const [open, setOpen] = useState(false);

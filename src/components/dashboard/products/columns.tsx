@@ -1,13 +1,14 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { EditIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import type { getDashboardProducts } from "@/lib/dal";
+import { type getDashboardProducts } from "@/lib/dal";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button, LinkButton } from "@/components/ui/button";
+import { type DashboardTableFeatures } from "@/components/dashboard/table-features";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { ProductImage } from "@/components/product/product-image";
 
@@ -15,7 +16,7 @@ import { deleteProductAction } from "./action";
 
 type DashboardProduct = Awaited<ReturnType<typeof getDashboardProducts>>[number];
 
-export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
+export const dashboardProductsColumn: ColumnDef<DashboardTableFeatures, DashboardProduct>[] = [
 	{
 		id: "product",
 		header: "Product",
@@ -45,7 +46,12 @@ export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className="inline-flex items-center">
-					<LinkButton href={`/dashboard/products/${row.original.id}`} variant="ghost" size="icon-sm">
+					<LinkButton
+						href={`/dashboard/products/${row.original.id}`}
+						variant="ghost"
+						size="icon-sm"
+						aria-label={`Edit ${row.original.title}`}
+					>
 						<EditIcon className="text-muted-foreground" />
 					</LinkButton>
 					<DeleteDialog
@@ -56,7 +62,7 @@ export const dashboardProductsColumn: ColumnDef<DashboardProduct>[] = [
 							error ? toast.error(error) : toast.success("Product deleted successfuly");
 						}}
 					>
-						<Button variant="ghost" size="icon-sm">
+						<Button variant="ghost" size="icon-sm" aria-label={`Delete ${row.original.title}`}>
 							<Trash2Icon className="text-destructive" />
 						</Button>
 					</DeleteDialog>

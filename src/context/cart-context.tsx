@@ -2,11 +2,11 @@
 
 import { createContext, use, useState } from "react";
 
-interface CartContextType {
+type CartContextType = {
 	isOpen: boolean;
 	setOpen: (open: boolean) => void;
 	toggleCart: () => void;
-}
+};
 
 const CartContext = createContext<CartContextType | null>(null);
 
