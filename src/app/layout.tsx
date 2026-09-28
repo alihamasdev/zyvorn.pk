@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-	title: "E-commerce",
+	title: "Three",
 	description: "Full stack e-commerce application built with Next.js, TypeScript, and Tailwind CSS.",
 };
 

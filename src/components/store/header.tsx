@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MenuIcon } from "lucide-react";
 
@@ -7,6 +8,7 @@ import { AccountButton } from "@/components/account/account-button";
 import { CartSheet } from "@/components/cart/cart-sheet";
 import { ClientBoundary } from "@/components/client-boundry";
 import { MobileNav } from "@/components/store/mobile-nav";
+import Logo from "~/public/logo.png";
 
 export async function StoreHeader() {
 	const categories = await getCategories();
@@ -28,8 +30,8 @@ export async function StoreHeader() {
 				>
 					<MobileNav navLinks={navLinks} />
 				</ClientBoundary>
-				<Link href="/" className="text-xl/9 font-semibold">
-					ZYVORN
+				<Link href="/">
+					<Image src={Logo} alt="logo" width={112} height={22} />
 				</Link>
 				<nav className="hidden sm:flex sm:items-center sm:gap-4">
 					{navLinks.map(({ label, href }) => (

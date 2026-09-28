@@ -1,5 +1,8 @@
+import Image from "next/image";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FacebookIcon, InstagramIcon, TiktokIcon, WhatsAppIcon } from "@/components/icons";
+import Logo from "~/public/logo.png";
 
 const socialLinks = [
 	{
@@ -34,7 +37,7 @@ export function StoreFooter() {
 			<div className="container mx-auto px-4">
 				<div className="grid grid-cols-1 gap-5 py-5 md:grid-cols-[1.5fr_2fr] md:py-10">
 					<div className="space-y-1 md:space-y-3">
-						<h1 className="text-xl/7 font-semibold">ZYVORN</h1>
+						<Image src={Logo} alt="logo" width={112} height={22} />
 						<p className="text-muted-foreground text-xs md:text-sm">
 							Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy
 							text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
