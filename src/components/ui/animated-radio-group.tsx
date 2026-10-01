@@ -29,7 +29,7 @@ export function AnimatedRadioGroup({ items, className, isInvalid, errors, ...pro
 							key={item.value}
 							htmlFor={id}
 							className={cn(
-								"border-input relative flex cursor-pointer flex-col border bg-transparent text-sm first:rounded-t-md last:rounded-b-md",
+								"border-input relative flex cursor-pointer flex-col border bg-transparent text-sm select-auto first:rounded-t-md last:rounded-b-md",
 								"has-data-[state=checked]:border-primary/70 has-data-[state=checked]:bg-primary/5",
 								"has-disabled:cursor-not-allowed has-disabled:opacity-50",
 								className,

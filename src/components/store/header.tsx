@@ -23,7 +23,7 @@ export async function StoreHeader() {
 			<div className="container mx-auto flex items-center justify-between px-4 py-3">
 				<ClientBoundary
 					fallback={
-						<Button size="icon" variant="link" className="md:hidden" aria-label="Open menu">
+						<Button size="icon" variant="secondary" className="md:hidden" aria-label="Open menu">
 							<MenuIcon />
 						</Button>
 					}

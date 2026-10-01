@@ -68,12 +68,12 @@ export function StoreFooter() {
 										+92 370 7525627
 									</a>
 									<a
-										href="mailto:zyvorn.pk1@gmail.com"
+										href="mailto:contact@three.pk"
 										target="_blank"
 										rel="noopener noreferrer"
 										className="decoration-gradient before:[h-2px] block w-fit px-1 pb-px"
 									>
-										zyvorn.pk1@gmail.com
+										contact@three.pk
 									</a>
 									<div className="fill-muted-foreground *:hover:fill-primary mt-4 flex items-center gap-x-4 *:cursor-pointer *:transition-colors *:duration-300">
 										{socialLinks.map(({ title, tooltip, link, icon }) => (
@@ -94,7 +94,7 @@ export function StoreFooter() {
 					</div>
 				</div>
 			</div>
-			<p className="text-muted-foreground container mx-auto w-full px-4 pb-5 text-center">Copyright &copy; 2025, All rights reserved</p>
+			<p className="text-muted-foreground container mx-auto w-full px-4 pb-5 text-center">Copyright &copy; 2026, All rights reserved</p>
 		</footer>
 	);
 }

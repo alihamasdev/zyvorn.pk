@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { checkoutAction } from "@/components/checkout/action";
 import { checkoutSchema, type CheckoutSchema } from "@/components/checkout/schema";
+import QR from "~/public/qr.png";
 
 const SuccessCheckout = dynamic(() => import("./success-checkout"), { ssr: false });
 
@@ -230,14 +232,20 @@ export function CheckoutForm({ className, cartId, defaultValues, provinces, chil
 										label: "Bank Deposit",
 										value: "BANK_TRANSFER",
 										description: (
-											<>
-												<p>Account Title: AHMAD IJAZ</p>
-												<p>Bank: Bank Alfalah</p>
-												<p>Account # 03651008886488</p>
-												<p>IBAN # PK89ALFA0365001008886488</p>
-												<br />
-												<p>WhatsApp Deposit Slip / Transfer Message with Your Order Number to us 0370-7525627</p>
-											</>
+											<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+												<div>
+													<p>Account Title: AHMAD IJAZ</p>
+													<p>Bank: Meezan Bank</p>
+													<p>Account # 11590112478949</p>
+													<p>IBAN # PK27MEZN0011590112478949</p>
+												</div>
+												<div className="flex items-center justify-center">
+													<Image src={QR} alt="bank qr code" width={40} height={40} className="aspect-square size-20" />
+												</div>
+												<div className="col-span-2">
+													<p>WhatsApp Deposit Slip / Transfer Message with Your Order Number to us 0370-7525627</p>
+												</div>
+											</div>
 										),
 									},
 								]}

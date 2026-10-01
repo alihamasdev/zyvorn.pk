@@ -4,6 +4,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { EyeIcon } from "lucide-react";
 
 import { type getOrders } from "@/lib/dal";
+import { type ORDER_STATUS } from "@/lib/prisma/enums";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
@@ -11,6 +12,13 @@ import { type DashboardTableFeatures } from "@/components/dashboard/table-featur
 import { ProductImage } from "@/components/product/product-image";
 
 type OrderDetails = Awaited<ReturnType<typeof getOrders>>[number];
+
+const orderStatusVariantMap: Record<ORDER_STATUS, "success" | "warning" | "info" | "destructive"> = {
+	DELIVERED: "success",
+	PROCESSING: "warning",
+	SHIPPED: "info",
+	CANCELLED: "destructive",
+};
 
 export const dashboardOrdersColumn: ColumnDef<DashboardTableFeatures, OrderDetails>[] = [
 	{
@@ -56,8 +64,8 @@ export const dashboardOrdersColumn: ColumnDef<DashboardTableFeatures, OrderDetai
 		accessorKey: "status",
 		header: "Status",
 		cell: ({ row }) => {
-			const status = row.original.status;
-			return <Badge variant={status === "DELIVERED" ? "default" : status === "CANCELLED" ? "destructive" : "secondary"}>{status}</Badge>;
+			const status = row.original.status as ORDER_STATUS;
+			return <Badge variant={orderStatusVariantMap[status] ?? "secondary"}>{status}</Badge>;
 		},
 	},
 	{
