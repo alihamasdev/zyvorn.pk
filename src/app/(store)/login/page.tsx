@@ -2,8 +2,6 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { LoginForm } from "./form";
 
 export default function LoginPage() {
@@ -12,15 +10,7 @@ export default function LoginPage() {
 			<Suspense fallback={null}>
 				<LoginAuthCheck />
 			</Suspense>
-			<Card className="w-full max-w-sm">
-				<CardHeader>
-					<CardTitle>Login to your account</CardTitle>
-					<CardDescription>Enter your email and we'll send you login link.</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<LoginForm />
-				</CardContent>
-			</Card>
+			<LoginForm />
 		</div>
 	);
 }

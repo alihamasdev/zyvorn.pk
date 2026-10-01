@@ -8,6 +8,7 @@ import { redirect, unstable_rethrow as rethrow } from "next/navigation";
 
 import { getSession } from "@/lib/auth/server";
 import { db } from "@/lib/db";
+import { sendAdminOrderAlertEmail, sendOrderConfirmationEmail } from "@/lib/email";
 import { getCart } from "@/components/cart/actions";
 import { checkoutSchema, type CheckoutSchema } from "@/components/checkout/schema";
 
@@ -72,6 +73,13 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 						})),
 					},
 				},
+				include: {
+					items: {
+						include: {
+							product: true,
+						},
+					},
+				},
 			});
 
 			// 4. Delete the cart
@@ -86,6 +94,15 @@ export async function checkoutAction(data: CheckoutSchema, cartId: string) {
 		cookieStore.delete("cartId");
 
 		updateTag("orders");
+
+		// Send Order Confirmation Email & Admin Alert (non-blocking)
+		sendOrderConfirmationEmail({ order }).catch((err) => {
+			console.error("[Email Error] Failed to send order confirmation email:", err);
+		});
+
+		sendAdminOrderAlertEmail({ order }).catch((err) => {
+			console.error("[Email Error] Failed to send admin order alert email:", err);
+		});
 
 		return { error: null, orderId: order.id };
 	} catch (error) {

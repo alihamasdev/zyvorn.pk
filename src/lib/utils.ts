@@ -17,3 +17,14 @@ export function formatPrice(price: number) {
 		maximumFractionDigits: 2,
 	}).format(price);
 }
+
+export function getProductImageUrl(src?: string | null): string {
+	if (!src) return "";
+	if (src.startsWith("http://") || src.startsWith("https://")) {
+		return src;
+	}
+	const endpoint = (process.env.IMAGE_KIT_URL_ENDPOINT || "https://ik.imagekit.io/zyvornpk").replace(/\/$/, "");
+	const cleanPath = src.startsWith("/") ? src : `/${src}`;
+	const separator = cleanPath.includes("?") ? "&" : "?";
+	return `${endpoint}${cleanPath}${separator}tr=w-120,h-120`;
+}
