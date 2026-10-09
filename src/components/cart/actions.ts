@@ -13,7 +13,9 @@ const cartSelect = {
 		orderBy: { createdAt: "asc" },
 		select: {
 			quantity: true,
-			product: { select: { id: true, title: true, slug: true, images: true, salePrice: true, discountPrice: true } },
+			product: {
+				select: { id: true, title: true, slug: true, images: { orderBy: { order: "asc" } }, salePrice: true, discountPrice: true },
+			},
 		},
 	},
 } satisfies Prisma.CartSelect;

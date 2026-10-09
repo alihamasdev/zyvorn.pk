@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import { FloatingLabelSelect } from "@/components/ui/floating-label-select";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { TextEditor } from "@/components/ui/text-editor";
 import { productSchema, type ProductSchema } from "@/components/dashboard/products/schema";
-import { ImageUpload } from "@/components/image-upload";
+import { ImageUpload, uploadPendingImageFiles } from "@/components/image-upload";
 
 import { upsertProductAction } from "./action";
 
@@ -28,24 +28,70 @@ type ProductFormProps = {
 export function ProductForm({ defaultValues, productId, categories }: ProductFormProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
-	const [imagePending, imageTransition] = useTransition();
+	const [isUploading, setIsUploading] = useState(false);
+	const [statusText, setStatusText] = useState<string | null>(null);
+
+	const initialImagesRef = useRef(defaultValues.images || []);
 
 	const form = useForm({
 		defaultValues,
 		validators: { onSubmit: productSchema },
 		onSubmit: ({ value }) => {
 			startTransition(async () => {
-				const { error } = await upsertProductAction(value, productId);
-				if (error) {
-					toast.error(error);
-					return;
+				try {
+					setIsUploading(true);
+
+					// Upload any staged files on submit
+					let finalImages = value.images;
+					const hasStagedFiles = value.images.some((img) => img.file);
+
+					if (hasStagedFiles) {
+						setStatusText("Uploading images...");
+						finalImages = await uploadPendingImageFiles(value.images, {
+							folder: "/products",
+							onProgress: (current, total) => {
+								setStatusText(`Uploading image ${current}/${total}...`);
+							},
+						});
+					}
+
+					setStatusText(productId ? "Updating product..." : "Creating product...");
+
+					// Track any existing images that were deleted
+					const remainingFileIds = new Set(finalImages.map((img) => img.fileId).filter(Boolean));
+					const initialFileIds = initialImagesRef.current.map((img) => img.fileId).filter(Boolean) as string[];
+					const deletedImageFileIds = initialFileIds.filter((fid) => !remainingFileIds.has(fid));
+
+					const { error } = await upsertProductAction(
+						{
+							...value,
+							images: finalImages,
+							deletedImageFileIds,
+						},
+						productId,
+					);
+
+					if (error) {
+						toast.error(error);
+						setIsUploading(false);
+						setStatusText(null);
+						return;
+					}
+
+					form.reset();
+					toast.success(productId ? "Product updated successfully" : "New Product has been created");
+					router.push("/dashboard/products");
+				} catch (error) {
+					console.error("Error submitting product:", error);
+					toast.error("Failed to upload images or save product. Please try again.");
+					setIsUploading(false);
+					setStatusText(null);
 				}
-				form.reset();
-				router.push("/dashboard/products");
-				toast.success(productId ? "Product updated successfuly" : "New Product has been created");
 			});
 		},
 	});
+
+	const isBusy = isPending || isUploading;
 
 	return (
 		<form
@@ -164,20 +210,21 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 							<ImageUpload
 								id={field.name}
 								name={field.name}
-								className="*:size-30"
-								transition={imageTransition}
-								pushValue={field.pushValue}
-								removeValue={field.removeValue}
-								uploadOptions={{
-									folder: "/products",
-									transformation: {
-										pre: "n-default",
-										post: [
-											{ type: "transformation", value: "n-listing" },
-											{ type: "transformation", value: "n-thumbnail" },
-										],
-									},
+								value={field.state.value}
+								onChange={(images) => field.handleChange(images)}
+								enableCrop={true}
+								cropAspectRatio={1}
+								folder="/products"
+								requiredDimensions={{
+									width: 1080,
+									height: 1080,
+									label: "1080 × 1080px (1:1)",
 								}}
+								cardClassName="size-44"
+								maxFiles={4}
+								showCoverBadge={true}
+								allowReorder={true}
+								disabled={isBusy}
 							/>
 							{isInvalid && <FieldError className="text-sm" errors={field.state.meta.errors} />}
 						</Field>
@@ -233,8 +280,17 @@ export function ProductForm({ defaultValues, productId, categories }: ProductFor
 
 			<div />
 
-			<Button type="submit" disabled={imagePending || isPending}>
-				{isPending || imagePending ? <Spinner /> : productId ? "Update" : "Create"}
+			<Button type="submit" disabled={isBusy}>
+				{isBusy ? (
+					<div className="flex items-center gap-2">
+						<Spinner />
+						<span>{statusText || (productId ? "Updating..." : "Creating...")}</span>
+					</div>
+				) : productId ? (
+					"Update"
+				) : (
+					"Create"
+				)}
 			</Button>
 		</form>
 	);

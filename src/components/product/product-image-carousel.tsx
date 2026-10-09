@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { ProductImage } from "@/components/product/product-image";
 
-export function ProductImageCarousel({ images, title, stock }: { images: string[]; title: string; stock: number }) {
+type CarouselImage = string | { id?: string; filePath?: string | null; url?: string | null };
+
+export function ProductImageCarousel({ images, title, stock }: { images: CarouselImage[]; title: string; stock: number }) {
 	const [current, setCurrent] = useState(0);
 	const [api, setApi] = useState<CarouselApi>();
 
@@ -23,7 +25,7 @@ export function ProductImageCarousel({ images, title, stock }: { images: string[
 				<CarouselContent className="m-0">
 					{images.map((src, index) => (
 						<CarouselItem
-							key={index}
+							key={typeof src === "string" ? src + index : src.id || src.filePath || src.url || index}
 							className={cn("overflow-hidden p-0", index === 0 && "rounded-l-lg", index === images.length - 1 && "rounded-r-lg")}
 						>
 							<div className="bg-muted shrink-0 overflow-hidden">
@@ -47,7 +49,7 @@ export function ProductImageCarousel({ images, title, stock }: { images: string[
 				{images.map((src, index) => (
 					<button
 						type="button"
-						key={src + index}
+						key={typeof src === "string" ? src + index : src.id || src.filePath || src.url || index}
 						onClick={() => api?.scrollTo(index)}
 						aria-label={`View image ${index + 1} of ${title}`}
 						className={cn(

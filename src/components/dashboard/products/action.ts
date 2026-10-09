@@ -2,7 +2,9 @@
 
 import { updateTag } from "next/cache";
 import { unstable_rethrow as rethrow } from "next/navigation";
+import { after } from "next/server";
 
+import { deleteImage, deleteImagesByFileIds } from "@/lib/auth/image-kit";
 import { getAdminSession } from "@/lib/auth/server";
 import { db } from "@/lib/db";
 import { productSchema, type ProductSchema } from "@/components/dashboard/products/schema";
@@ -14,15 +16,82 @@ export async function upsertProductAction(data: ProductSchema, productId?: strin
 
 		await getAdminSession();
 
+		const { images, deletedImageFileIds, ...productFields } = data;
+
 		if (!productId) {
 			await db.product.create({
-				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null },
+				data: {
+					...productFields,
+					description: productFields.description || null,
+					discountPrice: productFields.discountPrice || null,
+					images: {
+						create: images.map((img, idx) => ({
+							fileId: img.fileId || null,
+							name: img.name,
+							filePath: img.filePath || "",
+							url: img.url || "",
+							thumbnailUrl: img.thumbnailUrl || null,
+							listingUrl: img.listingUrl || null,
+							width: img.width || null,
+							height: img.height || null,
+							size: img.size || null,
+							order: idx,
+						})),
+					},
+				},
 			});
 		} else {
-			await db.product.update({
-				where: { id: productId },
-				data: { ...data, description: data.description || null, discountPrice: data.discountPrice || null },
+			await db.$transaction(async (tx) => {
+				const keepImageIds = images.map((img) => img.id).filter(Boolean) as string[];
+				await tx.productImage.deleteMany({
+					where: {
+						productId,
+						id: { notIn: keepImageIds },
+					},
+				});
+
+				for (let i = 0; i < images.length; i++) {
+					const img = images[i];
+					if (img.id) {
+						await tx.productImage.update({
+							where: { id: img.id },
+							data: { order: i },
+						});
+					} else {
+						await tx.productImage.create({
+							data: {
+								productId,
+								fileId: img.fileId || null,
+								name: img.name,
+								filePath: img.filePath || "",
+								url: img.url || "",
+								thumbnailUrl: img.thumbnailUrl || null,
+								listingUrl: img.listingUrl || null,
+								width: img.width || null,
+								height: img.height || null,
+								size: img.size || null,
+								order: i,
+							},
+						});
+					}
+				}
+
+				await tx.product.update({
+					where: { id: productId },
+					data: {
+						...productFields,
+						description: productFields.description || null,
+						discountPrice: productFields.discountPrice || null,
+					},
+				});
 			});
+
+			if (deletedImageFileIds && deletedImageFileIds.length > 0) {
+				after(async () => {
+					await deleteImagesByFileIds(deletedImageFileIds);
+				});
+			}
+
 			updateTag(`dashboard-product-${productId}`);
 		}
 
@@ -32,13 +101,15 @@ export async function upsertProductAction(data: ProductSchema, productId?: strin
 			updateTag("latest-products");
 			updateTag("all-collection");
 			const category = await db.category.findUnique({ where: { id: data.categoryId } });
-			updateTag(`${category?.slug}-collection`);
+			if (category?.slug) {
+				updateTag(`${category.slug}-collection`);
+			}
 		}
 
 		return { error: null };
 	} catch (error) {
 		rethrow(error);
-		console.error(error);
+		console.error("Error upserting product:", error);
 		return { error: "Something went wrong" };
 	}
 }
@@ -51,16 +122,36 @@ export async function deleteProductAction(productId: string) {
 
 		const orderItemsCount = await db.orderItem.count({ where: { productId } });
 		let categoryId: string;
+
 		if (orderItemsCount > 0) {
-			// Cannot hard delete an ordered product; archive it instead to preserve sales history
 			const product = await db.product.update({
 				where: { id: productId },
 				data: { status: "ARCHIVED" },
 			});
 			categoryId = product.categoryId;
 		} else {
-			const product = await db.product.delete({ where: { id: productId } });
+			const product = await db.product.findUnique({
+				where: { id: productId },
+				include: { images: true },
+			});
+
+			if (!product) return { error: "Product not found" };
+
 			categoryId = product.categoryId;
+
+			const fileIds = product.images.map((img) => img.fileId).filter(Boolean) as string[];
+			const legacyImagesWithoutFileId = product.images.filter((img) => !img.fileId);
+
+			await db.product.delete({ where: { id: productId } });
+
+			after(async () => {
+				if (fileIds.length > 0) {
+					await deleteImagesByFileIds(fileIds);
+				}
+				for (const img of legacyImagesWithoutFileId) {
+					await deleteImage(img.filePath, null);
+				}
+			});
 		}
 
 		updateTag("dashboard-products");
@@ -74,7 +165,7 @@ export async function deleteProductAction(productId: string) {
 		return { error: null };
 	} catch (error) {
 		rethrow(error);
-		console.error(error);
+		console.error("Error deleting product:", error);
 		return { error: "Something went wrong" };
 	}
 }

@@ -21,7 +21,7 @@ export function useCart() {
 			title: item.product.title,
 			slug: item.product.slug,
 			quantity: item.quantity,
-			image: item.product.images?.[0] ?? "",
+			image: item.product.images?.[0]?.filePath || item.product.images?.[0]?.url || "",
 			price: item.product.discountPrice ?? item.product.salePrice,
 		})) ?? [];
 
