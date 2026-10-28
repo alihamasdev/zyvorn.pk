@@ -1,0 +1,3 @@
+{
+	"extends": "@zyvorn/config/tsconfig.base.json"
+}

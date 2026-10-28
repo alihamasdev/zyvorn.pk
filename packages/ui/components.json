@@ -1,0 +1,24 @@
+{
+	"$schema": "https://ui.shadcn.com/schema.json",
+	"style": "base-vega",
+	"rsc": false,
+	"tsx": true,
+	"tailwind": {
+		"config": "",
+		"css": "./src/styles/globals.css",
+		"baseColor": "neutral",
+		"cssVariables": true,
+		"prefix": ""
+	},
+	"aliases": {
+		"components": "@zyvorn/ui/components",
+		"ui": "@zyvorn/ui/components",
+		"utils": "@zyvorn/ui/lib/utils",
+		"lib": "@zyvorn/ui/lib",
+		"hooks": "@zyvorn/ui/hooks"
+	},
+	"menuColor": "default",
+	"menuAccent": "subtle",
+	"iconLibrary": "lucide",
+	"registries": {}
+}

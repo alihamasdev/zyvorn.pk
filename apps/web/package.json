@@ -1,0 +1,46 @@
+{
+	"name": "web",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"check-types": "vite build && tsc --noEmit",
+		"dev": "vite dev",
+		"env:generate": "varlock codegen",
+		"serve": "vite preview"
+	},
+	"dependencies": {
+		"@convex-dev/better-auth": "catalog:",
+		"@convex-dev/react-query": "^0.1.0",
+		"@tailwindcss/vite": "^4.3.3",
+		"@tanstack/react-form": "catalog:",
+		"@tanstack/react-query": "^5.104.2",
+		"@tanstack/react-router": "^1.170.44",
+		"@tanstack/react-router-ssr-query": "^1.167.3",
+		"@tanstack/react-start": "^1.169.1",
+		"@varlock/vite-integration": "1.5.1",
+		"@zyvorn/backend": "workspace:*",
+		"@zyvorn/ui": "workspace:*",
+		"better-auth": "catalog:",
+		"convex": "catalog:",
+		"lucide-react": "^1.63.0",
+		"next-themes": "catalog:",
+		"nitro": "3.0.260903-beta",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"sonner": "catalog:",
+		"tailwindcss": "catalog:",
+		"varlock": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"@vitejs/plugin-react": "^6.1.2",
+		"@zyvorn/config": "workspace:*",
+		"jsdom": "^30.1.2",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.5",
+		"web-vitals": "^6.2.3"
+	}
+}
