@@ -4,7 +4,13 @@
 	"description": "",
 	"license": "ISC",
 	"author": "",
+	"type": "module",
+	"exports": {
+		"./api": "./convex/_generated/api.ts"
+	},
 	"scripts": {
+		"auth:generate": "bunx auth generate --config ./convex/components/auth/auth.ts --output ./convex/components/auth/schema.ts -y",
+		"check-types": "tsc --noEmit -p ./convex/tsconfig.json",
 		"dev": "convex dev",
 		"dev:setup": "convex dev --configure --until-success"
 	},

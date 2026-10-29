@@ -14,8 +14,8 @@
 		"components": "@/components",
 		"ui": "@zyvorn/ui/components",
 		"utils": "@zyvorn/ui/lib/utils",
-		"lib": "@zyvorn/ui/lib/lib",
-		"hooks": "@zyvorn/ui/lib/hooks"
+		"lib": "@zyvorn/ui/lib",
+		"hooks": "@zyvorn/ui/hooks"
 	},
 	"menuColor": "default",
 	"menuAccent": "subtle",

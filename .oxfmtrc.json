@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxfmt/configuration_schema.json",
-	"ignorePatterns": ["node_modules/**", ".turbo/**", ".agents/**", "packages/backend/convex/_generated/**", "routeTree.gen.ts"],
+	"ignorePatterns": ["node_modules/**", ".turbo/**", ".agents/**", "packages/backend/convex/**/_generated/**", "routeTree.gen.ts"],
 	"semi": true,
 	"tabWidth": 2,
 	"useTabs": true,

@@ -1,11 +1,10 @@
 import { Button, Column, Host, Text as ExpoUIText } from "@expo/ui";
-import { api } from "@zyvorn/backend/convex/_generated/api";
+import { api } from "@zyvorn/backend/api";
 import { useConvexAuth, useQuery } from "convex/react";
 import { View, ScrollView, StyleSheet } from "react-native";
 
 import { Container } from "@/components/container";
 import { SignIn } from "@/components/sign-in";
-import { SignUp } from "@/components/sign-up";
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
@@ -71,10 +70,7 @@ export default function Home() {
 							</Host>
 						</View>
 					) : (
-						<>
-							<SignIn />
-							<SignUp />
-						</>
+						<SignIn />
 					)}
 				</View>
 			</ScrollView>

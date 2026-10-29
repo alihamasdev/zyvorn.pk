@@ -1,7 +1,16 @@
-import betterAuth from "@convex-dev/better-auth/convex.config";
 import { defineApp } from "convex/server";
+import { v } from "convex/values";
 
-const app = defineApp();
-app.use(betterAuth);
+import auth from "./components/auth/convex.config";
+
+const app = defineApp({
+	env: {
+		AUTH_SECRET: v.string(),
+		SITE_URL: v.optional(v.string()),
+		NATIVE_APP_URL: v.optional(v.string()),
+	},
+});
+
+app.use(auth, { name: "auth" });
 
 export default app;

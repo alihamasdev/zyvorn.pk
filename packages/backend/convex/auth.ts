@@ -1,43 +1,63 @@
 import { expo } from "@better-auth/expo";
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
-import { betterAuth } from "better-auth/minimal";
+import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
+import { emailOTP } from "better-auth/plugins";
 
 import { components } from "./_generated/api";
 import { type DataModel } from "./_generated/dataModel";
-import { query } from "./_generated/server";
+import { env, query } from "./_generated/server";
 import authConfig from "./auth.config";
+import authSchema from "./components/auth/schema";
 
-const siteUrl = process.env.SITE_URL!;
-const nativeAppUrl = process.env.NATIVE_APP_URL || "zyvorn://";
+const siteUrl = env.SITE_URL || "http://localhost:3000";
+const nativeAppUrl = env.NATIVE_APP_URL || "zyvorn://";
 
-export const authComponent = createClient<DataModel>(components.betterAuth);
+export const auth = createClient<DataModel, typeof authSchema>(components.auth, {
+	local: {
+		schema: authSchema,
+	},
+});
 
-function createAuth(ctx: GenericCtx<DataModel>) {
-	return betterAuth({
+export function createAuthOptions(ctx: GenericCtx<DataModel>): BetterAuthOptions {
+	return {
 		baseURL: siteUrl,
+		secret: env.AUTH_SECRET,
 		trustedOrigins: [siteUrl, nativeAppUrl, "exp://"],
-		database: authComponent.adapter(ctx),
+		database: auth.adapter(ctx),
+		user: {
+			additionalFields: {
+				role: {
+					type: "string",
+					required: false,
+					defaultValue: "user",
+					input: false,
+				},
+			},
+		},
 		emailAndPassword: {
-			enabled: true,
-			requireEmailVerification: false,
+			enabled: false,
 		},
 		plugins: [
 			expo(),
 			crossDomain({ siteUrl }),
-			convex({
-				authConfig,
-				jwksRotateOnTokenGenerationError: true,
+			convex({ authConfig, jwksRotateOnTokenGenerationError: true }),
+			emailOTP({
+				sendVerificationOTP: async ({ email, otp, type }) => {
+					console.log(`[Zyvorn Auth] OTP for ${email} (${type}): ${otp}`);
+				},
 			}),
 		],
-	});
+	};
 }
 
-export { createAuth };
+export function createAuth(ctx: GenericCtx<DataModel>) {
+	return betterAuth(createAuthOptions(ctx));
+}
 
 export const getCurrentUser = query({
 	args: {},
 	handler: async (ctx) => {
-		return await authComponent.safeGetAuthUser(ctx);
+		return await auth.safeGetAuthUser(ctx);
 	},
 });

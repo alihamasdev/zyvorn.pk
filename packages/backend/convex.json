@@ -2,5 +2,12 @@
 	"$schema": "node_modules/convex/schemas/convex.schema.json",
 	"aiFiles": {
 		"enabled": false
-	}
+	},
+	"codegen": {
+		"fileType": "ts"
+	},
+	"node": {
+		"nodeVersion": "24"
+	},
+	"functions": "convex/"
 }

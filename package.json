@@ -44,6 +44,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@convex-dev/eslint-plugin": "^5.0.1",
 		"@shadcn/lint": "^0.2.3",
 		"@types/bun": "catalog:",
 		"@types/node": "catalog:",
