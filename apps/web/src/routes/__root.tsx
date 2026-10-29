@@ -7,16 +7,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { authClient } from "@/lib/auth-client";
 import { getToken } from "@/lib/auth-server";
 
-import appCss from "../index.css?url";
+import appCss from "../styles.css?url";
 
 const getAuth = createServerFn({ method: "GET" }).handler(async () => {
 	return await getToken();
 });
 
-export interface RouterAppContext {
+export type RouterAppContext = {
 	queryClient: QueryClient;
 	convexQueryClient: ConvexQueryClient;
-}
+};
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
@@ -37,7 +37,7 @@ function RootDocument() {
 	const context = useRouteContext({ from: Route.id });
 	return (
 		<ConvexBetterAuthProvider client={context.convexQueryClient.convexClient} authClient={authClient} initialToken={context.token}>
-			<html lang="en">
+			<html lang="en" data-theme="light" data-accent="blue">
 				<head>
 					<HeadContent />
 				</head>
