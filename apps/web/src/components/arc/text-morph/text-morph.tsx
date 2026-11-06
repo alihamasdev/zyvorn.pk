@@ -45,7 +45,20 @@ export function TextMorph({ children, as = "span", className, id }: TextMorphPro
 	const [labels, setLabels] = useState({ current: children, previous: children });
 	if (labels.current !== children) setLabels({ current: children, previous: labels.current });
 	const kept = useMemo(() => new Set(toGlyphs(labels.previous).map((glyph) => glyph.key)), [labels.previous]);
-	let entering = 0;
+	const glyphsWithOrder = useMemo(() => {
+		const orderMap = new Map<string, number>();
+		let index = 0;
+		for (const glyph of glyphs) {
+			if (!kept.has(glyph.key)) {
+				orderMap.set(glyph.key, index);
+				index += 1;
+			}
+		}
+		return glyphs.map((glyph) => ({
+			...glyph,
+			order: orderMap.get(glyph.key) ?? 0,
+		}));
+	}, [glyphs, kept]);
 
 	// The frame holds an explicit width so a new label never snaps it; the spring then follows the track, which already has the new letters in place.
 	useLayoutEffect(() => {
@@ -84,8 +97,7 @@ export function TextMorph({ children, as = "span", className, id }: TextMorphPro
 			<span ref={frame} className={styles.frame} aria-hidden="true">
 				<span ref={track} className={styles.track}>
 					<AnimatePresence mode="popLayout" initial={false}>
-						{glyphs.map(({ char, key }) => {
-							const order = kept.has(key) ? 0 : entering++;
+						{glyphsWithOrder.map(({ char, key, order }) => {
 							return (
 								<motion.span
 									key={key}

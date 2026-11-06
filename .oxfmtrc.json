@@ -1,6 +1,15 @@
 {
 	"$schema": "./node_modules/oxfmt/configuration_schema.json",
-	"ignorePatterns": ["node_modules/**", ".turbo/**", ".agents/**", "packages/backend/convex/**/_generated/**", "routeTree.gen.ts"],
+	"ignorePatterns": [
+		"node_modules",
+		"dist/",
+		".agents/",
+		".turbo/",
+		".vercel/",
+		"routeTree.gen.ts",
+		"packages/backend/convex/**/_generated/**",
+		"packages/backend/convex/components/auth/schema.ts"
+	],
 	"semi": true,
 	"tabWidth": 2,
 	"useTabs": true,
@@ -9,17 +18,17 @@
 	"trailingComma": "all",
 	"jsxSingleQuote": false,
 	"objectWrap": "preserve",
-	"experimentalSortPackageJson": {
+	"sortPackageJson": {
 		"sortScripts": true
 	},
-	"experimentalTailwindcss": {
+	"sortTailwindcss": {
 		"preserveWhitespace": false,
 		"preserveDuplicates": false,
 		"attributes": ["class", "className"],
-		"functions": ["clsx", "cn", "cva", "useRender"],
+		"functions": ["cn", "cva", "useRender"],
 		"stylesheet": "./apps/web/src/styles.css"
 	},
-	"experimentalSortImports": {
+	"sortImports": {
 		"groups": [
 			["type-builtin", "value-builtin", "type-external", "value-external"],
 			["type-internal", "value-internal"],

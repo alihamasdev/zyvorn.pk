@@ -1,6 +1,15 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"ignorePatterns": ["node_modules/**", ".turbo/**", ".agents/**", "packages/backend/convex/**/_generated/**", "routeTree.gen.ts"],
+	"ignorePatterns": [
+		"node_modules",
+		"dist/",
+		".agents/",
+		".turbo/",
+		".vercel/",
+		"routeTree.gen.ts",
+		"packages/backend/convex/**/_generated/**",
+		"packages/backend/convex/components/auth/schema.ts"
+	],
 	"plugins": ["react", "node", "typescript", "import", "unicorn", "oxc"],
 	"jsPlugins": ["@shadcn/lint", "@convex-dev/eslint-plugin"],
 	"categories": {

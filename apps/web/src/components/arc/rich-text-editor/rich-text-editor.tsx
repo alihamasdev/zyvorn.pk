@@ -62,6 +62,7 @@ function inlineMarkdown(text: string) {
 	out = out.replace(/~~(?=\S)([\s\S]*?\S)~~/g, "<s>$1</s>");
 	out = out.replace(/(^|[^\w*])\*(?=\S)([^*]*?\S)\*(?!\*)/g, "$1<em>$2</em>");
 	out = out.replace(/(^|[^\w_])_(?=\S)([^_]*?\S)_(?![\w_])/g, "$1<em>$2</em>");
+	// eslint-disable-next-line no-control-regex
 	return out.replace(/\u0000(\d+)\u0000/g, (_, index: string) => `<code>${codes[Number(index)]}</code>`);
 }
 
