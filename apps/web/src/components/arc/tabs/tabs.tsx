@@ -1,6 +1,6 @@
 "use client";
 
-import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { Tabs as TabsPrimitive } from "@base-ui/react";
 import { ChevronLeft as NavArrowLeft, ChevronRight as NavArrowRight } from "lucide-react";
 import { AnimatePresence, LayoutGroup, animate, motion, useReducedMotion } from "motion/react";
 import type { AnimationPlaybackControls, Variants } from "motion/react";
@@ -10,7 +10,13 @@ import type { ComponentPropsWithoutRef, RefObject } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./tabs.module.css";
 
-type RootProps = ComponentPropsWithoutRef<typeof TabsPrimitive.Root>;
+type RootProps = Omit<ComponentPropsWithoutRef<typeof TabsPrimitive.Root>, "value" | "defaultValue" | "onValueChange"> & {
+	value?: string;
+	defaultValue?: string;
+	onValueChange?: (value: string) => void;
+	className?: string;
+};
+
 /** `direction` is +1 when the new tab sits after the old one; `panelHeightRef` holds the visible panel height so the next panel can morph from it; `leavingRectRef` pins the outgoing panel where it was on screen. */
 const TabsContext = createContext<{
 	active: string;
@@ -50,7 +56,7 @@ export function Tabs({ value, defaultValue, onValueChange, className, ...props }
 					ref={root}
 					className={[styles.root, className].filter(Boolean).join(" ")}
 					value={active}
-					onValueChange={handleChange}
+					onValueChange={(val) => handleChange(String(val))}
 				/>
 			</LayoutGroup>
 		</TabsContext.Provider>
@@ -98,19 +104,25 @@ export function TabsList({ className, ...props }: ComponentPropsWithoutRef<typeo
 		observer.observe(scroll);
 		observer.observe(content);
 		scroll.addEventListener("scroll", update, { passive: true });
-		update();
 		return () => {
 			observer.disconnect();
 			scroll.removeEventListener("scroll", update);
 		};
 	}, [update]);
 	useLayoutEffect(() => {
-		reveal(list.current?.querySelector<HTMLElement>('[role="tab"][data-state="active"]') ?? null);
+		const scroll = viewport.current;
+		if (!scroll) return;
+		const activeTab = scroll.querySelector<HTMLElement>(`[role="tab"][data-value="${active}"]`);
+		reveal(activeTab);
 	}, [active, reveal]);
-	const scrollTabs = (direction: number) =>
-		viewport.current?.scrollBy({ left: direction * (viewport.current?.clientWidth ?? 0) * 0.75, behavior: reduced ? "instant" : "smooth" });
+	function scrollTabs(direction: -1 | 1) {
+		const scroll = viewport.current;
+		if (!scroll) return;
+		const delta = (scroll.clientWidth - 48) * direction;
+		scroll.scrollBy({ left: delta, behavior: reduced ? "instant" : "smooth" });
+	}
 	return (
-		<div ref={shell} className={styles.listShell} data-overflow={edges.overflow} data-left={edges.left} data-right={edges.right}>
+		<div ref={shell} className={styles.container}>
 			{edges.overflow && (
 				<button
 					type="button"
@@ -124,9 +136,8 @@ export function TabsList({ className, ...props }: ComponentPropsWithoutRef<typeo
 			)}
 			<motion.div
 				ref={viewport}
-				layoutScroll
-				className={styles.viewport}
-				onFocusCapture={(event) => {
+				className={styles.scrollArea}
+				onKeyDown={(event) => {
 					if (event.target instanceof HTMLElement && event.target.getAttribute("role") === "tab") reveal(event.target);
 				}}
 			>
@@ -147,12 +158,17 @@ export function TabsList({ className, ...props }: ComponentPropsWithoutRef<typeo
 	);
 }
 
-export function TabsTrigger({ className, children, value, ...props }: ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>) {
+export function TabsTrigger({
+	className,
+	children,
+	value,
+	...props
+}: Omit<ComponentPropsWithoutRef<typeof TabsPrimitive.Tab>, "value"> & { value: string }) {
 	const { active } = useContext(TabsContext);
 	const reduced = useReducedMotion();
 	// The LayoutGroup in Tabs scopes the highlight to this instance, so it glides between triggers but never flies in from another tab set.
 	return (
-		<TabsPrimitive.Trigger {...props} value={value} data-value={value} className={[styles.trigger, className].filter(Boolean).join(" ")}>
+		<TabsPrimitive.Tab {...props} value={value} data-value={value} className={[styles.trigger, className].filter(Boolean).join(" ")}>
 			{active === value && (
 				<motion.span
 					className={styles.selection}
@@ -163,7 +179,7 @@ export function TabsTrigger({ className, children, value, ...props }: ComponentP
 				/>
 			)}
 			<span className={styles.triggerLabel}>{children}</span>
-		</TabsPrimitive.Trigger>
+		</TabsPrimitive.Tab>
 	);
 }
 
@@ -190,7 +206,12 @@ const panelFade: Variants = {
 	exit: { opacity: 0, x: 0, transition: { duration: 0.1 } },
 };
 
-export function TabsContent({ className, value, forceMount, children, ...props }: ComponentPropsWithoutRef<typeof TabsPrimitive.Content>) {
+export interface TabsContentProps extends Omit<ComponentPropsWithoutRef<typeof TabsPrimitive.Panel>, "value"> {
+	value: string;
+	forceMount?: boolean;
+}
+
+export function TabsContent({ className, value, forceMount, children, ...props }: TabsContentProps) {
 	const { active, direction, panelHeightRef, leavingRectRef } = useContext(TabsContext);
 	const reduced = useReducedMotion();
 	const panel = useRef<HTMLDivElement>(null);
@@ -234,18 +255,18 @@ export function TabsContent({ className, value, forceMount, children, ...props }
 	}, [selected, reduced, forceMount, panelHeightRef, leavingRectRef]);
 	if (forceMount)
 		return (
-			<TabsPrimitive.Content {...props} value={value} forceMount className={classes}>
+			<TabsPrimitive.Panel {...props} value={value} keepMounted className={classes}>
 				{children}
-			</TabsPrimitive.Content>
+			</TabsPrimitive.Panel>
 		);
 	return (
 		<AnimatePresence initial={false} mode="popLayout" custom={direction}>
 			{selected && (
-				<TabsPrimitive.Content
+				<TabsPrimitive.Panel
 					{...props}
 					key={value}
 					value={value}
-					forceMount
+					keepMounted
 					render={
 						<motion.div
 							ref={panel}
@@ -259,7 +280,7 @@ export function TabsContent({ className, value, forceMount, children, ...props }
 					}
 				>
 					{children}
-				</TabsPrimitive.Content>
+				</TabsPrimitive.Panel>
 			)}
 		</AnimatePresence>
 	);

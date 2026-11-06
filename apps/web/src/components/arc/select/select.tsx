@@ -1,21 +1,27 @@
 "use client";
 
-import * as SelectPrimitive from "@radix-ui/react-select";
+import { Select as SelectPrimitive } from "@base-ui/react";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { Variants } from "motion/react";
+import { type Variants } from "motion/react";
 import { forwardRef, useId, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./select.module.css";
 
-export interface SelectProps extends Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Root>, "children"> {
+export interface SelectProps extends Omit<
+	ComponentPropsWithoutRef<typeof SelectPrimitive.Root>,
+	"children" | "defaultValue" | "value" | "onValueChange"
+> {
 	label: string;
 	description?: string;
 	placeholder?: string;
 	id?: string;
 	className?: string;
+	value?: string;
+	defaultValue?: string;
+	onValueChange?: (value: string) => void;
 	options: { value: string; label: string; disabled?: boolean }[];
 }
 
@@ -43,15 +49,27 @@ const valueFade: Variants = {
 };
 
 export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select(
-	{ label, description, placeholder = "Select an option", options, id, className, disabled, onValueChange, ...rootProps },
+	{
+		label,
+		description,
+		placeholder = "Select an option",
+		options,
+		id,
+		className,
+		disabled,
+		onValueChange,
+		defaultValue,
+		value,
+		...rootProps
+	},
 	ref,
 ) {
 	const generatedId = useId();
 	const controlId = id ?? generatedId;
 	const hintId = description ? `${controlId}-description` : undefined;
 	const reduceMotion = useReducedMotion();
-	const [uncontrolledValue, setUncontrolledValue] = useState(rootProps.defaultValue ?? "");
-	const currentValue = rootProps.value ?? uncontrolledValue;
+	const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
+	const currentValue = value ?? uncontrolledValue;
 	const index = options.findIndex((option) => option.value === currentValue);
 	const shown = currentValue ? (options[index]?.label ?? "") : placeholder;
 	const [previousIndex, setPreviousIndex] = useState(index);
@@ -66,10 +84,12 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 			<label htmlFor={controlId}>{label}</label>
 			<SelectPrimitive.Root
 				{...rootProps}
+				value={currentValue}
 				disabled={disabled}
 				onValueChange={(next) => {
-					setUncontrolledValue(next);
-					onValueChange?.(next);
+					const stringVal = String(next ?? "");
+					if (value === undefined) setUncontrolledValue(stringVal);
+					onValueChange?.(stringVal);
 				}}
 			>
 				<SelectPrimitive.Trigger
@@ -78,7 +98,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 					aria-describedby={hintId}
 					className={[styles.trigger, className].filter(Boolean).join(" ")}
 				>
-					{/* Radix keeps the real value for assistive tech; the visible copy below animates between values. */}
+					{/* Base UI keeps the real value for assistive tech; the visible copy below animates between values. */}
 					<span className={styles.srOnly}>
 						<SelectPrimitive.Value placeholder={placeholder} />
 					</span>
@@ -102,24 +122,26 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 					</SelectPrimitive.Icon>
 				</SelectPrimitive.Trigger>
 				<SelectPrimitive.Portal>
-					<SelectPrimitive.Content className={styles.content} position="popper" sideOffset={4} collisionPadding={12}>
-						<SelectPrimitive.ScrollUpButton className={styles.scrollButton}>
-							<ChevronUp size={16} strokeWidth={1.75} aria-hidden="true" />
-						</SelectPrimitive.ScrollUpButton>
-						<SelectPrimitive.Viewport className={styles.viewport}>
-							{options.map((option) => (
-								<SelectPrimitive.Item key={option.value} value={option.value} disabled={option.disabled} className={styles.item}>
-									<SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
-									<SelectPrimitive.ItemIndicator className={styles.indicator}>
-										<Check size={16} strokeWidth={1.75} aria-hidden="true" />
-									</SelectPrimitive.ItemIndicator>
-								</SelectPrimitive.Item>
-							))}
-						</SelectPrimitive.Viewport>
-						<SelectPrimitive.ScrollDownButton className={styles.scrollButton}>
-							<ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" />
-						</SelectPrimitive.ScrollDownButton>
-					</SelectPrimitive.Content>
+					<SelectPrimitive.Positioner sideOffset={4} collisionPadding={12}>
+						<SelectPrimitive.Popup className={styles.content}>
+							<SelectPrimitive.ScrollUpArrow className={styles.scrollButton}>
+								<ChevronUp size={16} strokeWidth={1.75} aria-hidden="true" />
+							</SelectPrimitive.ScrollUpArrow>
+							<SelectPrimitive.List className={styles.viewport}>
+								{options.map((option) => (
+									<SelectPrimitive.Item key={option.value} value={option.value} disabled={option.disabled} className={styles.item}>
+										<SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+										<SelectPrimitive.ItemIndicator className={styles.indicator}>
+											<Check size={16} strokeWidth={1.75} aria-hidden="true" />
+										</SelectPrimitive.ItemIndicator>
+									</SelectPrimitive.Item>
+								))}
+							</SelectPrimitive.List>
+							<SelectPrimitive.ScrollDownArrow className={styles.scrollButton}>
+								<ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" />
+							</SelectPrimitive.ScrollDownArrow>
+						</SelectPrimitive.Popup>
+					</SelectPrimitive.Positioner>
 				</SelectPrimitive.Portal>
 			</SelectPrimitive.Root>
 			{description && (

@@ -1,6 +1,6 @@
 "use client";
 
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { Tooltip as TooltipPrimitive } from "@base-ui/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ReactElement, ReactNode } from "react";
@@ -114,26 +114,21 @@ export function Tooltip({ content, children, side = "top" }: TooltipProps) {
 		return warmth.closed;
 	}, [open]);
 	return (
-		<TooltipPrimitive.Provider delayDuration={DELAY} skipDelayDuration={0}>
+		<TooltipPrimitive.Provider delay={isWarm ? 0 : DELAY} closeDelay={SKIP_WINDOW}>
 			<TooltipPrimitive.Root
 				open={open}
-				delayDuration={isWarm ? 0 : DELAY}
 				onOpenChange={(next) => {
 					if (next) setInstant(warmth.get());
 					setOpen(next);
 				}}
 			>
-				<TooltipPrimitive.Trigger>{children}</TooltipPrimitive.Trigger>
+				<TooltipPrimitive.Trigger render={children} />
 				<TooltipPrimitive.Portal>
-					<TooltipPrimitive.Content
-						className={styles.tooltip}
-						data-instant={instant || undefined}
-						side={side}
-						sideOffset={8}
-						collisionPadding={12}
-					>
-						{typeof content === "string" || typeof content === "number" ? <TooltipText text={String(content)} /> : content}
-					</TooltipPrimitive.Content>
+					<TooltipPrimitive.Positioner side={side} sideOffset={8} collisionPadding={12}>
+						<TooltipPrimitive.Popup className={styles.tooltip} data-instant={instant || undefined}>
+							{typeof content === "string" || typeof content === "number" ? <TooltipText text={String(content)} /> : content}
+						</TooltipPrimitive.Popup>
+					</TooltipPrimitive.Positioner>
 				</TooltipPrimitive.Portal>
 			</TooltipPrimitive.Root>
 		</TooltipPrimitive.Provider>

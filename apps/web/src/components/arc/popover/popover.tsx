@@ -1,6 +1,6 @@
 "use client";
 
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Popover as PopoverPrimitive } from "@base-ui/react";
 import { forwardRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
@@ -18,20 +18,22 @@ export const PopoverTrigger = forwardRef<HTMLButtonElement, ComponentPropsWithou
 
 PopoverTrigger.displayName = "PopoverTrigger";
 
-export const PopoverContent = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>>(function PopoverContent(
-	{ className, align = "start", sideOffset = 6, collisionPadding = 10, ...props },
+export interface PopoverContentProps extends ComponentPropsWithoutRef<typeof PopoverPrimitive.Popup> {
+	align?: "start" | "center" | "end";
+	side?: "top" | "bottom" | "left" | "right";
+	sideOffset?: number;
+	collisionPadding?: number;
+}
+
+export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(function PopoverContent(
+	{ className, align = "start", side = "bottom", sideOffset = 6, collisionPadding = 10, ...props },
 	ref,
 ) {
 	return (
 		<PopoverPrimitive.Portal>
-			<PopoverPrimitive.Content
-				{...props}
-				ref={ref}
-				align={align}
-				sideOffset={sideOffset}
-				collisionPadding={collisionPadding}
-				className={[styles.content, className].filter(Boolean).join(" ")}
-			/>
+			<PopoverPrimitive.Positioner align={align} side={side} sideOffset={sideOffset} collisionPadding={collisionPadding}>
+				<PopoverPrimitive.Popup {...props} ref={ref} className={[styles.content, className].filter(Boolean).join(" ")} />
+			</PopoverPrimitive.Positioner>
 		</PopoverPrimitive.Portal>
 	);
 });

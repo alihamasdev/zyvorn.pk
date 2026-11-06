@@ -1,6 +1,6 @@
 "use client";
 
-import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
+import { Menu as DropdownPrimitive } from "@base-ui/react";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import type { TargetAndTransition } from "motion/react";
@@ -504,51 +504,41 @@ export function ButtonGroup({
 		<DropdownPrimitive.Root open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
 			{group}
 			<DropdownPrimitive.Portal>
-				<DropdownPrimitive.Content
-					className={styles.menu}
+				<DropdownPrimitive.Positioner
 					side="bottom"
 					align={vertical ? "start" : "end"}
 					alignOffset={-1}
 					sideOffset={6}
 					collisionPadding={12}
-					loop
 				>
-					{menu.items.map((action, index) => {
-						const classes = [styles.item, action.destructive ? styles.destructive : ""].filter(Boolean).join(" ");
-						const body = (
-							<>
-								{action.icon ? (
-									<span className={styles.itemIcon} aria-hidden="true">
-										{action.icon}
-									</span>
-								) : null}
-								<span className={styles.itemLabel}>{action.label}</span>
-							</>
-						);
-						return action.href ? (
-							<DropdownPrimitive.Item
-								key={action.id}
-								className={classes}
-								style={{ "--i": index } as CSSProperties}
-								disabled={action.disabled}
-								onSelect={action.onSelect}
-								render={<a href={action.href} />}
-							>
-								{body}
-							</DropdownPrimitive.Item>
-						) : (
-							<DropdownPrimitive.Item
-								key={action.id}
-								className={classes}
-								style={{ "--i": index } as CSSProperties}
-								disabled={action.disabled}
-								onSelect={action.onSelect}
-							>
-								{body}
-							</DropdownPrimitive.Item>
-						);
-					})}
-				</DropdownPrimitive.Content>
+					<DropdownPrimitive.Popup className={styles.menu}>
+						{menu.items.map((action, index) => {
+							const classes = [styles.item, action.destructive ? styles.destructive : ""].filter(Boolean).join(" ");
+							const body = (
+								<>
+									{action.icon ? (
+										<span className={styles.itemIcon} aria-hidden="true">
+											{action.icon}
+										</span>
+									) : null}
+									<span className={styles.itemLabel}>{action.label}</span>
+								</>
+							);
+							return (
+								<DropdownPrimitive.Item
+									key={action.id}
+									className={classes}
+									style={{ "--i": index } as CSSProperties}
+									disabled={action.disabled}
+									onClick={action.onSelect}
+									render={action.href ? <a href={action.href} /> : undefined}
+								>
+									{body}
+								</DropdownPrimitive.Item>
+							);
+						})}
+					</DropdownPrimitive.Popup>
+				</DropdownPrimitive.Positioner>
 			</DropdownPrimitive.Portal>
 		</DropdownPrimitive.Root>
 	);

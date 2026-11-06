@@ -1,10 +1,10 @@
 "use client";
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog as DialogPrimitive } from "@base-ui/react";
 import { X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
-import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
@@ -22,9 +22,9 @@ export function Dialog({
 	const [uncontrolled, setUncontrolled] = useState(defaultOpen);
 	const open = openProp ?? uncontrolled;
 	const setOpen = useCallback(
-		(next: boolean) => {
+		(next: boolean, eventDetails: DialogPrimitive.Root.ChangeEventDetails) => {
 			if (openProp === undefined) setUncontrolled(next);
-			onOpenChange?.(next);
+			onOpenChange?.(next, eventDetails);
 		},
 		[openProp, onOpenChange],
 	);
@@ -38,7 +38,7 @@ export function Dialog({
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
-export interface DialogContentProps extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+export interface DialogContentProps extends Omit<ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>, "title"> {
 	title: string;
 	description?: string;
 	children: ReactNode;
@@ -75,19 +75,9 @@ function SwapText({ text }: { text: string }) {
 	);
 }
 
-export function DialogContent({ title, description, children, className, onPointerDownOutside, ...props }: DialogContentProps) {
+export function DialogContent({ title, description, children, className, ...props }: DialogContentProps) {
 	const open = useContext(OpenContext);
 	const reduced = useReducedMotion();
-	// When the open state last changed. Radix waits for the click before treating a press as outside, and a press on the trigger
-	// while the dialog leaves reopens it first, so that press must not close it again.
-	const change = useRef({ open, at: 0 });
-	useLayoutEffect(() => {
-		change.current = { open, at: performance.now() };
-	}, [open]);
-	const pressOutside: DialogContentProps["onPointerDownOutside"] = (event) => {
-		onPointerDownOutside?.(event);
-		if (open !== null && (!change.current.open || event.detail.originalEvent.timeStamp < change.current.at)) event.preventDefault();
-	};
 	const classes = [styles.content, className].filter(Boolean).join(" ");
 	const inner = (
 		<>
@@ -109,23 +99,22 @@ export function DialogContent({ title, description, children, className, onPoint
 			<div className={styles.body}>{children}</div>
 		</>
 	);
-	// Under a bare Radix root the open state is unknown here, so CSS keyframes keyed off data-state animate the layers instead.
+	// Under a bare Base UI root the open state is unknown here, so CSS keyframes keyed off data-state animate the layers instead.
 	if (open === null)
 		return (
 			<DialogPrimitive.Portal>
-				<DialogPrimitive.Overlay className={`${styles.overlay} ${styles.keyframes}`} />
-				<DialogPrimitive.Content {...props} onPointerDownOutside={pressOutside} className={`${classes} ${styles.keyframes}`}>
+				<DialogPrimitive.Backdrop className={`${styles.overlay} ${styles.keyframes}`} />
+				<DialogPrimitive.Popup {...props} className={`${classes} ${styles.keyframes}`}>
 					{inner}
-				</DialogPrimitive.Content>
+				</DialogPrimitive.Popup>
 			</DialogPrimitive.Portal>
 		);
 	// The overlay fades while the dialog rises 8px and scales up on a spring. Closing is shorter and quieter, and starts from wherever the entrance is.
 	return (
 		<AnimatePresence>
 			{open && (
-				<DialogPrimitive.Portal key="dialog" forceMount>
-					<DialogPrimitive.Overlay
-						forceMount
+				<DialogPrimitive.Portal key="dialog" keepMounted>
+					<DialogPrimitive.Backdrop
 						render={
 							<motion.div
 								className={styles.overlay}
@@ -135,11 +124,9 @@ export function DialogContent({ title, description, children, className, onPoint
 								transition={reduced ? fade : { duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] }}
 							/>
 						}
-					></DialogPrimitive.Overlay>
-					<DialogPrimitive.Content
+					/>
+					<DialogPrimitive.Popup
 						{...props}
-						onPointerDownOutside={pressOutside}
-						forceMount
 						render={
 							<motion.div
 								className={classes}
@@ -158,7 +145,7 @@ export function DialogContent({ title, description, children, className, onPoint
 						}
 					>
 						{inner}
-					</DialogPrimitive.Content>
+					</DialogPrimitive.Popup>
 				</DialogPrimitive.Portal>
 			)}
 		</AnimatePresence>

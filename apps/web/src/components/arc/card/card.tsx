@@ -1,6 +1,6 @@
 "use client";
 
-import * as Dialog from "@radix-ui/react-dialog";
+import { Dialog as DialogPrimitive } from "@base-ui/react";
 import { X } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import type { HTMLMotionProps, MotionProps, Transition, Variants } from "motion/react";
@@ -233,7 +233,11 @@ export function Card({
 			) : null}
 			<div className={styles.content}>
 				<motion.h3 className={styles.title} {...shared("title", "card")}>
-					{details ? <Dialog.Trigger render={<button type="button" className={styles.trigger} />}>{title}</Dialog.Trigger> : title}
+					{details ? (
+						<DialogPrimitive.Trigger render={<button type="button" className={styles.trigger} />}>{title}</DialogPrimitive.Trigger>
+					) : (
+						title
+					)}
 				</motion.h3>
 				{description ? (
 					<motion.p ref={descriptionRef} className={styles.description} {...shared("description", "card", "position")}>
@@ -250,17 +254,16 @@ export function Card({
 
 	// The quick look grows out of the card: the surface, photo, and copy travel on one spring while the details settle in beneath them.
 	return (
-		<Dialog.Root open={open} onOpenChange={setOpen}>
+		<DialogPrimitive.Root open={open} onOpenChange={setOpen}>
 			<LayoutGroup id={group}>
 				{card}
 				<AnimatePresence>
 					{(open || returning) && (
-						<Dialog.Portal key="quick-look" forceMount>
+						<DialogPrimitive.Portal key="quick-look" keepMounted>
 							<AnimatePresence>
 								{open && (
-									<Dialog.Overlay
+									<DialogPrimitive.Backdrop
 										key="overlay"
-										forceMount
 										render={
 											<motion.div
 												className={styles.overlay}
@@ -270,11 +273,10 @@ export function Card({
 												transition={reduced ? fade : { duration: duration.standard, ease: [...ease.enter] }}
 											/>
 										}
-									></Dialog.Overlay>
+									/>
 								)}
 							</AnimatePresence>
-							<Dialog.Content
-								forceMount
+							<DialogPrimitive.Popup
 								{...(description ? {} : { "aria-describedby": undefined })}
 								render={
 									<motion.div
@@ -329,7 +331,7 @@ export function Card({
 									animate={returning ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 }}
 									transition={returning ? fade : reduced ? fade : closeIn}
 								>
-									<Dialog.Close
+									<DialogPrimitive.Close
 										render={
 											<motion.button
 												type="button"
@@ -341,16 +343,18 @@ export function Card({
 										}
 									>
 										<X width={16} height={16} strokeWidth={1.75} aria-hidden="true" />
-									</Dialog.Close>
+									</DialogPrimitive.Close>
 								</motion.span>
 								<div className={styles.content}>
-									<Dialog.Title render={<motion.h2 className={styles.title} {...shared("title", "panel")} />}>{title}</Dialog.Title>
+									<DialogPrimitive.Title render={<motion.h2 className={styles.title} {...shared("title", "panel")} />}>
+										{title}
+									</DialogPrimitive.Title>
 									{description ? (
-										<Dialog.Description
+										<DialogPrimitive.Description
 											render={<motion.p className={styles.description} {...shared("description", "panel", "position")} />}
 										>
 											{description}
-										</Dialog.Description>
+										</DialogPrimitive.Description>
 									) : null}
 									{children}
 									{footer("panel")}
@@ -364,11 +368,11 @@ export function Card({
 										{details}
 									</motion.div>
 								</div>
-							</Dialog.Content>
-						</Dialog.Portal>
+							</DialogPrimitive.Popup>
+						</DialogPrimitive.Portal>
 					)}
 				</AnimatePresence>
 			</LayoutGroup>
-		</Dialog.Root>
+		</DialogPrimitive.Root>
 	);
 }
