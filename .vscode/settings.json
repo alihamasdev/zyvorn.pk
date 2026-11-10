@@ -1,7 +1,16 @@
 {
 	"search.exclude": {
 		"**/skills": true,
-		"**/bun.lock": true
+		"**/bun.lock": true,
+		"**/routeTree.gen.ts": true
+	},
+	"files.watcherExclude": {
+		"**/routeTree.gen.ts": true,
+		"**/convex/components/auth/schema.ts": true
+	},
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true,
+		"**/convex/components/auth/schema.ts": true
 	},
 	"files.associations": {
 		"*.css": "tailwindcss"

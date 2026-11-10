@@ -9,7 +9,7 @@
 		"./api": "./convex/_generated/api.ts"
 	},
 	"scripts": {
-		"auth:generate": "bunx auth generate --config ./convex/components/auth/auth.ts --output ./convex/components/auth/schema.ts -y",
+		"auth:generate": "auth generate --config ./convex/components/auth/auth.ts --output ./convex/components/auth/schema.ts -y",
 		"check-types": "tsc --noEmit -p ./convex/tsconfig.json",
 		"dev": "convex dev",
 		"dev:setup": "convex dev --configure --until-success"
@@ -24,6 +24,7 @@
 	"devDependencies": {
 		"@types/node": "catalog:",
 		"@zyvorn/config": "workspace:*",
+		"auth": "^1.7.19",
 		"typescript": "catalog:"
 	}
 }
