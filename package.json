@@ -27,7 +27,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "turbo run build",
-		"check": "tailwint \"apps/web/src/**/*.tsx\" && oxlint --fix && oxfmt --write",
+		"check": "oxlint --fix && oxfmt --write",
 		"check-types": "turbo run check-types",
 		"deploy:prev": "bunx vercel deploy",
 		"deploy:prod": "bunx vercel deploy --prod",
@@ -36,6 +36,7 @@
 		"dev:server": "turbo run dev -F @zyvorn/backend --",
 		"dev:vercel": "bunx vercel dev -L",
 		"dev:web": "turbo run dev -F web --",
+		"env:audit": "varlock audit -i .output -i dist -p ./apps/web && varlock audit -p ./apps/native",
 		"env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/native/",
 		"env:prev": "bun scripts/sync-vercel-env.ts preview",
 		"env:prod": "bun scripts/sync-vercel-env.ts production",

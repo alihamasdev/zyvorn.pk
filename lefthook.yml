@@ -4,6 +4,8 @@
 pre-commit:
   parallel: true
   jobs:
+    - name: varlock-scan
+      run: bun x varlock scan --staged
     - name: check-types
       glob: "*.{ts,tsx,js,jsx}"
       run: bun run check-types

@@ -7,9 +7,10 @@
 		".turbo/",
 		".vercel/",
 		"tools/",
-		"packages/backend/convex/**/_generated/**",
-		"packages/backend/convex/components/auth/schema.ts",
-		"routeTree.gen.ts"
+		"**/_generated/",
+		"**/src/env.ts",
+		"**/routeTree.gen.ts",
+		"**/convex/components/auth/schema.ts"
 	],
 	"semi": true,
 	"tabWidth": 2,

@@ -7,9 +7,10 @@
 		".turbo/",
 		".vercel/",
 		"tools/",
-		"packages/backend/convex/**/_generated/**",
-		"packages/backend/convex/components/auth/schema.ts",
-		"routeTree.gen.ts"
+		"**/_generated/",
+		"**/src/env.ts",
+		"**/routeTree.gen.ts",
+		"**/convex/components/auth/schema.ts"
 	],
 	"plugins": ["react", "node", "typescript", "import", "react-perf", "unicorn", "promise", "oxc", "jsdoc"],
 	"jsPlugins": [
@@ -25,7 +26,11 @@
 		"promise/no-callback-in-promise": "off",
 		"typescript/consistent-type-imports": ["warn", { "prefer": "type-imports", "fixStyle": "inline-type-imports" }],
 		"oxc/no-accumulating-spread": "off",
+		"unicorn/filename-case": ["error", { "case": "kebabCase" }],
 		"shadcn/no-restyle": ["error", { "allow": ["layout"] }],
+		"shadcn/no-arbitrary-values": "error",
+		"shadcn/no-raw-colors": "error",
+		"shadcn/no-unknown-classes": "error",
 		"anti-slop/no-array-filter-map": "off",
 		"anti-slop/no-reduce-accumulator-copy": "off",
 		"anti-slop/no-chained-type-assertions": "off",
@@ -68,7 +73,8 @@
 				"@convex-dev/no-top-of-hour-crons": "warn",
 				"@convex-dev/no-schema-import-cycle": "error",
 				"@convex-dev/no-duplicate-indexes": "error",
-				"@convex-dev/no-process-env": "error"
+				"@convex-dev/no-process-env": "error",
+				"unicorn/filename-case": ["error", { "case": "camelCase" }]
 			}
 		}
 	],

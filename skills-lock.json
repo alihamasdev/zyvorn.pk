@@ -240,6 +240,13 @@
 			"sourceType": "github",
 			"skillPath": "skills/turborepo/SKILL.md",
 			"computedHash": "9681d8dfeb5e6cdff767f1bcaba5d7ac55732a9d6c02ee120f44229f8ec25e7e"
+		},
+		"varlock": {
+			"source": "dmno-dev/varlock",
+			"commit": "658da7e34f3c99d98378a14531cba971285b388e",
+			"sourceType": "github",
+			"skillPath": "skills/varlock/SKILL.md",
+			"computedHash": "4f3e6c5a0d14b423e905561020a9dcfa77cfe8b645fe448b6edcdb1681b42949"
 		}
 	}
 }

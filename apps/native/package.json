@@ -7,6 +7,7 @@
 		"android": "expo run:android",
 		"check-types": "tsc --noEmit",
 		"devv": "expo start --clear",
+		"env:audit": "varlock audit",
 		"env:generate": "varlock codegen",
 		"ios": "expo run:ios",
 		"prebuild": "expo prebuild",

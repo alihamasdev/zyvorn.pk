@@ -6,6 +6,7 @@
 		"build": "vite build",
 		"check-types": "tsr generate && tsc --noEmit",
 		"dev": "vite dev",
+		"env:audit": "varlock audit -i .output -i dist",
 		"env:generate": "varlock codegen",
 		"postinstall": "tsr generate",
 		"serve": "vite preview"

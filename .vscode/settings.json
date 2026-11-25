@@ -5,12 +5,16 @@
 		"**/routeTree.gen.ts": true
 	},
 	"files.watcherExclude": {
+		"**/convex/_generated/**": true,
+		"**/convex/components/auth/schema.ts": true,
 		"**/routeTree.gen.ts": true,
-		"**/convex/components/auth/schema.ts": true
+		"**/src/env.ts": true
 	},
 	"files.readonlyInclude": {
+		"**/convex/_generated/**": true,
+		"**/convex/components/auth/schema.ts": true,
 		"**/routeTree.gen.ts": true,
-		"**/convex/components/auth/schema.ts": true
+		"**/src/env.ts": true
 	},
 	"files.associations": {
 		"*.css": "tailwindcss"
