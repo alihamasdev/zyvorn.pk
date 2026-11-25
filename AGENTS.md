@@ -18,11 +18,14 @@ The full skill (component choice, layout, motion, examples, review checklist) is
 10. First render is server-safe (no `window`, `localStorage`, `Date.now()`, or `Math.random()` output), and animated elements keep stable keys.
 11. Every data region has loading (`skeleton`), empty (`empty-state`), error (inline `alert`), and in-place success states.
 12. Check 390, 768, 1024, and 1440px: no sideways scroll, wide tables scroll inside their card, touch targets at least 44px.
+13. Use `type` aliases instead of `interface` (`type Foo = ...`). Use `React.<Type>` instead of importing types from `react`.
 
 ## Never
 
 - Eyebrow labels or overlines above headings; all caps or uppercase transforms.
 - Em dashes in copy. Use a period, comma, colon, or parentheses.
+- `interface` declarations for type definitions; use `type` aliases instead.
+- Type imports from `"react"`; use `React.<Type>` (e.g. `React.ReactNode`) instead.
 - Hand-made focus rings, outlines, or halos, or any ring on pointer focus. Keyboard focus already gets Arc's subtle `:focus-visible` ring from `foundation.css`.
 - Raw hex, Tailwind color classes, weights above 500, or arbitrary font sizes.
 - Decorative gradients, glows, or colored shadows in components; icons in rounded tiles; nested decorative cards.

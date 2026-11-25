@@ -1,17 +1,14 @@
-"use client";
-
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { forwardRef, useEffect, useId, useRef, useState } from "react";
-import type { InputHTMLAttributes } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./input.module.css";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 	label: string;
 	description?: string;
 	error?: string;
-}
+};
 
 /* Digits roll up when a number grows and down when it shrinks; `custom` hands the latest direction to digits already leaving. */
 const digit = {
@@ -19,15 +16,18 @@ const digit = {
 	center: { opacity: 1, y: 0, filter: "blur(0px)" },
 	exit: (direction: number) => ({ opacity: 0, y: `${direction * -0.6}em`, filter: `blur(${motionTokens.blur.subtle}px)` }),
 };
+
 const isNumber = (word: string) => /^\d[\d.,/:]*%?$/.test(word);
 
 /** A count in the copy, such as "12 characters", rolls only the digits that changed; a gained or lost digit opens or closes its width. */
 function RollingNumber({ word }: { word: string }) {
 	const reduced = useReducedMotion();
 	const [shown, setShown] = useState({ word, direction: 1 });
+
 	if (shown.word !== word)
 		setShown({ word, direction: parseFloat(word.replace(/,/g, "")) < parseFloat(shown.word.replace(/,/g, "")) ? -1 : 1 });
 	const characters = word.split("");
+
 	const transition = reduced
 		? { duration: 0 }
 		: {
@@ -36,6 +36,7 @@ function RollingNumber({ word }: { word: string }) {
 				opacity: { duration: motionTokens.duration.fast },
 				filter: { duration: motionTokens.duration.fast },
 			};
+
 	return (
 		<AnimatePresence initial={false}>
 			{characters.map((character, index) => (
@@ -70,6 +71,7 @@ function RollingNumber({ word }: { word: string }) {
 function MotionText({ text }: { text: string }) {
 	const reduced = useReducedMotion();
 	const words = text.split(" ");
+
 	return (
 		<>
 			<span className={styles.srOnly}>{text}</span>
@@ -123,13 +125,18 @@ function MessageRow({ id, text, className, alert }: { id?: string; text: string;
 	const [height, setHeight] = useState<number | "auto">("auto");
 	useEffect(() => {
 		const node = copyRef.current;
+
 		if (!node || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (entry) setHeight(entry.borderBoxSize?.[0]?.blockSize ?? node.offsetHeight);
 		});
+
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, []);
+
 	// Reduced motion mounts the row at full height: a zero-duration open would still paint one collapsed frame. The presence starts
 	// with initial={false}, so rows present at hydration render the same on server and client either way.
 	return (
@@ -167,6 +174,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ l
 	const hintId = description ? `${controlId}-description` : undefined;
 	const errorId = error ? `${controlId}-error` : undefined;
 	const describedBy = [props["aria-describedby"], hintId, errorId].filter(Boolean).join(" ") || undefined;
+
 	return (
 		<div className={styles.field}>
 			<label className={styles.label} htmlFor={controlId}>

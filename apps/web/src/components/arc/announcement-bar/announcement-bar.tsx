@@ -1,28 +1,25 @@
-"use client";
-
 import { ArrowRight, ChevronDown, ChevronUp, Pause, Play, X } from "lucide-react";
-import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { AnimationPlaybackControls, Transition, Variants } from "motion/react";
+import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { forwardRef, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./announcement-bar.module.css";
 
-export interface AnnouncementAction {
+export type AnnouncementAction = {
 	label: string;
 	href?: string;
 	onClick?: () => void;
-}
+};
 
-export interface Announcement {
+export type Announcement = {
 	/** Stable id, reported to callbacks. */
 	id: string;
-	message: ReactNode;
+	message: React.ReactNode;
 	action?: AnnouncementAction;
 	/** Counts down to a moment, for example the end of a sale. */
 	countdown?: { to: Date | string | number; label?: string };
-}
+};
 
 /**
  * A slim bar for the top of a page. It can rotate several messages, each rising in from below while the bar springs to
@@ -30,7 +27,7 @@ export interface Announcement {
  * call to action and a live countdown. Dismissing collapses the height smoothly so the page below eases up, and with an
  * `id` the dismissal is remembered in `localStorage`.
  */
-export interface AnnouncementBarProps {
+export type AnnouncementBarProps = {
 	messages: Announcement[];
 	/** Remembers dismissal under this id. Change the id to show a new campaign to everyone again. */
 	id?: string;
@@ -55,9 +52,10 @@ export interface AnnouncementBarProps {
 	/** Accessible name of the region. */
 	label?: string;
 	className?: string;
-}
+};
 
 const storageKey = (id: string) => `arc-announcement:${id}`;
+
 /** Forgets a remembered dismissal so the bar with this id shows again. */
 export function clearAnnouncementDismissal(id: string) {
 	try {
@@ -68,12 +66,16 @@ export function clearAnnouncementDismissal(id: string) {
 }
 
 type Bezier = [number, number, number, number];
+
 const enter = [...motionTokens.ease.enter] as Bezier;
 const standard = [...motionTokens.ease.standard] as Bezier;
+
 const physical = (visualDuration: number, bounce: number): Transition => {
 	const root = (2 * Math.PI) / (visualDuration * 1.2);
+
 	return { type: "spring", stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1 };
 };
+
 const RISE = physical(0.46, 0),
 	HEIGHT = physical(0.42, 0),
 	COLLAPSE = physical(0.44, 0);
@@ -102,6 +104,7 @@ const faceVariants: Variants = {
 		},
 	}),
 };
+
 const fadeVariants: Variants = {
 	hidden: { opacity: 0 },
 	shown: { opacity: 1, transition: { duration: motionTokens.duration.standard, ease: standard } },
@@ -110,8 +113,10 @@ const fadeVariants: Variants = {
 
 function parts(ms: number) {
 	const total = Math.max(0, Math.floor(ms / 1000));
+
 	return { d: Math.floor(total / 86400), h: Math.floor((total % 86400) / 3600), m: Math.floor((total % 3600) / 60), s: total % 60 };
 }
+
 const pad = (value: number) => String(value).padStart(2, "0");
 
 /**
@@ -154,27 +159,35 @@ function Countdown({ to, label, reduced, onEnd }: { to: Date | string | number; 
 	}, [onEnd]);
 	useEffect(() => {
 		let timer = 0;
+
 		const tick = () => {
 			const current = Date.now();
 			setNow(current);
+
 			if (current >= target) {
 				if (!ended.current) {
 					ended.current = true;
 					endRef.current?.();
 				}
+
 				return;
 			}
+
 			// Wake just after each whole second so digits change on the beat.
 			timer = window.setTimeout(tick, 1000 - (current % 1000) + 8);
 		};
+
 		timer = window.setTimeout(tick, 0);
+
 		return () => window.clearTimeout(timer);
 	}, [target]);
 	const { d, h, m, s } = parts(now === null ? 0 : target - now);
 	const pending = now === null;
 	const spoken = pending ? "" : `${d ? `${d} days ` : ""}${h} hours ${m} minutes`;
+
 	const digits = (value: string, key: string) =>
 		value.split("").map((char, index) => <Digit key={`${key}${value.length - index}`} char={pending ? "0" : char} reduced={reduced} />);
+
 	return (
 		<span className={styles.countdown}>
 			{label ? <span className={styles.countdownLabel}>{label}</span> : null}
@@ -227,15 +240,19 @@ function Face({
 	const present = useIsPresent();
 	useLayoutEffect(() => {
 		const node = ref.current;
+
 		if (!node || !present) return;
 		const report = () => onSize(node.offsetHeight);
 		report();
+
 		if (typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(report);
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, [onSize, present]);
 	const { action, countdown } = announcement;
+
 	const cta = action ? (
 		action.href ? (
 			<a
@@ -263,6 +280,7 @@ function Face({
 			</button>
 		)
 	) : null;
+
 	return (
 		<motion.div
 			ref={ref}
@@ -322,11 +340,13 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 	useLayoutEffect(() => {
 		if (!id || openProp !== undefined) return;
 		let stored = false;
+
 		try {
 			stored = window.localStorage.getItem(storageKey(id)) === "dismissed";
 		} catch {
 			/* Storage can be blocked. */
 		}
+
 		// Storage is only readable on the client; hide before paint so a dismissed bar never flashes.
 		// eslint-disable-next-line react-hooks/set-state-in-effect
 		if (stored) setRemembered(true);
@@ -341,6 +361,7 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 				/* Storage can be blocked. */
 			}
 		}
+
 		if (openProp === undefined) setOpenInternal(false);
 		onOpenChange?.(false);
 	};
@@ -349,11 +370,13 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 	const [indexInternal, setIndexInternal] = useState(defaultIndex);
 	const current = total ? (((indexProp ?? indexInternal) % total) + total) % total : 0;
 	const [direction, setDirection] = useState(1);
+
 	const go = useCallback(
 		(step: number) => {
 			if (total < 2) return;
 			const next = (((current + step) % total) + total) % total;
 			setDirection(step > 0 ? 1 : -1);
+
 			if (indexProp === undefined) setIndexInternal(next);
 			onIndexChange?.(next);
 		},
@@ -367,6 +390,7 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 	useEffect(() => {
 		const read = () => setHidden(document.visibilityState === "hidden");
 		document.addEventListener("visibilitychange", read);
+
 		return () => document.removeEventListener("visibilitychange", read);
 	}, []);
 	const rotating = autoPlay && !reduced && total > 1;
@@ -384,6 +408,7 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 	}, [current, progress]);
 	useEffect(() => {
 		if (!running) return;
+
 		let controls: AnimationPlaybackControls | null = animate(progress, 1, {
 			duration: (interval / 1000) * (1 - progress.get()),
 			ease: "linear",
@@ -392,17 +417,20 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 				goRef.current(1);
 			},
 		});
+
 		return () => controls?.stop();
 	}, [running, current, interval, progress]);
 
 	/* The viewport springs to the height of the current message, which can wrap on narrow screens. */
 	const height = useMotionValue<number | "auto">("auto");
 	const measured = useRef(0);
+
 	const onSize = useCallback(
 		(next: number) => {
 			if (Math.abs(next - measured.current) < 0.5) return;
 			const first = measured.current === 0;
 			measured.current = next;
+
 			if (first || reduced) height.jump(next);
 			else animate(height, next, HEIGHT);
 		},
@@ -410,6 +438,7 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 	);
 
 	const announcement = messages[current];
+
 	if (!announcement) return null;
 	const navigable = controls && total > 1;
 	const controlCount = (navigable ? 2 + (rotating ? 1 : 0) : 0) + (dismissible ? 1 : 0);
@@ -448,7 +477,7 @@ export const AnnouncementBar = forwardRef<HTMLElement, AnnouncementBarProps>(fun
 						if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
 					}}
 				>
-					<div className={styles.bar} data-tone={tone} style={{ "--controls": controlCount } as CSSProperties}>
+					<div className={styles.bar} data-tone={tone} style={{ "--controls": controlCount } as React.CSSProperties}>
 						<div className={styles.side} aria-hidden="true" />
 						<motion.div
 							className={styles.viewport}

@@ -1,33 +1,30 @@
-"use client";
-
 import { Search, X } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
 import type { MotionValue } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode, RefObject } from "react";
 import { flushSync } from "react-dom";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./expanding-search.module.css";
 
-export interface ExpandingSearchItem {
+export type ExpandingSearchItem = {
 	id: string;
 	title: string;
 	/** One short line under the title, such as the type, owner, or last edit. */
 	meta?: string;
 	/** Results gather under this heading, in the order groups first appear in `items`. */
 	group?: string;
-	icon?: ReactNode;
+	icon?: React.ReactNode;
 	/** Extra words that should also find this item. */
 	keywords?: string[];
-}
+};
 
 /**
  * A search that waits as an icon button until it is needed. Use it in headers and toolbars where a full field would crowd the layout.
  * The button morphs into the field, results unfold beneath it, and Escape, choosing a result, or leaving the field empty folds it back into the icon.
  * Place it in the space the field may grow into; it fills that space's width and keeps the button on the `anchor` edge.
  */
-export interface ExpandingSearchProps {
+export type ExpandingSearchProps = {
 	/** Names the button, the field, and the results, such as "Search projects and docs". */
 	label: string;
 	items: ExpandingSearchItem[];
@@ -45,9 +42,10 @@ export interface ExpandingSearchProps {
 	/** A short tip under the empty state. */
 	emptyHint?: string;
 	className?: string;
-}
+};
 
 type Group = { name: string; items: ExpandingSearchItem[] };
+
 type Mode = "suggestions" | "results" | "empty";
 
 const enter = [...motionTokens.ease.enter] as [number, number, number, number];
@@ -63,8 +61,10 @@ function rank(items: ExpandingSearchItem[], query: string, limit: number) {
 		const at = title.indexOf(q);
 		const extra = [item.meta ?? "", ...(item.keywords ?? [])].some((word) => word.toLocaleLowerCase().includes(q));
 		const score = at === 0 ? 0 : at > 0 && /[\s\-/]/.test(title[at - 1]!) ? 1 : at > 0 ? 2 : extra ? 3 : -1;
+
 		if (score >= 0) scored.push({ item, score, order });
 	});
+
 	return scored
 		.sort((a, b) => a.score - b.score || a.order - b.order)
 		.slice(0, limit)
@@ -75,6 +75,7 @@ function groupBy(list: ExpandingSearchItem[], source: ExpandingSearchItem[]): Gr
 	const order = new Map<string, number>();
 	source.forEach((item, index) => {
 		const name = item.group ?? "";
+
 		if (!order.has(name)) order.set(name, index);
 	});
 	const groups = new Map<string, ExpandingSearchItem[]>();
@@ -82,12 +83,15 @@ function groupBy(list: ExpandingSearchItem[], source: ExpandingSearchItem[]): Gr
 		const name = item.group ?? "";
 		groups.set(name, [...(groups.get(name) ?? []), item]);
 	});
+
 	return [...groups].sort((a, b) => (order.get(a[0]) ?? 0) - (order.get(b[0]) ?? 0)).map(([name, items]) => ({ name, items }));
 }
 
 function Match({ text, query }: { text: string; query: string }) {
 	const at = query ? text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase()) : -1;
+
 	if (at < 0) return text;
+
 	return (
 		<>
 			{text.slice(0, at)}
@@ -98,22 +102,28 @@ function Match({ text, query }: { text: string; query: string }) {
 }
 
 /** The panel shares the field's width value, so on first open it unfolds out of the field; afterwards only its height follows the content. */
-function Panel({ width, reduced, children }: { width: MotionValue<number>; reduced: boolean; children: ReactNode }) {
+function Panel({ width, reduced, children }: { width: MotionValue<number>; reduced: boolean; children: React.ReactNode }) {
 	const panelRef = useRef<HTMLDivElement>(null);
 	const bodyRef = useRef<HTMLDivElement>(null);
 	const height = useMotionValue(0);
 	useLayoutEffect(() => {
 		const panel = panelRef.current,
 			body = bodyRef.current;
+
 		if (!panel || !body || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(() => {
 			const next = body.offsetHeight + panel.offsetHeight - panel.clientHeight;
+
 			if (reduced) height.jump(next);
 			else animate(height, next, motionTokens.spring.smooth);
 		});
+
 		observer.observe(body);
+
 		return () => observer.disconnect();
 	}, [height, reduced]);
+
 	// Reduced motion skips the unfold: the panel is its content's height from the first frame and only fades.
 	return (
 		<motion.div
@@ -135,14 +145,16 @@ function Panel({ width, reduced, children }: { width: MotionValue<number>; reduc
 function offsetWithin(node: HTMLElement, container: HTMLElement) {
 	let top = 0;
 	let current: HTMLElement | null = node;
+
 	while (current && current !== container) {
 		top += current.offsetTop;
 		current = current.offsetParent as HTMLElement | null;
 	}
+
 	return top;
 }
 
-interface ListboxProps {
+type ListboxProps = {
 	id: string;
 	label: string;
 	groups: Group[];
@@ -150,10 +162,10 @@ interface ListboxProps {
 	activeIndex: number;
 	optionId: (item: ExpandingSearchItem) => string;
 	reduced: boolean;
-	keyboard: RefObject<boolean>;
+	keyboard: React.RefObject<boolean>;
 	onHover: (index: number) => void;
 	onChoose: (item: ExpandingSearchItem) => void;
-}
+};
 
 function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, keyboard, onHover, onChoose }: ListboxProps) {
 	const listRef = useRef<HTMLDivElement>(null);
@@ -169,15 +181,20 @@ function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, key
 	useLayoutEffect(() => {
 		const list = listRef.current;
 		const row = activeId ? document.getElementById(activeId) : null;
+
 		if (!list || !row) {
 			last.current = null;
+
 			return;
 		}
+
 		const top = offsetWithin(row, list);
 		const previous = last.current;
 		last.current = { id: activeId, set: layoutKey, top };
+
 		// Same row: its highlight is already in place, and any travel still in flight stays relative to it.
 		if (previous?.id === activeId) return;
+
 		if (previous && previous.set === layoutKey && !reduced) {
 			const velocity = travel.getVelocity();
 			travel.jump(previous.top + travel.get() - top);
@@ -185,12 +202,14 @@ function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, key
 		} else {
 			// Nothing was highlighted, or new results arrived: it fades in on its row, without travel.
 			travel.jump(0);
+
 			if (reduced) fade.jump(1);
 			else {
 				fade.jump(0);
 				animate(fade, 1, { duration: motionTokens.duration.instant, ease: enter });
 			}
 		}
+
 		if (keyboard.current) row.scrollIntoView({ block: "nearest" });
 	}, [activeId, layoutKey, reduced, travel, fade, keyboard]);
 
@@ -199,6 +218,7 @@ function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, key
 			<AnimatePresence mode="popLayout" initial={false}>
 				{groups.map((group) => {
 					const headingId = `${id}-${group.name || "results"}`.replace(/\s+/g, "-");
+
 					return (
 						<motion.div
 							key={group.name}
@@ -221,6 +241,7 @@ function Listbox({ id, label, groups, query, activeIndex, optionId, reduced, key
 								{group.items.map((item) => {
 									const position = flat.indexOf(item);
 									const active = position === activeIndex;
+
 									return (
 										<motion.div
 											key={item.id}
@@ -303,27 +324,34 @@ export function ExpandingSearch({
 		const { collapsed, expanded: full } = size.current;
 		shellRef.current?.style.setProperty("--es-open", String(Math.min(1, Math.max(0, (value - collapsed) / Math.max(1, full - collapsed)))));
 	}, []);
+
 	useMotionValueEvent(width, "change", syncShape);
 
 	// The field grows to its own limit or its container, whichever is smaller. Container resizes are followed at once; they are not the person's action.
 	useLayoutEffect(() => {
 		const root = rootRef.current,
 			shell = shellRef.current;
+
 		if (!root || !shell) return;
+
 		const measure = () => {
 			const collapsed = shell.offsetHeight || FALLBACK_SIZE;
 			const full = Math.max(collapsed, Math.min(expandedWidth, root.clientWidth));
 			size.current = { collapsed, expanded: full };
 			root.style.setProperty("--es-width", `${full}px`);
 			const goal = open.current ? full : collapsed;
+
 			if (width.isAnimating()) animate(width, goal, motionTokens.spring.morph);
 			else width.jump(goal);
 			syncShape(width.get());
 		};
+
 		measure();
+
 		if (typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(measure);
 		observer.observe(root);
+
 		return () => observer.disconnect();
 	}, [expandedWidth, width, syncShape]);
 
@@ -355,6 +383,7 @@ export function ExpandingSearch({
 			setQuery("");
 			setActive(-1);
 		});
+
 		if (returnFocus) buttonRef.current?.focus({ preventScroll: true });
 		morphTo(size.current.collapsed);
 		onExpandedChange?.(false);
@@ -363,16 +392,19 @@ export function ExpandingSearch({
 	const trimmed = query.trim();
 	const results = useMemo(() => (trimmed ? rank(items, trimmed, maxResults) : []), [items, trimmed, maxResults]);
 	const mode: Mode | null = !trimmed ? (suggestions.length ? "suggestions" : null) : results.length ? "results" : "empty";
+
 	const groups = useMemo<Group[]>(
 		() => (mode === "suggestions" ? [{ name: suggestionsLabel, items: suggestions }] : mode === "results" ? groupBy(results, items) : []),
 		[mode, suggestions, suggestionsLabel, results, items],
 	);
+
 	const flat = groups.flatMap((group) => group.items);
 	const activeIndex = Math.min(active, flat.length - 1);
 	const activeItem = flat[activeIndex];
 	const optionId = (item: ExpandingSearchItem) => `${id}-${mode}-${item.id}`;
 	const listboxId = `${id}-${mode}-listbox`;
 	const panelOpen = expanded && focused && mode !== null;
+
 	const announcement = !panelOpen
 		? ""
 		: mode === "empty"
@@ -386,13 +418,16 @@ export function ExpandingSearch({
 		onSelect?.(item);
 	}
 
-	function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+	function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
 		if (event.key === "Escape") {
 			event.preventDefault();
 			collapse(true);
+
 			return;
 		}
+
 		if (!panelOpen || !flat.length) return;
+
 		if (event.key === "ArrowDown" || event.key === "ArrowUp") {
 			event.preventDefault();
 			const step = event.key === "ArrowDown" ? 1 : -1;
@@ -447,6 +482,7 @@ export function ExpandingSearch({
 						// Switching windows keeps the search as it was; the field refocuses on return.
 						if (typeof document !== "undefined" && !document.hasFocus()) return;
 						setFocused(false);
+
 						if (open.current && !inputRef.current?.value.trim()) collapse(false);
 					}}
 					onKeyDown={handleKeyDown}

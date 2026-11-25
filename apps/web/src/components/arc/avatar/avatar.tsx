@@ -1,17 +1,17 @@
-"use client";
-
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useLayoutEffect, useRef, useState, type HTMLAttributes } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { ArcImage } from "../lib/arc-provider";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./avatar.module.css";
-export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
+
+export type AvatarProps = React.HTMLAttributes<HTMLSpanElement> & {
 	name: string;
 	src?: string;
 	size?: "sm" | "md" | "lg" | "xl";
 	status?: "online" | "offline";
-}
+};
+
 export function Avatar({ name, src, size = "md", status, className, ...props }: AvatarProps) {
 	const initials = name
 		.trim()
@@ -19,15 +19,18 @@ export function Avatar({ name, src, size = "md", status, className, ...props }: 
 		.slice(0, 2)
 		.map((part) => part[0]?.toUpperCase())
 		.join("");
+
 	const reduceMotion = !!useReducedMotion();
 	const image = useRef<HTMLImageElement>(null);
 	const [failedSrc, setFailedSrc] = useState<string>();
 	// A photo that is already decoded shows at once. One that is still loading waits, then fades in from a soft blur.
 	useLayoutEffect(() => {
 		const node = image.current;
+
 		if (node && !node.complete) node.dataset.loading = "";
 	}, [src]);
 	const showImage = src && failedSrc !== src;
+
 	return (
 		<span
 			{...props}

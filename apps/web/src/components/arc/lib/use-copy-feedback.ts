@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CopyFeedbackState = "idle" | "copied" | "error";
@@ -13,11 +11,13 @@ export async function writeClipboard(text: string): Promise<void> {
 	try {
 		if (navigator.clipboard?.writeText) {
 			await navigator.clipboard.writeText(text);
+
 			return;
 		}
 	} catch {
 		// Fall through to the legacy path below.
 	}
+
 	const active = document.activeElement as HTMLElement | null;
 	const selection = document.getSelection();
 	const ranges = selection ? Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index)) : [];
@@ -29,17 +29,22 @@ export async function writeClipboard(text: string): Promise<void> {
 	area.select();
 	area.setSelectionRange(0, text.length);
 	let ok = false;
+
 	try {
 		ok = document.execCommand("copy");
 	} catch {
 		ok = false;
 	}
+
 	area.remove();
+
 	if (selection) {
 		selection.removeAllRanges();
 		ranges.forEach((range) => selection.addRange(range));
 	}
+
 	active?.focus?.({ preventScroll: true });
+
 	if (!ok) throw new Error("Copy failed");
 }
 
@@ -67,14 +72,17 @@ export function useCopyFeedback(duration = 1900) {
 		async (value: string, key = "default") => {
 			if (timeout.current) clearTimeout(timeout.current);
 			setActiveKey(key);
+
 			try {
 				await writeClipboard(value);
 				setState("copied");
 				timeout.current = setTimeout(reset, duration);
+
 				return true;
 			} catch {
 				setState("error");
 				timeout.current = setTimeout(reset, duration);
+
 				return false;
 			}
 		},

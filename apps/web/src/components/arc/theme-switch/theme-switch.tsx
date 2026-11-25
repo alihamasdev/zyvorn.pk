@@ -1,5 +1,3 @@
-"use client";
-
 import { Moon, Sun } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -9,15 +7,16 @@ import { motionTokens } from "../lib/motion-tokens";
 import styles from "./theme-switch.module.css";
 
 export type ThemeSwitchVariant = "reveal" | "eclipse" | "split" | "rise";
+
 export type Theme = "light" | "dark";
 
-export interface ThemeSwitchProps {
+export type ThemeSwitchProps = {
 	theme: Theme;
 	variant?: ThemeSwitchVariant;
 	onThemeChange: (next: Theme, variant: ThemeSwitchVariant, trigger: HTMLElement) => void;
 	label?: string;
 	iconOnly?: boolean;
-}
+};
 
 /** Rotation and scale ride the spring; opacity and blur tween so the blur never overshoots below zero. */
 const iconSpring = {
@@ -25,6 +24,7 @@ const iconSpring = {
 	opacity: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.enter] },
 	filter: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.enter] },
 } as const;
+
 const iconExit = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] } as const;
 const blur = `blur(${motionTokens.blur.subtle}px)`;
 
@@ -34,14 +34,17 @@ function useSettled() {
 	const [settled, setSettled] = useState(false);
 	useEffect(() => {
 		let second = 0;
+
 		const first = requestAnimationFrame(() => {
 			second = requestAnimationFrame(() => setSettled(true));
 		});
+
 		return () => {
 			cancelAnimationFrame(first);
 			cancelAnimationFrame(second);
 		};
 	}, []);
+
 	return settled;
 }
 
@@ -49,6 +52,7 @@ function useSettled() {
 function ThemeIcon({ theme, reduced, settled }: { theme: Theme; reduced: boolean; settled: boolean }) {
 	const Icon = theme === "light" ? Sun : Moon;
 	const angle = theme === "light" ? 30 : -30;
+
 	return (
 		<AnimatePresence initial={false} mode="popLayout">
 			<motion.span

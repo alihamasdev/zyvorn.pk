@@ -1,21 +1,19 @@
-"use client";
-
 import { ArrowUp } from "lucide-react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, type Transition, type Variants } from "motion/react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode, RefObject } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./sortable-data-table.module.css";
 
 export type SortDirection = "asc" | "desc";
+
 export type SortState = { key: string; direction: SortDirection };
 
 export type DataColumn<T> = {
 	key: string;
 	label: string;
 	sortable?: boolean;
-	render?: (value: unknown, row: T) => ReactNode;
+	render?: (value: unknown, row: T) => React.ReactNode;
 	/** Right-aligns the column with tabular numerals. Detected when every value is a number. */
 	numeric?: boolean;
 	/** Fixed width such as 120 or "20%". Other columns are measured once and held, so sorting never reflows them. */
@@ -47,18 +45,21 @@ const blur = (px: number) => `blur(${px}px)`;
 const enter: Transition = { duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] };
 const leave: Transition = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };
 const instant: Transition = { duration: motionTokens.duration.instant };
+
 /** Changing text rises in from the side it is moving toward and lifts away on the other. */
 const rise: Variants = {
 	enter: (direction: number) => ({ opacity: 0, y: `${0.3 * direction}em`, filter: blur(motionTokens.blur.soft) }),
 	shown: { opacity: 1, y: "0em", filter: blur(0), transition: enter },
 	gone: (direction: number) => ({ opacity: 0, y: `${-0.3 * direction}em`, filter: blur(motionTokens.blur.subtle), transition: leave }),
 };
+
 /** Reduced motion keeps the same properties as rise (no travel, no blur) so the server and a reduced-motion client render identical styles. */
 const fade: Variants = {
 	enter: { opacity: 0, y: "0em", filter: blur(0) },
 	shown: { opacity: 1, y: "0em", filter: blur(0), transition: instant },
 	gone: { opacity: 0, y: "0em", filter: blur(0), transition: instant },
 };
+
 /** Check and dash share three points, so the header box morphs between all and some. */
 const checkPath = "M4.25 9.25 L7.25 12.25 L13.75 5.75";
 const dashPath = "M4.75 9 L9 9 L13.25 9";
@@ -69,19 +70,25 @@ function Swap({ value, direction, reduced, className }: { value: string; directi
 	const width = useMotionValue<number | string>("auto");
 	useLayoutEffect(() => {
 		const node = inner.current;
+
 		if (!node) return;
 		let settled = false;
+
 		const measure = () => {
 			const next = node.getBoundingClientRect().width;
+
 			if (settled && !reduced) animate(width, next, motionTokens.spring.morph);
 			else width.jump(next);
 			settled = true;
 		};
+
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, [reduced, width]);
+
 	return (
 		<motion.span className={[styles.swap, className].filter(Boolean).join(" ")} style={{ width }}>
 			<span ref={inner} className={styles.swapInner}>
@@ -109,19 +116,23 @@ function SortGlyph({ active, descending, reduced }: { active: boolean; descendin
 	const seen = useRef({ active, hiddenAt: -Infinity });
 	useLayoutEffect(() => {
 		const state = seen.current;
+
 		if (active) {
 			// Turn only while the arrow is visible; a freshly shown arrow starts pointing the right way.
 			const visible = state.active || performance.now() - state.hiddenAt < 160;
+
 			if (visible && !reduced) animate(rotate, descending ? 180 : 0, motionTokens.spring.snappy);
 			else rotate.jump(descending ? 180 : 0);
 		} else if (state.active) state.hiddenAt = performance.now();
 		state.active = active;
 	}, [active, descending, reduced, rotate]);
+
 	const transition: Transition = reduced
 		? instant
 		: active
 			? { opacity: enter, filter: enter, scale: motionTokens.spring.snappy }
 			: { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] };
+
 	return (
 		<span className={styles.sortIcon} aria-hidden="true">
 			<ArrowUp className={styles.sortHint} size={16} strokeWidth={1.75} />
@@ -153,7 +164,7 @@ function SelectBox({
 	nav: "head" | "row";
 	reduced: boolean;
 	onToggle: (extend: boolean) => void;
-	inputRef?: RefObject<HTMLInputElement | null>;
+	inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
 	const local = useRef<HTMLInputElement>(null);
 	const ref = inputRef ?? local;
@@ -161,10 +172,12 @@ function SelectBox({
 	useLayoutEffect(() => {
 		if (ref.current) ref.current.indeterminate = mixed;
 	}, [mixed, ref]);
+
 	const opacity: Transition = {
 		duration: on ? motionTokens.duration.instant : motionTokens.duration.fast,
 		ease: [...motionTokens.ease.standard],
 	};
+
 	return (
 		<label className={styles.selectHit}>
 			<input
@@ -224,14 +237,17 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 
 	const sortedRows = useMemo(() => {
 		if (!sort) return rows;
+
 		return rows
 			.map((row, index) => ({ row, index }))
 			.sort((a, b) => {
 				const left = comparable(a.row[sort.key]);
 				const right = comparable(b.row[sort.key]);
+
 				// Empty values stay at the bottom in both directions.
 				if (isEmpty(left) || isEmpty(right)) return isEmpty(left) === isEmpty(right) ? a.index - b.index : isEmpty(left) ? 1 : -1;
 				const result = typeof left === "number" && typeof right === "number" ? left - right : collator.compare(String(left), String(right));
+
 				return (sort.direction === "asc" ? result : -result) || a.index - b.index;
 			})
 			.map((entry) => entry.row);
@@ -251,6 +267,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 			),
 		[columns, rows],
 	);
+
 	const getRowKey = (row: T) => String(typeof rowKey === "function" ? rowKey(row) : row[rowKey]);
 	const keys = sortedRows.map(getRowKey);
 	const order = keys.join("\u0000");
@@ -263,22 +280,30 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 	const widths = locked?.signature === signature ? locked.widths : null;
 	useLayoutEffect(() => {
 		const table = tableRef.current;
+
 		if (!table || widths) return;
+
 		const measure = () => {
 			const total = table.getBoundingClientRect().width;
+
 			if (!total || getComputedStyle(table).display !== "table") return false;
 			const next: Record<string, number> = {};
 			table.querySelectorAll<HTMLElement>("thead th[data-key]").forEach((cell) => {
 				next[cell.dataset.key ?? ""] = (cell.getBoundingClientRect().width / total) * 100;
 			});
 			setLocked({ signature, widths: next });
+
 			return true;
 		};
+
 		if (measure()) return;
+
 		const observer = new ResizeObserver(() => {
 			if (measure()) observer.disconnect();
 		});
+
 		observer.observe(table);
+
 		return () => observer.disconnect();
 	}, [signature, widths]);
 
@@ -288,6 +313,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 	useLayoutEffect(() => {
 		const table = tableRef.current;
 		const key = sort?.key;
+
 		const update = () => {
 			const cell = key ? table?.querySelector<HTMLElement>(`thead th[data-key="${CSS.escape(key)}"]`) : null;
 			setBand((current) =>
@@ -298,23 +324,31 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 						: { left: cell.offsetLeft, width: cell.offsetWidth },
 			);
 		};
+
 		update();
+
 		if (!table || !key) return;
 		// On a phone the header is a scrolling strip of sort controls; keep the active one in view.
 		const cell = table.querySelector<HTMLElement>(`thead th[data-key="${CSS.escape(key)}"]`);
 		const strip = cell?.parentElement;
+
 		if (cell && strip && strip.scrollWidth > strip.clientWidth && getComputedStyle(table).display !== "table") {
 			const bounds = strip.getBoundingClientRect(),
 				target = cell.getBoundingClientRect(),
 				inset = 8;
+
 			const start = Math.max(bounds.left, strip.querySelector("th:not([data-key])")?.getBoundingClientRect().right ?? bounds.left) + inset;
+
 			const shift =
 				target.right > bounds.right - inset ? target.right - bounds.right + inset : target.left < start ? target.left - start : 0;
+
 			if (shift) strip.scrollTo({ left: strip.scrollLeft + shift, behavior: reduced || !seenSort.current ? "auto" : "smooth" });
 		}
+
 		seenSort.current = true;
 		const observer = new ResizeObserver(update);
 		observer.observe(table);
+
 		return () => observer.disconnect();
 	}, [reduced, sort?.key, widths]);
 
@@ -322,6 +356,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 	const noun = selectedCount ? "selected" : keys.length === 1 ? itemName.one : itemName.other;
 	const [lastCount, setLastCount] = useState(shownCount);
 	const [countDirection, setCountDirection] = useState(1);
+
 	if (shownCount !== lastCount) {
 		setLastCount(shownCount);
 		setCountDirection(shownCount > lastCount ? 1 : -1);
@@ -336,6 +371,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 
 	function commit(next: Set<string>) {
 		const list = keys.filter((key) => next.has(key));
+
 		if (selectedKeys === undefined) setInternalSelection(list);
 		onSelectionChange?.(list);
 		setAnnouncement(list.length ? `${list.length} of ${keys.length} selected` : "Selection cleared");
@@ -358,7 +394,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 		selectAllRef.current?.focus();
 	}
 
-	function onRowClick(event: ReactMouseEvent<HTMLTableRowElement>, key: string) {
+	function onRowClick(event: React.MouseEvent<HTMLTableRowElement>, key: string) {
 		if (
 			!selectable ||
 			(event.target as HTMLElement).closest("a, button, input, label, select, textarea, [role='button'], [contenteditable='true']") ||
@@ -371,20 +407,26 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 	}
 
 	/** Arrows walk the header controls and the row checkboxes; Escape clears the selection. */
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+	function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
 		const target = event.target as HTMLElement;
+
 		if (event.key === "Escape" && selectedCount) {
 			event.preventDefault();
 			event.stopPropagation();
+
 			if (target.dataset.clear !== undefined) clearSelection();
 			else commit(new Set());
+
 			return;
 		}
+
 		const nav = target.dataset.nav;
+
 		if (!nav) return;
 		const list = (name: string) => [...event.currentTarget.querySelectorAll<HTMLElement>(`[data-nav="${name}"]`)];
 		const items = list(nav);
 		const index = items.indexOf(target);
+
 		const steps: Record<string, [HTMLElement[], number]> =
 			nav === "head"
 				? {
@@ -400,8 +442,10 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 						Home: [items, 0],
 						End: [items, items.length - 1],
 					};
+
 		const step = steps[event.key];
 		const next = step?.[0][step[1]];
+
 		if (!next) return;
 		event.preventDefault();
 		next.focus();
@@ -455,6 +499,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 							{columns.map((column, index) => {
 								const active = sort?.key === column.key;
 								const sortable = column.sortable !== false;
+
 								return (
 									<th
 										key={column.key}
@@ -493,6 +538,7 @@ export function SortableDataTable<T extends Record<string, unknown>>({
 							sortedRows.map((row, index) => {
 								const key = keys[index]!;
 								const selected = selectable && selection.has(key);
+
 								return (
 									<motion.tr
 										key={key}

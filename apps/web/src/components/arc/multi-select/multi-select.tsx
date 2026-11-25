@@ -1,20 +1,18 @@
-"use client";
-
 import { ChevronDown, X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Variants } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./multi-select.module.css";
 
-export interface MultiSelectOption {
+export type MultiSelectOption = {
 	value: string;
 	label: string;
 	disabled?: boolean;
-}
+};
 
-export interface MultiSelectProps {
+export type MultiSelectProps = {
 	label: string;
 	options: MultiSelectOption[];
 	value?: string[];
@@ -25,10 +23,11 @@ export interface MultiSelectProps {
 	maxVisible?: number;
 	disabled?: boolean;
 	className?: string;
-}
+};
 
 const enter = motionTokens.ease.enter;
 const standard = motionTokens.ease.standard;
+
 /** Each chip sits in a slot whose width opens and collapses on a spring, so neighbours travel with it and nothing overlaps. */
 const slot: Variants = {
 	hidden: { width: 0, opacity: 0 },
@@ -43,6 +42,7 @@ const slot: Variants = {
 		transition: { width: motionTokens.spring.smooth, opacity: { duration: motionTokens.duration.instant, ease: standard } },
 	},
 };
+
 /** The chip itself grows in from .9 with a soft blur and shrinks back as it leaves. */
 const chip: Variants = {
 	hidden: { scale: 0.9, filter: `blur(${motionTokens.blur.soft}px)` },
@@ -57,22 +57,26 @@ const chip: Variants = {
 		transition: { duration: motionTokens.duration.instant, ease: standard },
 	},
 };
+
 /** Reduced motion keeps short crossfades; resting states match the moving variants so server and client markup agree. */
 const fade: Variants = {
 	hidden: { opacity: 0 },
 	shown: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: motionTokens.duration.instant } },
 	gone: { opacity: 0, transition: { duration: motionTokens.duration.instant } },
 };
+
 const slotFade: Variants = {
 	hidden: { opacity: 0 },
 	shown: { width: "auto", opacity: 1, transition: { duration: motionTokens.duration.instant } },
 	gone: { opacity: 0, transition: { duration: motionTokens.duration.instant } },
 };
+
 const chipStill: Variants = {
 	hidden: { scale: 1, filter: "blur(0px)" },
 	shown: { scale: 1, filter: "blur(0px)" },
 	gone: { scale: 1, filter: "blur(0px)" },
 };
+
 /** The overflow count rolls: a larger number rises from below, a smaller one drops from above. */
 const roll: Variants = {
 	hidden: (direction: number) => ({ opacity: 0, y: `${direction * 0.5}em`, filter: `blur(${motionTokens.blur.subtle}px)` }),
@@ -144,12 +148,16 @@ export function MultiSelect({
 	const remaining = Math.max(0, selected.length - visible.length);
 	// A closed menu forgets its highlight, so the next open starts clean instead of on a stale hovered row.
 	const [wasOpen, setWasOpen] = useState(open);
+
 	if (wasOpen !== open) {
 		setWasOpen(open);
+
 		if (!open) setActiveIndex(-1);
 	}
+
 	const [previousRemaining, setPreviousRemaining] = useState(remaining);
 	const [countDirection, setCountDirection] = useState(1);
+
 	if (previousRemaining !== remaining) {
 		setPreviousRemaining(remaining);
 		setCountDirection(remaining > previousRemaining ? 1 : -1);
@@ -159,7 +167,9 @@ export function MultiSelect({
 		const close = (event: PointerEvent) => {
 			if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
 		};
+
 		document.addEventListener("pointerdown", close);
+
 		return () => document.removeEventListener("pointerdown", close);
 	}, []);
 
@@ -167,35 +177,47 @@ export function MultiSelect({
 		if (value === undefined) setInternal(next);
 		onValueChange?.(next);
 	};
+
 	const toggle = (option: MultiSelectOption) => {
 		if (disabled || option.disabled) return;
 		update(selectedSet.has(option.value) ? selected.filter((item) => item !== option.value) : [...selected, option.value]);
 	};
+
 	const clear = () => {
 		update([]);
 		setOpen(false);
 	};
+
 	const enabled = options.map((option, index) => (option.disabled ? -1 : index)).filter((index) => index >= 0);
+
 	const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled) return;
+
 		if (event.key === "Enter" && open && activeIndex >= 0) {
 			event.preventDefault();
 			toggle(options[activeIndex]!);
+
 			return;
 		}
+
 		if (event.key === "Enter" || event.key === " ") {
 			event.preventDefault();
 			setOpen((current) => !current);
+
 			return;
 		}
+
 		if (event.key === "Escape") {
 			setOpen(false);
+
 			return;
 		}
+
 		if ((event.key === "ArrowDown" || event.key === "ArrowUp") && enabled.length) {
 			event.preventDefault();
 			setOpen(true);
 			const current = enabled.indexOf(activeIndex);
+
 			const next =
 				current < 0
 					? event.key === "ArrowDown"
@@ -204,9 +226,11 @@ export function MultiSelect({
 					: event.key === "ArrowDown"
 						? (current + 1) % enabled.length
 						: (current - 1 + enabled.length) % enabled.length;
+
 			setActiveIndex(enabled[next]!);
 		}
 	};
+
 	const reduce = useReducedMotion();
 
 	return (

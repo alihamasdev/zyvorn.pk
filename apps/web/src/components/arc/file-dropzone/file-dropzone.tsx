@@ -1,6 +1,5 @@
-"use client";
-
 import { ArrowUp, CircleAlert, File as FileIcon, FileArchive, FileImage, FilePlay, FileText, RotateCw, X } from "lucide-react";
+import type { HTMLMotionProps, TargetAndTransition, Transition } from "motion/react";
 import {
 	AnimatePresence,
 	animate,
@@ -13,14 +12,13 @@ import {
 	useSpring,
 	useTransform,
 } from "motion/react";
-import type { HTMLMotionProps, TargetAndTransition, Transition } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import type { DragEvent, KeyboardEvent } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./file-dropzone.module.css";
 
 export type FileDropzoneStatus = "uploading" | "uploaded" | "failed";
+
 /** One row in the file list. A row without a status is a plain selection. */
 /** `preview` is a thumbnail URL; image files added by the visitor get one automatically. */
 export type FileDropzoneItem = {
@@ -34,6 +32,7 @@ export type FileDropzoneItem = {
 	file?: File;
 	preview?: string;
 };
+
 /** Report 0 to 100 through onProgress, resolve when the file lands, or reject with an Error whose message becomes the row's reason. Removing the row aborts the signal. */
 export type FileDropzoneUpload = (
 	item: FileDropzoneItem,
@@ -69,38 +68,49 @@ const enter: Transition = { duration: motionTokens.duration.standard, ease: [...
 const exitFast: Transition = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };
 const instant: Transition = { duration: 0 };
 const fade: Transition = { duration: motionTokens.duration.instant };
+
 /** Exits are shorter than entries: the same critically damped spring, settled sooner. */
 const collapse: Transition = { ...motionTokens.spring.smooth, visualDuration: 0.3 };
 const textIn: TargetAndTransition = { opacity: 0, y: "0.3em", filter: `blur(${motionTokens.blur.soft}px)` };
 const textOut: TargetAndTransition = { opacity: 0, y: "-0.3em", filter: `blur(${motionTokens.blur.subtle}px)`, transition: exitFast };
 const shown: TargetAndTransition = { opacity: 1, y: "0em", filter: "blur(0px)" };
 const clamp = (value: number) => Math.min(Math.max(value, 0), 100);
+
 /** A short, decaying side-to-side shake: the refusal reads as "no" without moving anything else. */
 const SHAKE = { x: [0, -7, 6, -4, 3, -1.5, 0] };
 const shakeTransition: Transition = { duration: 0.42, ease: "easeOut" };
+
 /** New rows drop out of the target into the list, with a touch of life as they land. */
 const land: Transition = { type: "spring", visualDuration: 0.42, bounce: 0 };
 
 export function formatFileSize(bytes: number) {
 	if (bytes < 1024) return `${bytes} B`;
+
 	if (bytes < MB) return `${Math.round(bytes / 1024)} KB`;
 	const mb = bytes / MB;
+
 	return `${mb >= 10 ? Math.round(mb) : Number(mb.toFixed(1))} MB`;
 }
 
 function TypeIcon({ name }: { name: string }) {
 	const props = { size: 20, strokeWidth: 1.75, "aria-hidden": true } as const;
 	const extension = name.toLowerCase().split(".").pop() ?? "";
+
 	if (["png", "jpg", "jpeg", "gif", "webp", "svg", "avif", "heic"].includes(extension)) return <FileImage {...props} />;
+
 	if (["mov", "mp4", "webm", "m4v", "avi"].includes(extension)) return <FilePlay {...props} />;
+
 	if (["zip", "gz", "tar", "rar", "7z"].includes(extension)) return <FileArchive {...props} />;
+
 	if (["pdf", "md", "txt", "doc", "docx", "rtf"].includes(extension)) return <FileText {...props} />;
+
 	return <FileIcon {...props} />;
 }
 
 /** Outgoing copies are hidden from assistive tech while they leave, so only the current text is read. */
 function Swap(props: HTMLMotionProps<"span">) {
 	const present = useIsPresent();
+
 	return <motion.span {...props} aria-hidden={present ? props["aria-hidden"] : true} />;
 }
 
@@ -126,6 +136,7 @@ function TextSwap({ text, className, reduce }: { text: string; className?: strin
 function MotionText({ text }: { text: string }) {
 	const reduced = useReducedMotion();
 	const words = text.split(" ");
+
 	return (
 		<>
 			<span className={styles.srOnly}>{text}</span>
@@ -164,13 +175,18 @@ function ErrorRow({ text }: { text: string }) {
 	const [height, setHeight] = useState<number | "auto">("auto");
 	useEffect(() => {
 		const node = copyRef.current;
+
 		if (!node || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (entry) setHeight(entry.borderBoxSize?.[0]?.blockSize ?? node.offsetHeight);
 		});
+
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, []);
+
 	return (
 		<motion.div
 			className={styles.messageSlot}
@@ -246,12 +262,14 @@ type RowProps = {
 
 function Thumb({ item }: { item: FileDropzoneItem }) {
 	const [broken, setBroken] = useState(false);
+
 	if (!item.preview || broken)
 		return (
 			<span className={styles.fileIcon}>
 				<TypeIcon name={item.name} />
 			</span>
 		);
+
 	// eslint-disable-next-line @next/next/no-img-element -- registry components stay framework agnostic, and previews are often object URLs
 	return (
 		<span className={styles.thumb}>
@@ -267,9 +285,11 @@ function FileRow({ item, reduce, delay, fresh, canRetry, onRemove, onRetry, remo
 	const shakenFor = useRef<FileDropzoneStatus | "new" | undefined>(fresh ? "new" : status);
 	useEffect(() => {
 		const previous = shakenFor.current;
+
 		if (status === previous) return;
 		shakenFor.current = status;
 		const node = rowRef.current;
+
 		if (status !== "failed" || reduce || !node) return;
 		animate(node, SHAKE, { ...shakeTransition, delay: previous === "new" ? delay + 0.3 : 0 });
 	}, [status, reduce, delay]);
@@ -280,23 +300,30 @@ function FileRow({ item, reduce, delay, fresh, canRetry, onRemove, onRetry, remo
 	// A finished upload keeps its bar until the spring reaches the end, so 100% is seen before the label turns to Uploaded.
 	const [filled, setFilled] = useState(status !== "uploading");
 	const [seen, setSeen] = useState(status);
+
 	if (seen !== status) {
 		setSeen(status);
+
 		if (status === "uploading") setFilled(false);
 	}
+
 	const phase = status === "uploaded" && !filled && !reduce ? "uploading" : status;
 	const target = status === "uploaded" ? 100 : (item.progress ?? 0);
 	useEffect(() => {
 		if (status !== "uploading" && status !== "uploaded") return;
+
 		// Every upload starts from an empty bar, even a retry that failed halfway.
 		if (reduce || (status === "uploading" && target === 0)) {
 			progress.jump(target);
+
 			return;
 		}
+
 		const controls = animate(progress, target, {
 			...motionTokens.spring.smooth,
 			onComplete: status === "uploaded" ? () => setFilled(true) : undefined,
 		});
+
 		return () => controls.stop();
 	}, [status, target, progress, reduce]);
 	// The label turns as soon as the count reads 100%, without waiting out the spring's last fraction of a pixel.
@@ -305,6 +332,7 @@ function FileRow({ item, reduce, delay, fresh, canRetry, onRemove, onRetry, remo
 	});
 	const failed = status === "failed";
 	const retry = failed && canRetry && item.retryable !== false;
+
 	return (
 		<motion.li
 			className={styles.item}
@@ -493,6 +521,7 @@ export function FileDropzone({
 	useEffect(() => {
 		const active = controllers.current;
 		const previews = ownedPreviews.current;
+
 		return () => {
 			active.forEach((controller) => controller.abort());
 			previews.forEach((url) => URL.revokeObjectURL(url));
@@ -502,17 +531,24 @@ export function FileDropzone({
 	/* The drag glow: a soft light on the edge and a faint wash that follow the pointer on a spring, so the outline leans toward the file. */
 	const pointerX = useMotionValue(50),
 		pointerY = useMotionValue(50);
+
 	const glowSpring = { stiffness: 260, damping: 32, mass: 0.8 };
+
 	const glowX = useSpring(pointerX, glowSpring),
 		glowY = useSpring(pointerY, glowSpring);
+
 	const edgeLight = useMotionTemplate`radial-gradient(180px circle at ${glowX}% ${glowY}%, var(--accent), transparent 70%)`;
 	const washLight = useMotionTemplate`radial-gradient(260px circle at ${glowX}% ${glowY}%, color-mix(in oklab, var(--accent) 6%, transparent), transparent 70%)`;
-	const track = (event: DragEvent) => {
+
+	const track = (event: React.DragEvent) => {
 		const zone = zoneRef.current;
+
 		if (!zone) return;
 		const box = zone.getBoundingClientRect();
+
 		const x = ((event.clientX - box.left) / Math.max(1, box.width)) * 100,
 			y = ((event.clientY - box.top) / Math.max(1, box.height)) * 100;
+
 		if (reduce || !dragging) {
 			pointerX.jump(x);
 			pointerY.jump(y);
@@ -533,39 +569,48 @@ export function FileDropzone({
 	useLayoutEffect(() => {
 		const zone = zoneRef.current,
 			edge = edgeRef.current;
+
 		if (!zone || !edge) return;
+
 		const fit = () => {
 			const width = zone.offsetWidth - 1,
 				height = zone.offsetHeight - 1;
+
 			const radius = Math.max(0, Math.min(parseFloat(getComputedStyle(zone).borderTopLeftRadius) - 0.5, width / 2, height / 2));
 			const perimeter = 2 * (width + height) - 8 * radius + 2 * Math.PI * radius;
 			edge.setAttribute("rx", String(radius));
 			edge.setAttribute("pathLength", String(Math.max(8, Math.round(perimeter / PERIOD)) * PERIOD));
 		};
+
 		fit();
 		// A folding prompt also eases its corner radius, so the edge follows every frame of that transition.
 		let frame = 0;
+
 		const follow = () => {
 			fit();
 			frame = requestAnimationFrame(follow);
 		};
+
 		const onRun = (event: TransitionEvent) => {
 			if (event.target === zone && event.propertyName.includes("radius")) {
 				cancelAnimationFrame(frame);
 				follow();
 			}
 		};
+
 		const onEnd = (event: TransitionEvent) => {
 			if (event.target === zone && event.propertyName.includes("radius")) {
 				cancelAnimationFrame(frame);
 				fit();
 			}
 		};
+
 		zone.addEventListener("transitionrun", onRun);
 		zone.addEventListener("transitionend", onEnd);
 		zone.addEventListener("transitioncancel", onEnd);
 		const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(fit);
 		observer?.observe(zone);
+
 		return () => {
 			observer?.disconnect();
 			cancelAnimationFrame(frame);
@@ -576,6 +621,7 @@ export function FileDropzone({
 	}, []);
 
 	const filesOf = (list: FileDropzoneItem[]) => list.flatMap((item) => (item.file ? [item.file] : []));
+
 	const patch = (id: string, next: (item: FileDropzoneItem) => FileDropzoneItem) =>
 		setItems((current) => current.map((item) => (item.id === id ? next(item) : item)));
 
@@ -617,11 +663,13 @@ export function FileDropzone({
 
 	function addFiles(incoming: FileList | File[]) {
 		const list = Array.from(incoming);
+
 		const accepted =
 			accept
 				?.split(",")
 				.map((value) => value.trim().toLowerCase())
 				.filter(Boolean) ?? [];
+
 		const matching = list.filter(
 			(file) =>
 				accepted.length === 0 ||
@@ -633,18 +681,24 @@ export function FileDropzone({
 							: file.type === type,
 				),
 		);
+
 		const kept = multiple ? items : [];
 		const same = (a: File, b: File) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+
 		const fresh = matching.filter(
 			(file, index) =>
 				matching.findIndex((other) => same(other, file)) === index && !kept.some((item) => item.file && same(item.file, file)),
 		);
+
 		const room = multiple ? Math.max(0, maxFiles - kept.length) : 1;
+
 		const added = fresh.slice(0, room).map((file): FileDropzoneItem => {
 			const tooLarge = maxSize !== undefined && file.size > maxSize;
 			const id = `${file.name}-${file.size}-${file.lastModified}-${nextId.current++}`;
 			const preview = file.type.startsWith("image/") && typeof URL.createObjectURL === "function" ? URL.createObjectURL(file) : undefined;
+
 			if (preview) ownedPreviews.current.set(id, preview);
+
 			return {
 				id,
 				name: file.name,
@@ -657,6 +711,7 @@ export function FileDropzone({
 				retryable: !tooLarge,
 			};
 		});
+
 		const rejected = matching.length !== list.length;
 		const overflow = fresh.length > added.length;
 		setError(
@@ -668,12 +723,16 @@ export function FileDropzone({
 					? `You can add up to ${maxFiles} ${maxFiles === 1 ? "file" : "files"}.`
 					: "",
 		);
+
 		if (rejected || overflow) shakeZone();
+
 		if (!added.length) return;
+
 		if (!multiple) {
 			controllers.current.forEach((controller) => controller.abort());
 			controllers.current.clear();
 		}
+
 		const next = [...kept, ...added];
 		setFreshIds((current) => new Set([...current, ...added.map((item) => item.id)]));
 		setBatchStart(kept.length);
@@ -694,14 +753,17 @@ export function FileDropzone({
 		const neighbor = items[index + 1] ?? items[index - 1];
 		const next = items.filter((item) => item.id !== target.id);
 		const preview = ownedPreviews.current.get(target.id);
+
 		// The row keeps its thumbnail while it closes, then the URL is released.
 		if (preview) {
 			ownedPreviews.current.delete(target.id);
 			window.setTimeout(() => URL.revokeObjectURL(preview), 600);
 		}
+
 		setItems((current) => current.filter((item) => item.id !== target.id));
 		setError("");
 		setAnnouncement(`${target.name} removed`);
+
 		if (target.file) onFilesChange?.(filesOf(next));
 		requestAnimationFrame(() => (neighbor ? removeRefs.current.get(neighbor.id) : dropRef.current)?.focus());
 	}
@@ -714,22 +776,27 @@ export function FileDropzone({
 	}
 
 	// Up and down move between rows, keeping the same action. Delete or Backspace removes the focused row.
-	function moveFocus(event: KeyboardEvent<HTMLUListElement>) {
+	function moveFocus(event: React.KeyboardEvent<HTMLUListElement>) {
 		if (event.key === "Delete" || event.key === "Backspace") {
 			const row = (event.target as HTMLElement).closest<HTMLElement>(`.${styles.row}`);
 			const remove = row?.querySelector<HTMLButtonElement>(`.${styles.remove}`);
+
 			if (remove) {
 				event.preventDefault();
 				remove.click();
 			}
+
 			return;
 		}
+
 		if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 		const button = (event.target as HTMLElement).closest("button");
 		const rows = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(`.${styles.row}`));
 		const row = button?.closest<HTMLElement>(`.${styles.row}`);
+
 		if (!button || !row) return;
 		const nextRow = rows[rows.indexOf(row) + (event.key === "ArrowDown" ? 1 : -1)];
+
 		if (!nextRow) return;
 		event.preventDefault();
 		(
@@ -746,21 +813,27 @@ export function FileDropzone({
 	});
 	useEffect(() => {
 		if (!pasteArmed) return;
+
 		const onPaste = (event: ClipboardEvent) => {
 			const files = event.clipboardData?.files;
+
 			if (!files?.length) return;
 			const target = event.target as HTMLElement | null;
+
 			if (target?.closest("input:not([type=file]), textarea, [contenteditable='true']")) return;
 			event.preventDefault();
 			addRef.current(files);
 		};
+
 		document.addEventListener("paste", onPaste);
+
 		return () => document.removeEventListener("paste", onPaste);
 	}, [pasteArmed]);
 
-	const carriesFiles = (event: DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes("Files");
+	const carriesFiles = (event: React.DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes("Files");
 	const dropCopy = dropLabel ?? (onUpload ? "Drop to upload" : multiple ? "Drop to add files" : "Drop to add the file");
 	const noteCopy = note ?? (accept ? `Accepted: ${accept}` : `Up to ${maxFiles} ${maxFiles === 1 ? "file" : "files"}`);
+
 	// Slots open and fold their own height, so the prompt changes shape on a spring instead of in one frame.
 	const slot = {
 		initial: reduce ? { opacity: 0 } : { height: 0, opacity: 0 },
@@ -768,6 +841,7 @@ export function FileDropzone({
 		exit: reduce ? { opacity: 0, transition: fade } : { height: 0, opacity: 0, transition: { height: collapse, opacity: exitFast } },
 		transition: reduce ? fade : { height: motionTokens.spring.smooth, opacity: enter },
 	};
+
 	const rowsInside = inside && items.length > 0;
 
 	// The list's own padding opens with the first row, so the gap under the target never appears in one frame.
@@ -818,6 +892,7 @@ export function FileDropzone({
 				onDragEnter={(event) => {
 					if (!carriesFiles(event)) return;
 					event.preventDefault();
+
 					if (!dragDepth.current) track(event);
 					dragDepth.current += 1;
 					setDragging(true);
@@ -831,12 +906,14 @@ export function FileDropzone({
 				onDragLeave={(event) => {
 					if (!carriesFiles(event)) return;
 					dragDepth.current = Math.max(0, dragDepth.current - 1);
+
 					if (!dragDepth.current) setDragging(false);
 				}}
 				onDrop={(event) => {
 					event.preventDefault();
 					dragDepth.current = 0;
 					setDragging(false);
+
 					if (event.dataTransfer.files.length) addFiles(event.dataTransfer.files);
 				}}
 			>

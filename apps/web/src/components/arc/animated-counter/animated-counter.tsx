@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	AnimatePresence,
 	animate,
@@ -16,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./animated-counter.module.css";
 
-export interface AnimatedCounterProps {
+export type AnimatedCounterProps = {
 	value: number;
 	label?: string;
 	prefix?: string;
@@ -26,11 +24,12 @@ export interface AnimatedCounterProps {
 	animateOnView?: boolean;
 	/** Formatting locale. Fixed by default so server and client render the same digits. */
 	locale?: string;
-}
+};
 
 type Part = { key: string; digit: number; order: number } | { key: string; text: string };
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
 const rise: Variants = {
 	hidden: { opacity: 0, y: "0.3em", filter: `blur(${motionTokens.blur.soft}px)` },
 	shown: {
@@ -46,11 +45,13 @@ const rise: Variants = {
 		transition: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] },
 	},
 };
+
 const fade: Variants = {
 	hidden: { opacity: 0, y: 0, filter: "blur(0px)" },
 	shown: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: motionTokens.duration.instant } },
 	gone: { opacity: 0, y: 0, filter: "blur(0px)", transition: { duration: motionTokens.duration.instant } },
 };
+
 const reveal = { ...motionTokens.spring.smooth, visualDuration: motionTokens.duration.considered };
 
 /** Split a formatted number into columns keyed by place value, so 999 → 1,000 keeps the ones column the ones column. */
@@ -60,12 +61,16 @@ function partsFor(value: number, decimals: number, locale: string): Part[] {
 		maximumFractionDigits: decimals,
 		numberingSystem: "latn",
 	}).formatToParts(value);
+
 	let place = parts.reduce((count, part) => count + (part.type === "integer" ? part.value.length : 0), 0);
 	let fraction = 0;
 	let order = 0;
+
 	return parts.flatMap((part, index): Part[] => {
 		if (part.type === "integer") return [...part.value].map((char) => ({ key: `i${--place}`, digit: Number(char), order: order++ }));
+
 		if (part.type === "fraction") return [...part.value].map((char) => ({ key: `f${fraction++}`, digit: Number(char), order: order++ }));
+
 		return [{ key: part.type === "group" ? `g${place}` : part.type === "decimal" ? "d" : `${part.type}${index}`, text: part.value }];
 	});
 }
@@ -76,9 +81,11 @@ function Glyph({ position, digit }: { position: MotionValue<number>; digit: numb
 	const y = useTransform(offset, (current) => `${current}em`);
 	const opacity = useTransform(offset, (current) => Math.max(0, 1 - Math.abs(current)));
 	const visibility = useTransform(offset, (current) => (Math.abs(current) >= 1 ? "hidden" : "visible"));
+
 	const filter = useTransform(offset, (current) =>
 		Math.abs(current) < 0.02 || Math.abs(current) >= 1 ? "none" : `blur(${(Math.abs(current) * motionTokens.blur.subtle).toFixed(2)}px)`,
 	);
+
 	return (
 		<motion.span className={styles.glyph} style={{ y, opacity, filter, visibility }}>
 			{digit}
@@ -106,16 +113,21 @@ function Column({
 	const wheel = useRef({ digit: armed ? 0 : digit, target: armed ? 0 : digit, revealed: !armed });
 	useEffect(() => {
 		const state = wheel.current;
+
 		if (armed || state.digit === digit) {
 			if (!armed) state.revealed = true;
+
 			return;
 		}
+
 		state.target += direction < 0 && state.revealed ? -((state.digit - digit + 10) % 10) : (digit - state.digit + 10) % 10;
 		state.digit = digit;
+
 		if (reduceMotion) position.jump(state.target);
 		else animate(position, state.target, state.revealed ? motionTokens.spring.smooth : { ...reveal, delay });
 		state.revealed = true;
 	}, [armed, delay, digit, direction, position, reduceMotion]);
+
 	return (
 		<motion.span className={styles.column} {...presence} transition={reduceMotion ? { duration: 0 } : motionTokens.spring.morph}>
 			<span className={styles.sizer}>0</span>
@@ -140,13 +152,16 @@ export function AnimatedCounter({
 	const reduceMotion = !!useReducedMotion();
 	const [previous, setPrevious] = useState(value);
 	const [direction, setDirection] = useState(1);
+
 	if (value !== previous) {
 		setPrevious(value);
 		setDirection(value > previous ? 1 : -1);
 	}
+
 	const parts = partsFor(value, decimals, locale);
 	const text = `${prefix}${parts.map((part) => ("text" in part ? part.text : part.digit)).join("")}${suffix}`;
 	const armed = animateOnView && !inView;
+
 	return (
 		<span ref={ref} className={styles.counter}>
 			{label && (

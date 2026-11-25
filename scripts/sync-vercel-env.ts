@@ -17,11 +17,13 @@ const forwardedArgs = separatorIndex === -1 ? [] : args.slice(separatorIndex + 1
 
 const environment = scriptArgs[0] && VALID_ENVIRONMENTS.has(scriptArgs[0]) ? scriptArgs[0] : DEFAULT_ENVIRONMENT;
 const remainingArgs = scriptArgs.slice(VALID_ENVIRONMENTS.has(scriptArgs[0] ?? "") ? 1 : 0);
+
 // Split remaining args into env-file paths and passthrough Vercel CLI flags.
 // A bare token counts as a file only when it exists on disk, so flags and their
 // values (e.g. `--scope my-team`) forward correctly regardless of argument order.
 const files: string[] = [];
 const passthroughArgs: string[] = [];
+
 for (const arg of remainingArgs) {
 	if (!arg.startsWith("-") && existsSync(arg)) {
 		files.push(arg);
@@ -29,6 +31,7 @@ for (const arg of remainingArgs) {
 		passthroughArgs.push(arg);
 	}
 }
+
 const vercelArgs = [...passthroughArgs, ...forwardedArgs];
 const envFiles = files.length > 0 ? files : DEFAULT_FILES;
 
@@ -49,15 +52,19 @@ for (const file of envFiles) {
 
 	for (const [key, value] of Object.entries(parseEnv(readFileSync(file, "utf8")))) {
 		if (SKIP_KEYS.has(key)) continue;
+
 		if (declaredKeys && !declaredKeys.has(key)) {
 			undeclaredKeys.push(key);
 			continue;
 		}
+
 		const syncedValue = OVERRIDE_KEYS.get(key) ?? value;
+
 		if (!syncedValue) {
 			emptyKeys.push(key);
 			continue;
 		}
+
 		env.set(key, syncedValue);
 	}
 }
@@ -65,6 +72,7 @@ for (const file of envFiles) {
 if (undeclaredKeys.length > 0) {
 	console.log(`Skipping ${undeclaredKeys.join(", ")}: not declared in .env.schema.`);
 }
+
 if (emptyKeys.length > 0) {
 	console.warn(
 		`Warning: ${emptyKeys.join(", ")} ${emptyKeys.length === 1 ? "is" : "are"} empty in your .env file(s) and won't be synced. Required values must be set before deploying, or the build or server fails env validation.`,
@@ -78,6 +86,7 @@ if (env.size === 0) {
 
 const LOCAL_VALUE_PATTERN = /localhost|127\.0\.0\.1|0\.0\.0\.0|^file:/i;
 const localKeys = [...env.entries()].filter(([, value]) => LOCAL_VALUE_PATTERN.test(value)).map(([key]) => key);
+
 if (localKeys.length > 0) {
 	console.warn(
 		`Warning: ${localKeys.join(", ")} look${localKeys.length === 1 ? "s" : ""} like local-only value(s). Update them in your .env file(s) and re-run this sync if your deployed app should not point at local endpoints.`,
@@ -85,6 +94,7 @@ if (localKeys.length > 0) {
 }
 
 console.log(`Syncing ${env.size} env var(s) to Vercel ${environment}.`);
+
 for (const [key, value] of env.entries()) {
 	const result = spawnSync(
 		VERCEL_COMMAND[0],

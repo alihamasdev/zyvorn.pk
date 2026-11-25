@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Lets an app swap the link and image elements Arc components render (kuratlielia/arc-library#13).
  *
@@ -15,32 +13,19 @@
  * Any component that accepts these props works, such as a locale-aware Link from next-intl or a React Router Link
  * wrapped to map `href` to `to`.
  */
-import {
-	createContext,
-	createElement,
-	useContext,
-	useMemo,
-	type AnchorHTMLAttributes,
-	type ComponentType,
-	type ImgHTMLAttributes,
-	type ReactNode,
-	type Ref,
-} from "react";
+import { createContext, createElement, useContext, useMemo } from "react";
 
 /** The props Arc passes to a link: an href plus ordinary anchor attributes. */
-export interface ArcLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+export type ArcLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 	href: string;
-	ref?: Ref<HTMLAnchorElement>;
-}
+	ref?: React.Ref<HTMLAnchorElement>;
+};
 
 /**
  * The props Arc passes to an image. A subset of next/image's props, so next/image can be passed as is: either `fill`
  * (cover the positioned parent) or `width` and `height`, plus `sizes` and `priority` as hints.
  */
-export interface ArcImageProps extends Omit<
-	ImgHTMLAttributes<HTMLImageElement>,
-	"src" | "alt" | "width" | "height" | "loading" | "srcSet"
-> {
+export type ArcImageProps = Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "width" | "height" | "loading" | "srcSet"> & {
 	src: string;
 	alt: string;
 	width?: number;
@@ -50,11 +35,12 @@ export interface ArcImageProps extends Omit<
 	/** Loads the image eagerly with high priority, like next/image's `priority`. */
 	priority?: boolean;
 	loading?: "eager" | "lazy";
-	ref?: Ref<HTMLImageElement>;
-}
+	ref?: React.Ref<HTMLImageElement>;
+};
 
-export type ArcLinkComponent = ComponentType<ArcLinkProps>;
-export type ArcImageComponent = ComponentType<ArcImageProps>;
+export type ArcLinkComponent = React.ComponentType<ArcLinkProps>;
+
+export type ArcImageComponent = React.ComponentType<ArcImageProps>;
 
 /** The default link: a plain anchor. */
 export function ArcAnchor(props: ArcLinkProps) {
@@ -78,30 +64,32 @@ export function ArcImg({ alt, fill, priority, loading, style, ...props }: ArcIma
 	);
 }
 
-interface ArcComponents {
+type ArcComponents = {
 	link: ArcLinkComponent;
 	image: ArcImageComponent;
-}
+};
 
 const ArcContext = createContext<ArcComponents>({ link: ArcAnchor, image: ArcImg });
 
-export interface ArcProviderProps {
+export type ArcProviderProps = {
 	/** The link component Arc renders for navigation, such as next/link or your own wrapped Link. Defaults to `<a>`. */
 	link?: ArcLinkComponent;
 	/** The image component Arc renders for photos, such as next/image. Defaults to `<img>`. */
 	image?: ArcImageComponent;
-	children: ReactNode;
-}
+	children: React.ReactNode;
+};
 
 /** Sets the link and image components for every Arc component inside it. Nested providers inherit what they do not set. */
 export function ArcProvider({ link, image, children }: ArcProviderProps) {
 	const parent = useContext(ArcContext);
 	const value = useMemo(() => ({ link: link ?? parent.link, image: image ?? parent.image }), [link, image, parent]);
+
 	return <ArcContext.Provider value={value}>{children}</ArcContext.Provider>;
 }
 
 /** The link component from the nearest ArcProvider, or a plain anchor. */
 export const useArcLink = () => useContext(ArcContext).link;
+
 /** The image component from the nearest ArcProvider, or a plain img. */
 export const useArcImage = () => useContext(ArcContext).image;
 

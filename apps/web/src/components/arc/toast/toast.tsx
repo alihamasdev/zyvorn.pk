@@ -1,4 +1,3 @@
-"use client";
 import { X } from "lucide-react";
 import {
 	AnimatePresence,
@@ -15,17 +14,18 @@ import {
 	type Transition,
 	type Variants,
 } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./toast.module.css";
-export interface ToastProps {
+
+export type ToastProps = {
 	title: string;
 	description?: string;
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	duration?: number;
-}
+};
 
 const subscribeHydration = () => () => {};
 const exitFast: Transition = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };
@@ -34,17 +34,19 @@ const textIn: TargetAndTransition = { opacity: 0, y: "0.3em", filter: `blur(${mo
 const textOut: TargetAndTransition = { opacity: 0, y: "-0.3em", filter: `blur(${motionTokens.blur.subtle}px)`, transition: exitFast };
 const textShown: TargetAndTransition = { opacity: 1, y: "0em", filter: "blur(0px)" };
 const fadeOut: TargetAndTransition = { opacity: 0, transition: { duration: motionTokens.duration.instant } };
+
 /** A swipe past this distance (px) or speed (px/s) dismisses the toast in the direction it was thrown. */
 const swipe = { distance: 80, velocity: 480 };
 
 /** Outgoing copies are hidden from assistive tech while they fade, so the live region reads only the current text. */
 function Swap(props: HTMLMotionProps<"span">) {
 	const present = useIsPresent();
+
 	return <motion.span {...props} aria-hidden={present ? props["aria-hidden"] : true} />;
 }
 
 /** Follows its content height. After `morphKey` changes, the height springs from the old size to the new one and then returns to auto, so passive reflows (a resize, a font swap) follow instantly. It clips only while moving, so focus rings stay visible at rest. */
-function HeightFrame({ reduce, morphKey, children }: { reduce: boolean | null; morphKey: string; children: ReactNode }) {
+function HeightFrame({ reduce, morphKey, children }: { reduce: boolean | null; morphKey: string; children: React.ReactNode }) {
 	const frame = useRef<HTMLDivElement>(null);
 	const content = useRef<HTMLDivElement>(null);
 	const height = useMotionValue<number | "auto">("auto");
@@ -54,13 +56,17 @@ function HeightFrame({ reduce, morphKey, children }: { reduce: boolean | null; m
 	}, [morphKey]);
 	useEffect(() => {
 		const node = content.current;
+
 		if (!node || typeof ResizeObserver === "undefined") return;
 		let last: number | undefined;
 		let controls: AnimationPlaybackControls | undefined;
+
 		const settle = () => {
 			height.jump("auto");
+
 			if (frame.current) Object.assign(frame.current.style, { overflow: "", height: "auto" });
 		};
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return;
 			const next = entry.borderBoxSize?.[0]?.blockSize ?? node.offsetHeight;
@@ -68,17 +74,22 @@ function HeightFrame({ reduce, morphKey, children }: { reduce: boolean | null; m
 			const from = typeof current === "number" ? current : last;
 			last = next;
 			controls?.stop();
+
 			if (reduce || from === undefined || from === next || performance.now() - changedAt.current > 120) return settle();
+
 			// Pin the old height before this frame paints, then spring to the new one.
 			if (frame.current) Object.assign(frame.current.style, { overflow: "hidden", height: `${from}px` });
 			controls = animate(height, [from, next], { ...motionTokens.spring.smooth, onComplete: settle });
 		});
+
 		observer.observe(node);
+
 		return () => {
 			observer.disconnect();
 			controls?.stop();
 		};
 	}, [height, reduce]);
+
 	return (
 		<motion.div ref={frame} className={styles.frame} style={{ height }}>
 			<div ref={content} className={styles.copy}>
@@ -90,23 +101,28 @@ function HeightFrame({ reduce, morphKey, children }: { reduce: boolean | null; m
 
 export default function Toast({ title, description, open = true, onOpenChange, duration = 4500 }: ToastProps) {
 	const reduce = useReducedMotion();
+
 	// Toasts that mount after hydration rise in from their edge; server-rendered ones start settled.
 	const hydrated = useSyncExternalStore(
 		subscribeHydration,
 		() => true,
 		() => false,
 	);
+
 	const [enterOnMount] = useState(hydrated);
 	const [dismissed, setDismissed] = useState(false);
 	const [throwX, setThrowX] = useState(0);
 	const [lastOpen, setLastOpen] = useState(open);
+
 	if (open !== lastOpen) {
 		setLastOpen(open);
+
 		if (open) {
 			setDismissed(false);
 			setThrowX(0);
 		}
 	}
+
 	const visible = open && !dismissed;
 	const surface = useRef<HTMLDivElement>(null);
 	// The drag offset is owned here, so a release hands its velocity straight to the spring home or to the throw.
@@ -122,21 +138,26 @@ export default function Toast({ title, description, open = true, onOpenChange, d
 
 	useEffect(() => {
 		if (!visible || !onOpenChange || duration <= 0) return;
+
 		const timer = window.setTimeout(() => {
 			setThrowX(0);
 			setDismissed(true);
 			onOpenChange(false);
 		}, duration);
+
 		return () => window.clearTimeout(timer);
 	}, [visible, onOpenChange, duration]);
 
 	function handleDragEnd(_: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) {
 		const direction = Math.sign(info.offset.x || info.velocity.x);
+
 		// A short swipe springs back with its release velocity and a slight settle instead of drifting home.
 		if (Math.abs(info.offset.x) < swipe.distance && Math.abs(info.velocity.x) < swipe.velocity) {
 			animate(x, 0, { ...motionTokens.spring.snappy, velocity: info.velocity.x });
+
 			return;
 		}
+
 		releaseVelocity.current = info.velocity.x;
 		dismiss(direction * ((surface.current?.offsetWidth ?? 320) + 48));
 	}
@@ -171,6 +192,7 @@ export default function Toast({ title, description, open = true, onOpenChange, d
 								transition: { duration: motionTokens.duration.exit, ease: [...motionTokens.ease.standard] },
 							},
 			};
+
 	const swap: MotionProps = {
 		initial: reduce ? { opacity: 0 } : textIn,
 		animate: textShown,

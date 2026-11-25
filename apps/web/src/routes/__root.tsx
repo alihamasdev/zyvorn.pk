@@ -26,15 +26,18 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootDocument,
 	beforeLoad: async (ctx) => {
 		const token = await getAuth();
+
 		if (token) {
 			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
 		}
+
 		return { isAuthenticated: !!token, token };
 	},
 });
 
 function RootDocument() {
 	const context = useRouteContext({ from: Route.id });
+
 	return (
 		<ConvexBetterAuthProvider client={context.convexQueryClient.convexClient} authClient={authClient} initialToken={context.token}>
 			<html lang="en" data-theme="light" data-accent="blue">

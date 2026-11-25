@@ -1,16 +1,13 @@
-"use client";
-
-import { motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useId, useState, useSyncExternalStore } from "react";
-import type { ReactNode, SVGProps } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./icon-morph.module.css";
 
 export type IconMorphName = "menu" | "play" | "plus" | "copy" | "theme" | "chevron" | "bell" | "heart";
 
-export interface IconMorphIconProps extends Omit<SVGProps<SVGSVGElement>, "ref" | "children"> {
+export type IconMorphIconProps = Omit<React.SVGProps<SVGSVGElement>, "ref" | "children"> & {
 	/**
 	 * The second state of the icon. menu: close, play: pause, plus: check, copy: check,
 	 * theme: moon, chevron: turned, bell: notifications on, heart: liked.
@@ -20,7 +17,7 @@ export interface IconMorphIconProps extends Omit<SVGProps<SVGSVGElement>, "ref" 
 	size?: number;
 	/** Stroke width in the 24 unit grid. Defaults to 1.75. */
 	strokeWidth?: number;
-}
+};
 
 /**
  * A family of icons that morph between two states instead of swapping. Lines rotate and slide into place, shapes interpolate
@@ -28,36 +25,43 @@ export interface IconMorphIconProps extends Omit<SVGProps<SVGSVGElement>, "ref" 
  * Every morph rides an interruptible spring, so toggling quickly reverses from wherever the icon is. The icons are decorative;
  * put them inside a button that carries the accessible name and `aria-pressed`.
  */
-export interface IconMorphProps extends IconMorphIconProps {
+export type IconMorphProps = IconMorphIconProps & {
 	name: IconMorphName;
-}
+};
 
 const { spring } = motionTokens;
 const instant: Transition = { duration: 0 };
 const subscribe = () => () => {};
+
 function useReducedFlag() {
 	const hydrated = useSyncExternalStore(
 		subscribe,
 		() => true,
 		() => false,
 	);
+
 	return !!useReducedMotion() && hydrated;
 }
+
 function useIds() {
 	return useId().replace(/[^a-zA-Z0-9-]/g, "");
 }
+
 /** Counts how many times `state` turned true after mount, so one-shot moments (a ring, a burst) replay on each turn on. */
 function useTurnOns(state: boolean) {
 	const [previous, setPrevious] = useState(state);
 	const [count, setCount] = useState(0);
+
 	if (previous !== state) {
 		setPrevious(state);
+
 		if (state) setCount((value) => value + 1);
 	}
+
 	return count;
 }
 
-function Frame({ size = 24, strokeWidth = 1.75, className, children, ...rest }: IconMorphIconProps & { children: ReactNode }) {
+function Frame({ size = 24, strokeWidth = 1.75, className, children, ...rest }: IconMorphIconProps & { children: React.ReactNode }) {
 	return (
 		<svg
 			viewBox="0 0 24 24"
@@ -82,6 +86,7 @@ function Frame({ size = 24, strokeWidth = 1.75, className, children, ...rest }: 
 export function MenuIcon({ state = false, ...props }: IconMorphIconProps) {
 	const reduced = useReducedFlag();
 	const t = reduced ? instant : spring.morph;
+
 	return (
 		<Frame {...props}>
 			<motion.path d="M4 6h16" initial={false} animate={state ? { y: 6, rotate: 45 } : { y: 0, rotate: 0 }} transition={t} />
@@ -104,6 +109,7 @@ const PAUSE = ["M6.5 5 L10 5 L10 19 L6.5 19 Z", "M14 5 L17.5 5 L17.5 19 L14 19 Z
 export function PlayPauseIcon({ state = false, ...props }: IconMorphIconProps) {
 	const reduced = useReducedFlag();
 	const t = reduced ? instant : spring.morph;
+
 	return (
 		<Frame {...props}>
 			{PLAY.map((d, index) => (
@@ -125,6 +131,7 @@ export function PlayPauseIcon({ state = false, ...props }: IconMorphIconProps) {
 export function PlusCheckIcon({ state = false, ...props }: IconMorphIconProps) {
 	const reduced = useReducedFlag();
 	const t = reduced ? instant : spring.morph;
+
 	return (
 		<Frame {...props}>
 			<motion.path d="M12 5 L12 19" initial={false} animate={{ d: state ? "M20 6.5 L9.5 17" : "M12 5 L12 19" }} transition={t} />
@@ -138,6 +145,7 @@ export function CopyCheckIcon({ state = false, ...props }: IconMorphIconProps) {
 	const reduced = useReducedFlag();
 	const t = reduced ? instant : spring.smooth;
 	const fade = reduced ? instant : { duration: motionTokens.duration.fast };
+
 	return (
 		<Frame {...props}>
 			<motion.path
@@ -170,7 +178,9 @@ const RAYS = Array.from({ length: 8 }, (_, index) => {
 	const angle = (index * Math.PI) / 4,
 		c = Math.cos(angle),
 		s = Math.sin(angle);
+
 	const r = (value: number) => Math.round(value * 100) / 100;
+
 	return `M${r(12 + c * 7.5)} ${r(12 + s * 7.5)} L${r(12 + c * 10)} ${r(12 + s * 10)}`;
 });
 
@@ -184,6 +194,7 @@ export function SunMoonIcon({ state = false, ...props }: IconMorphIconProps) {
 	const t = reduced ? instant : spring.morph;
 	const disc = { r: state ? 8.5 : 4.5 };
 	const shadow = state ? { cx: 18, cy: 6, r: 6.5 } : { cx: 30, cy: -6, r: 6.5 };
+
 	return (
 		<Frame {...props}>
 			<defs>
@@ -210,16 +221,17 @@ export function SunMoonIcon({ state = false, ...props }: IconMorphIconProps) {
 	);
 }
 
-export interface ChevronIconProps extends IconMorphIconProps {
+export type ChevronIconProps = IconMorphIconProps & {
 	/** Degrees the chevron turns when `state` is true. 180 flips down to up; 90 turns right to down. */
 	turn?: number;
 	/** Where the chevron points at rest. */
 	pointing?: "down" | "right";
-}
+};
 
 /** A chevron that turns on a spring, for disclosure and sort controls. */
 export function ChevronIcon({ state = false, turn = 180, pointing = "down", ...props }: ChevronIconProps) {
 	const reduced = useReducedFlag();
+
 	return (
 		<Frame {...props}>
 			<motion.path
@@ -244,6 +256,7 @@ export function BellIcon({ state = false, ...props }: IconMorphIconProps) {
 	const ring = rings > 0 && !reduced;
 	const slash = reduced ? instant : { ...spring.smooth, opacity: { duration: 0.08 } };
 	const slashOn = { pathLength: state ? 0 : 1, opacity: state ? 0 : 1 };
+
 	return (
 		<Frame {...props}>
 			<defs>
@@ -275,8 +288,10 @@ export function BellIcon({ state = false, ...props }: IconMorphIconProps) {
 
 const HEART =
 	"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z";
+
 const SPARKS = Array.from({ length: 7 }, (_, index) => {
 	const angle = -Math.PI / 2 + (index * 2 * Math.PI) / 7;
+
 	return { x: Math.cos(angle), y: Math.sin(angle), r: index % 2 ? 1 : 1.4 };
 });
 
@@ -285,6 +300,7 @@ export function HeartIcon({ state = false, className, ...props }: IconMorphIconP
 	const reduced = useReducedFlag();
 	const likes = useTurnOns(state);
 	const burst = likes > 0 && state && !reduced;
+
 	return (
 		<Frame {...props} className={[styles.heart, className].filter(Boolean).join(" ")} data-on={state ? "" : undefined} overflow="visible">
 			{burst && (
@@ -330,7 +346,7 @@ export function HeartIcon({ state = false, className, ...props }: IconMorphIconP
 	);
 }
 
-const ICONS: Record<IconMorphName, (props: IconMorphIconProps) => ReactNode> = {
+const ICONS: Record<IconMorphName, (props: IconMorphIconProps) => React.ReactNode> = {
 	menu: MenuIcon,
 	play: PlayPauseIcon,
 	plus: PlusCheckIcon,
@@ -344,6 +360,7 @@ const ICONS: Record<IconMorphName, (props: IconMorphIconProps) => ReactNode> = {
 /** One entry point for every morphing icon: pick it by `name` and drive it with `state`. */
 export function IconMorph({ name, ...props }: IconMorphProps) {
 	const Icon = ICONS[name];
+
 	return <Icon {...props} />;
 }
 

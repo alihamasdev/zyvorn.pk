@@ -1,51 +1,54 @@
-"use client";
-
 import { ArrowRight } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import type { TargetAndTransition, Variants } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { ButtonHTMLAttributes, RefObject } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./action-button.module.css";
 
-export interface ActionButtonProps extends Omit<
-	ButtonHTMLAttributes<HTMLButtonElement>,
+export type ActionButtonProps = Omit<
+	React.ButtonHTMLAttributes<HTMLButtonElement>,
 	"onClick" | "onDrag" | "onDragEnd" | "onDragStart" | "onAnimationStart"
-> {
+> & {
 	label: string;
 	successLabel?: string;
 	pendingLabel?: string;
 	onAction: () => void | Promise<void>;
 	resetAfterMs?: number;
 	onActionError?: (error: unknown) => void;
-}
+};
 
 const pressVariants: Variants = {
-	pressed: (button: RefObject<HTMLButtonElement | null>) => ({
+	pressed: (button: React.RefObject<HTMLButtonElement | null>) => ({
 		scale: (button.current?.offsetWidth ?? 0) > 220 ? 0.985 : 0.97,
 		transition: { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] },
 	}),
 };
+
 const rest: TargetAndTransition = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
 const labelIn = { duration: 0.16, ease: [...motionTokens.ease.enter] } as const;
 const labelOut: TargetAndTransition = { opacity: 0, transition: { duration: 0.1, ease: [...motionTokens.ease.standard] } };
 const iconIn: TargetAndTransition = { opacity: 0, scale: 0.6, filter: `blur(${motionTokens.blur.subtle}px)` };
+
 const iconOut: TargetAndTransition = {
 	...iconIn,
 	transition: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] },
 };
+
 /** The arrow leaves in the direction of the action and returns from behind once the button resets. */
 const arrowIn: TargetAndTransition = { opacity: 0, x: -6, filter: `blur(${motionTokens.blur.subtle}px)` };
+
 const arrowOut: TargetAndTransition = {
 	opacity: 0,
 	x: 8,
 	filter: `blur(${motionTokens.blur.subtle}px)`,
 	transition: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] },
 };
+
 const iconRest: TargetAndTransition = { ...rest, x: 0 };
 const fadeIn: TargetAndTransition = { ...rest, opacity: 0 };
 const fadeOut: TargetAndTransition = { opacity: 0, transition: { duration: motionTokens.duration.instant } };
+
 /** Scale rides the spring; opacity and blur tween so blur never overshoots below zero. */
 const iconEnter = {
 	...motionTokens.spring.snappy,
@@ -55,10 +58,12 @@ const iconEnter = {
 
 /** Springs the wrapper to the natural width of its content when the text changes, so new text never snaps the layout.
  *  Other resizes (a late web font, a parent reflow) jump straight to the new width, so nothing wobbles on first paint. */
-function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, reduced: boolean) {
+function useMorphWidth(content: React.RefObject<HTMLElement | null>, key: string, reduced: boolean) {
 	const width = useMotionValue<number | "auto">("auto");
+
 	const lastKey = useRef(key),
 		armedUntil = useRef(0);
+
 	useLayoutEffect(() => {
 		if (lastKey.current === key) return;
 		lastKey.current = key;
@@ -67,17 +72,22 @@ function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, redu
 	useEffect(() => {
 		const node = content.current,
 			slot = node?.parentElement;
+
 		if (!node || !slot || typeof ResizeObserver === "undefined") return;
 		let measured = false;
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return;
 			const next = entry.contentRect.width;
+
 			if (!next || !measured || reduced || performance.now() > armedUntil.current) {
 				measured = next > 0;
 				width.jump(next || "auto");
 				delete slot.dataset.morphing;
+
 				return;
 			}
+
 			slot.dataset.morphing = "";
 			animate(width, next, {
 				type: "spring",
@@ -88,9 +98,12 @@ function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, redu
 				},
 			});
 		});
+
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, [content, reduced, width]);
+
 	return width;
 }
 
@@ -125,6 +138,7 @@ function DrawnCheck({ reduced }: { reduced: boolean }) {
 function SwapText({ text, reduced }: { text: string; reduced: boolean }) {
 	const sizerRef = useRef<HTMLSpanElement>(null);
 	const width = useMorphWidth(sizerRef, text, reduced);
+
 	return (
 		<motion.span className={styles.morph} style={{ width }} aria-hidden="true">
 			<span ref={sizerRef} className={styles.sizer}>
@@ -172,11 +186,14 @@ export function ActionButton({
 
 	async function run() {
 		if (state === "pending") return;
+
 		if (resetTimer.current) clearTimeout(resetTimer.current);
 		setState("pending");
+
 		try {
 			await onAction();
 			setState("success");
+
 			if (resetAfterMs > 0) resetTimer.current = setTimeout(() => setState("idle"), resetAfterMs);
 		} catch (error) {
 			setState("idle");

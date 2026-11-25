@@ -1,47 +1,49 @@
-"use client";
-
 import { Dialog as DialogPrimitive } from "@base-ui/react";
 import { X } from "lucide-react";
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import type { HTMLMotionProps, MotionProps, Transition, Variants } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./card.module.css";
 
-export interface CardProps extends HTMLAttributes<HTMLElement> {
+export type CardProps = React.HTMLAttributes<HTMLElement> & {
 	title: string;
 	description?: string;
-	media?: ReactNode;
-	action?: ReactNode;
+	media?: React.ReactNode;
+	action?: React.ReactNode;
 	/** A small leading visual for the footer, such as the owner's avatar. */
-	avatar?: ReactNode;
+	avatar?: React.ReactNode;
 	/** Who the card belongs to, such as the owner's name. */
-	meta?: ReactNode;
+	meta?: React.ReactNode;
 	/** A short status under the meta, such as "Updated 2 hours ago". Changed words rise in and are announced politely. */
 	status?: string;
 	/** Content for a quick look. When set, the whole card opens and grows into a larger view; Escape or the close control morphs it back. */
-	details?: ReactNode;
+	details?: React.ReactNode;
 	open?: boolean;
 	defaultOpen?: boolean;
 	onOpenChange?: (open: boolean) => void;
-}
+};
 
 type Side = "card" | "panel";
+
 type Geometry = { card?: number; panel?: number; measure?: number };
+
 type Landing = { top: number; left: number; width: number; height: number };
 
 const { blur, duration, ease, spring, stagger } = motionTokens;
+
 /** One critically damped spring carries the surface both ways, so it never overshoots and can reverse mid-flight. Closing is a touch quicker. */
 const grow: Transition = { ...spring.smooth, visualDuration: 0.3 };
 const settle: Transition = { ...spring.smooth, visualDuration: 0.26 };
 const RETURN_MS = 300;
 const fade: Transition = { duration: duration.instant };
+
 /** The photo drifts in slowly while the card is pointed at, and eases back a little faster. */
 const ZOOM = 1.04;
 const zoomIn: Transition = { duration: duration.considered * 2, ease: [...ease.standard] };
 const zoomOut: Transition = { duration: duration.considered, ease: [...ease.standard] };
+
 /** Quick look extras arrive once the surface has mostly grown, so they never ride the stretch. */
 const reveal: Transition = { delay: duration.instant, duration: duration.standard, ease: [...ease.enter] };
 const closeIn: Transition = { delay: duration.instant, duration: duration.fast, ease: [...ease.enter] };
@@ -52,6 +54,7 @@ const lineMotion: Variants = {
 	center: {},
 	exit: { opacity: 0, y: "-.3em", filter: `blur(${blur.subtle}px)`, transition: { duration: duration.fast, ease: [...ease.standard] } },
 };
+
 const wordMotion: Variants = {
 	enter: { opacity: 0, y: ".3em", filter: `blur(${blur.soft}px)` },
 	center: (order: number) => ({
@@ -91,7 +94,9 @@ function Status({ text, reduced }: { text: string; reduced: boolean }) {
 /** Motion only scale-corrects pixel radii, so token radii are read back in pixels for the morph. */
 function px(node: Element, value: string) {
 	const amount = parseFloat(value);
+
 	if (!Number.isFinite(amount)) return undefined;
+
 	return value.trim().endsWith("rem") ? amount * parseFloat(getComputedStyle(node.ownerDocument.documentElement).fontSize) : amount;
 }
 
@@ -125,6 +130,7 @@ export function Card({
 	const morph = Boolean(details) && !reduced;
 	const returning = !open && landing !== null;
 	const hasDescription = Boolean(description);
+
 	const setOpen = useCallback(
 		(next: boolean) => {
 			if (openProp === undefined) setUncontrolled(next);
@@ -137,20 +143,27 @@ export function Card({
 	useEffect(() => {
 		const node = cardRef.current,
 			text = descriptionRef.current;
+
 		if (!morph || !node || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(() => {
 			const computed = getComputedStyle(node);
+
 			const radius = px(node, computed.borderTopLeftRadius),
 				surface = px(node, computed.getPropertyValue("--radius-surface")),
 				measure = text?.offsetWidth || undefined;
+
 			setGeometry((current) =>
 				current.card !== undefined && current.measure === measure
 					? current
 					: { card: current.card ?? radius, panel: current.panel ?? surface, measure },
 			);
 		});
+
 		observer.observe(node);
+
 		if (text) observer.observe(text);
+
 		return () => observer.disconnect();
 	}, [morph, hasDescription]);
 
@@ -160,6 +173,7 @@ export function Card({
 		const closed = wasOpen.current && !open;
 		wasOpen.current = open;
 		const node = cardRef.current;
+
 		if (open) setLanding(null); // eslint-disable-line react-hooks/set-state-in-effect -- reopening mid-return cancels the landing
 		else if (closed && morph && node) {
 			const box = node.getBoundingClientRect();
@@ -170,6 +184,7 @@ export function Card({
 	useEffect(() => {
 		if (!returning) return;
 		const timer = window.setTimeout(() => setLanding(null), RETURN_MS);
+
 		return () => window.clearTimeout(timer);
 	}, [returning]);
 
@@ -296,7 +311,7 @@ export function Card({
 															"--landing-height": `${landing.height}px`,
 														}
 													: {}),
-											} as CSSProperties
+											} as React.CSSProperties
 										}
 										{...(morph
 											? {

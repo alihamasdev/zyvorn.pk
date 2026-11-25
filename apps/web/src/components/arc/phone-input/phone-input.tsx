@@ -1,8 +1,6 @@
-"use client";
-
 import { Check, ChevronDown, Search, X } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import type { Transition, Variants } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import {
 	forwardRef,
 	useCallback,
@@ -16,12 +14,6 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
-import type {
-	ClipboardEvent as ReactClipboardEvent,
-	CSSProperties,
-	FocusEvent as ReactFocusEvent,
-	KeyboardEvent as ReactKeyboardEvent,
-} from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./phone-input.module.css";
@@ -32,7 +24,7 @@ import styles from "./phone-input.module.css";
  * double as the placeholder. Compact on purpose: no metadata download, no dependency.
  * ---------------------------------------------------------------------------------------------- */
 
-export interface PhoneCountry {
+export type PhoneCountry = {
 	/** ISO 3166-1 alpha-2 code, such as "US". */
 	iso: string;
 	name: string;
@@ -46,7 +38,7 @@ export interface PhoneCountry {
 	example: string;
 	/** Area codes that pick this country when several share a calling code, such as Canada inside +1. */
 	areaCodes?: string[];
-}
+};
 
 const country = (
 	iso: string,
@@ -118,9 +110,11 @@ export const PHONE_COUNTRIES: PhoneCountry[] = [
 const BY_ISO = new Map(PHONE_COUNTRIES.map((entry) => [entry.iso, entry]));
 const capacity = (pattern: string) => pattern.split("#").length - 1;
 const lengthsOf = (entry: PhoneCountry) => entry.patterns.map(capacity);
+
 /** A typed trunk prefix earns its own room; without one the longest valid length is the cap. */
 const capDigits = (entry: PhoneCountry, digits: string) =>
 	digits.slice(0, splitTrunk(entry, digits)[0].length + Math.max(...lengthsOf(entry)));
+
 const onlyDigits = (text: string) => text.replace(/\D/g, "");
 
 /** Regional indicator letters. Platforms without flag glyphs show the two letters, which still read. */
@@ -134,10 +128,12 @@ function splitTrunk(entry: PhoneCountry, digits: string): [string, string] {
 function applyPattern(digits: string, pattern: string) {
 	let out = "",
 		index = 0;
+
 	for (const char of pattern) {
 		if (index >= digits.length) break;
 		out += char === "#" ? digits[index++] : char;
 	}
+
 	return out + digits.slice(index);
 }
 
@@ -150,8 +146,11 @@ export function formatNational(entry: PhoneCountry, digits: string) {
 	const [trunk, rest] = splitTrunk(entry, digits);
 	const pattern = patternFor(entry, rest.length);
 	const body = applyPattern(rest, pattern);
+
 	if (!trunk) return body;
+
 	if (!rest) return trunk;
+
 	return trunk + (pattern.startsWith("#") ? "" : " ") + body;
 }
 
@@ -160,13 +159,17 @@ export type PhoneStatus = "empty" | "incomplete" | "valid" | "too-long";
 function statusOf(entry: PhoneCountry, digits: string): PhoneStatus {
 	const length = splitTrunk(entry, digits)[1].length;
 	const lengths = lengthsOf(entry);
+
 	if (!length) return "empty";
+
 	if (lengths.includes(length)) return "valid";
+
 	return length > Math.max(...lengths) ? "too-long" : "incomplete";
 }
 
 const toE164 = (entry: PhoneCountry, digits: string) => {
 	const rest = splitTrunk(entry, digits)[1];
+
 	return rest ? `+${entry.dial}${rest}` : "";
 };
 
@@ -177,44 +180,52 @@ export function parsePhoneNumber(
 ): { country: PhoneCountry; national: string } | null {
 	const trimmed = input.trim();
 	let digits = onlyDigits(trimmed);
+
 	if (!trimmed.startsWith("+")) {
 		if (!trimmed.startsWith("00")) return null;
 		digits = digits.slice(2);
 	}
+
 	for (const size of [3, 2, 1]) {
 		const dial = digits.slice(0, size);
 		const matches = pool.filter((entry) => entry.dial === dial);
+
 		if (!matches.length) continue;
 		let rest = digits.slice(size);
+
 		const entry =
 			matches.find((item) => item.areaCodes?.some((code) => rest.startsWith(code))) ??
 			matches.find((item) => !item.areaCodes) ??
 			matches[0]!;
+
 		// "+44 (0)7911…" carries a trunk zero it should not; drop it when the rest is still a full number without it.
 		if (entry.trunk && rest.startsWith(entry.trunk) && rest.length - entry.trunk.length >= Math.min(...lengthsOf(entry)))
 			rest = rest.slice(entry.trunk.length);
+
 		return { country: entry, national: capDigits(entry, rest) };
 	}
+
 	return null;
 }
 
 /** Formats an E.164 number for display, such as "+44 7400 123456". Returns the input when it cannot be read. */
 export function formatPhoneNumber(e164: string) {
 	const parsed = parsePhoneNumber(e164);
+
 	return parsed ? `+${parsed.country.dial} ${formatNational(parsed.country, parsed.national)}` : e164;
 }
 
 /* ------------------------------------------------------------------------------------------------ */
 
-export interface PhoneInputDetails {
+export type PhoneInputDetails = {
 	country: PhoneCountry;
 	/** The number as shown in the field, without the calling code. */
 	formatted: string;
 	status: PhoneStatus;
 	valid: boolean;
-}
+};
 
-export interface PhoneInputProps {
+export type PhoneInputProps = {
 	label: string;
 	hideLabel?: boolean;
 	/** The number in E.164, such as "+14155550132". An empty string clears the field. */
@@ -242,34 +253,41 @@ export interface PhoneInputProps {
 	name?: string;
 	id?: string;
 	className?: string;
-	onBlur?: (event: ReactFocusEvent<HTMLInputElement>) => void;
-}
+	onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+};
 
 type Bezier = [number, number, number, number];
+
 const enterEase = [...motionTokens.ease.enter] as Bezier;
 const standardEase = [...motionTokens.ease.standard] as Bezier;
 const { blur } = motionTokens;
+
 /** Duration springs restated as stiffness and damping, so a retarget mid flight keeps the velocity it already has. */
 const physical = (visualDuration: number, bounce: number): Transition => {
 	const root = (2 * Math.PI) / (visualDuration * 1.2);
+
 	return { type: "spring", stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1 };
 };
+
 const GROW = physical(0.4, 0),
 	SHRINK = physical(0.32, 0),
 	GLIDE = physical(0.28, 0),
 	WIDTH = physical(0.42, 0);
+
 const PANEL_MAX = 340,
 	CLOSED_RADIUS = 17,
 	OPEN_RADIUS = 22,
 	PAGE = 8;
 
 const subscribe = () => () => {};
+
 function useReducedFlag() {
 	const hydrated = useSyncExternalStore(
 		subscribe,
 		() => true,
 		() => false,
 	);
+
 	return !!useReducedMotion() && hydrated;
 }
 
@@ -284,6 +302,7 @@ const layerVariants: Variants = {
 		transition: { duration: 0.12, ease: standardEase },
 	}),
 };
+
 const layerFade: Variants = {
 	enter: { opacity: 0 },
 	rest: { opacity: 1, y: 0, filter: "none" },
@@ -293,8 +312,11 @@ const layerFade: Variants = {
 function matchesQuery(entry: PhoneCountry, needle: string) {
 	if (!needle) return true;
 	const digits = onlyDigits(needle);
+
 	if (digits && /^[+\d\s()-]+$/.test(needle)) return entry.dial.startsWith(digits) || digits.startsWith(entry.dial);
+
 	if (needle.replace("+", "") === "") return true;
+
 	return entry.name.toLowerCase().includes(needle) || entry.iso.toLowerCase() === needle;
 }
 
@@ -302,15 +324,20 @@ function matchesQuery(entry: PhoneCountry, needle: string) {
 function caretAfterDigits(text: string, count: number) {
 	if (count <= 0) {
 		const first = text.search(/\d/);
+
 		return first < 0 ? text.length : Math.min(first, text.length);
 	}
+
 	let seen = 0;
+
 	for (let index = 0; index < text.length; index++) if (/\d/.test(text[index]!) && ++seen === count) return index + 1;
+
 	return text.length;
 }
 
 function MessageRow({ id, text, tone }: { id: string; text: string; tone: "hint" | "error" }) {
 	const reduced = useReducedFlag();
+
 	return (
 		<motion.span
 			className={styles.messageSlot}
@@ -344,6 +371,7 @@ function MessageRow({ id, text, tone }: { id: string; text: string; tone: "hint"
 }
 
 type Row = { key: string; entry: PhoneCountry };
+
 type Section = { key: string; label?: string; rows: Row[] };
 
 /**
@@ -379,20 +407,25 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	const uid = useId();
 	const inputId = id ?? `${uid}-number`;
 	const listId = `${uid}-list`;
+
 	const hintId = `${inputId}-hint`,
 		errorId = `${inputId}-error`;
+
 	const optionId = (key: string) => `${uid}-opt-${key}`;
 
 	const pool = useMemo(
 		() => (countries?.length ? PHONE_COUNTRIES.filter((entry) => countries.includes(entry.iso)) : PHONE_COUNTRIES),
 		[countries],
 	);
+
 	const fallback = BY_ISO.get(defaultCountry) ?? PHONE_COUNTRIES[0]!;
 
 	const [state, setState] = useState(() => {
 		const parsed = parsePhoneNumber(value ?? defaultValue ?? "", pool);
+
 		return parsed ? { iso: parsed.country.iso, digits: parsed.national } : { iso: fallback.iso, digits: "" };
 	});
+
 	const iso = countryProp ?? state.iso;
 	const current = BY_ISO.get(iso) ?? fallback;
 	const digits = state.digits;
@@ -400,8 +433,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	// A controlled value that differs from what the field last produced is read back in.
 	const [seenValue, setSeenValue] = useState(value);
+
 	if (value !== seenValue) {
 		setSeenValue(value);
+
 		if (value !== undefined && value !== e164) {
 			const parsed = parsePhoneNumber(value, pool);
 			setState(parsed ? { iso: parsed.country.iso, digits: parsed.national } : { iso, digits: "" });
@@ -413,17 +448,21 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	const [touched, setTouched] = useState(false);
 	const lengths = lengthsOf(current);
 	const lengthCopy = lengths.length === 1 ? `${lengths[0]}` : `${lengths.slice(0, -1).join(", ")} or ${lengths[lengths.length - 1]}`;
+
 	const builtIn =
 		validate && touched && (status === "incomplete" || status === "too-long")
 			? `Numbers in ${current.name} have ${lengthCopy} digits`
 			: undefined;
+
 	const message = error ?? builtIn;
 
 	/* The guide: the rest of the example number, in the shape this country expects, drawn faintly after what was typed. */
 	const guide = useMemo(() => {
 		const [trunk, rest] = splitTrunk(current, digits);
+
 		if (rest.length >= current.example.length) return "";
 		const full = formatNational(current, trunk + rest + current.example.slice(rest.length));
+
 		return full.startsWith(formatted) ? full.slice(formatted.length) : "";
 	}, [current, digits, formatted]);
 
@@ -448,12 +487,16 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	const setNumber = (nextDigits: string, caretDigits: number | null, entry = current) => {
 		const capped = capDigits(entry, nextDigits);
 		pendingCaret.current = caretDigits === null ? null : Math.min(caretDigits, capped.length);
+
 		if (entry.iso !== current.iso) onCountryChange?.(entry.iso);
+
 		// Nothing changed (a refused digit): React restores the old text after this handler, so the caret is placed on the next render.
 		if (capped === digits && entry.iso === current.iso) {
 			rerender();
+
 			return;
 		}
+
 		setState({ iso: entry.iso, digits: capped });
 		emit(entry, capped);
 	};
@@ -461,11 +504,14 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	function placeCaret() {
 		const input = inputRef.current,
 			count = pendingCaret.current;
+
 		pendingCaret.current = null;
+
 		if (!input || count === null || document.activeElement !== input) return;
 		const position = caretAfterDigits(input.value, count);
 		input.setSelectionRange(position, position);
 	}
+
 	useLayoutEffect(placeCaret);
 
 	const [announcement, setAnnouncement] = useState("");
@@ -474,35 +520,46 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	function onNumberChange(input: HTMLInputElement) {
 		const raw = input.value;
+
 		// Autofill and dropped text arrive as a change: an international number chooses its own country.
 		if (raw.includes("+") || (/^\s*00/.test(raw) && onlyDigits(raw).length > 6)) {
 			const parsed = parsePhoneNumber(raw.slice(Math.max(0, raw.indexOf("+"))), pool);
+
 			if (parsed && parsed.national) {
 				if (parsed.country.iso !== current.iso) setAnnouncement(`Country set to ${parsed.country.name}`);
 				setNumber(parsed.national, parsed.national.length, parsed.country);
+
 				return;
 			}
 		}
+
 		const caret = input.selectionStart ?? raw.length;
 		setNumber(onlyDigits(raw), onlyDigits(raw.slice(0, caret)).length);
 	}
 
-	function onNumberKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+	function onNumberKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
 		const input = event.currentTarget;
+
 		if (event.key === "+" && !event.metaKey && !event.ctrlKey) {
 			event.preventDefault();
 			openList("+");
+
 			return;
 		}
+
 		const start = input.selectionStart ?? 0,
 			end = input.selectionEnd ?? 0;
+
 		if (start !== end || event.metaKey || event.ctrlKey || event.altKey) return;
+
 		// Deleting a separator deletes the digit beside it instead of doing nothing.
 		if (event.key === "Backspace" && start > 0 && !/\d/.test(input.value[start - 1]!)) {
 			event.preventDefault();
 			const index = onlyDigits(input.value.slice(0, start)).length;
+
 			if (index > 0) setNumber(digits.slice(0, index - 1) + digits.slice(index), index - 1);
 		}
+
 		if (event.key === "Delete" && start < input.value.length && !/\d/.test(input.value[start]!)) {
 			event.preventDefault();
 			const index = onlyDigits(input.value.slice(0, start)).length;
@@ -510,25 +567,33 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 		}
 	}
 
-	function onPaste(event: ReactClipboardEvent<HTMLInputElement>) {
+	function onPaste(event: React.ClipboardEvent<HTMLInputElement>) {
 		const text = event.clipboardData.getData("text");
+
 		if (!text) return;
 		event.preventDefault();
 		const input = event.currentTarget;
 		const parsed = /^\s*(\+|00)/.test(text) ? parsePhoneNumber(text, pool) : null;
+
 		if (parsed) {
 			if (parsed.country.iso !== current.iso) setAnnouncement(`Country set to ${parsed.country.name}`);
 			setNumber(parsed.national, parsed.national.length, parsed.country);
+
 			return;
 		}
+
 		let pasted = onlyDigits(text);
+
 		// "1 415 555 0132" pasted into a US field: the leading calling code is dropped when the number would not fit otherwise.
 		if (pasted.startsWith(current.dial) && pasted.length > capDigits(current, pasted).length) pasted = pasted.slice(current.dial.length);
+
 		// A whole number replaces what was there; a fragment goes in at the caret.
 		if (pasted.length >= Math.min(...lengthsOf(current))) {
 			setNumber(pasted, pasted.length);
+
 			return;
 		}
+
 		const a = onlyDigits(input.value.slice(0, input.selectionStart ?? 0)).length;
 		const b = onlyDigits(input.value.slice(0, input.selectionEnd ?? 0)).length;
 		setNumber(digits.slice(0, a) + pasted + digits.slice(b), a + pasted.length);
@@ -544,26 +609,34 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	const sections = useMemo<Section[]>(() => {
 		const sorted = [...pool].sort((a, b) => a.name.localeCompare(b.name));
+
 		if (needle && needle !== "+") {
 			const hits = sorted.filter((entry) => matchesQuery(entry, needle));
 			const digitsOnly = onlyDigits(needle);
+
 			if (digitsOnly) hits.sort((a, b) => Number(b.dial === digitsOnly) - Number(a.dial === digitsOnly) || a.dial.length - b.dial.length);
+
 			return [{ key: "results", rows: hits.map((entry) => ({ key: `r-${entry.iso}`, entry })) }];
 		}
+
 		const preferred = preferredCountries
 			.map((code) => pool.find((entry) => entry.iso === code))
 			.filter((entry): entry is PhoneCountry => !!entry);
+
 		const all = {
 			key: "all",
 			label: preferred.length ? "All countries" : undefined,
 			rows: sorted.map((entry) => ({ key: `a-${entry.iso}`, entry })),
 		};
+
 		return preferred.length
 			? [{ key: "preferred", label: "Suggested", rows: preferred.map((entry) => ({ key: `p-${entry.iso}`, entry })) }, all]
 			: [all];
 	}, [needle, pool, preferredCountries]);
+
 	const rows = useMemo(() => sections.flatMap((section) => section.rows), [sections]);
 	const activeKey = active !== null && rows.some((row) => row.key === active) ? active : (rows[0]?.key ?? null);
+
 	const orderOf = useMemo(
 		() => new Map([...pool].sort((a, b) => a.name.localeCompare(b.name)).map((entry, index) => [entry.iso, index])),
 		[pool],
@@ -580,9 +653,11 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	/* One surface whose width, height, and corners spring between the country button and the open list. */
 	const anchorW = useMotionValue<number | string>("auto");
+
 	const shapeW = useMotionValue<number | string>("100%"),
 		shapeH = useMotionValue<number | string>("100%"),
 		radius = useMotionValue(CLOSED_RADIUS);
+
 	const sizes = useRef({ trigger: 0, lid: 0, panel: 0, list: 0 });
 	const live = useRef({ open: false, reduced: false, measured: false });
 	useLayoutEffect(() => {
@@ -592,17 +667,21 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	const place = useCallback(
 		(animated: boolean) => {
 			const { trigger, lid, panel, list } = sizes.current;
+
 			if (!trigger || !lid) return;
 			const isOpen = live.current.open;
 			const next = isOpen ? { w: Math.max(trigger, panel), h: lid + 2 + list, r: OPEN_RADIUS } : { w: trigger, h: lid, r: CLOSED_RADIUS };
+
 			if (!animated || live.current.reduced || !live.current.measured) {
 				anchorW.jump(trigger);
 				shapeW.jump(next.w);
 				shapeH.jump(next.h);
 				radius.jump(next.r);
 				live.current.measured = true;
+
 				return;
 			}
+
 			const growing = isOpen;
 			animate(anchorW, trigger, WIDTH);
 			animate(shapeW, next.w, growing ? GROW : SHRINK);
@@ -617,12 +696,14 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 			control = controlRef.current,
 			face = listFaceRef.current,
 			root = rootRef.current;
+
 		if (!measure || !control || !face || !root) return false;
 		const panel = Math.min(PANEL_MAX, control.offsetWidth);
 		root.style.setProperty("--pi-panel-w", `${panel}px`);
 		const previous = sizes.current;
 		const next = { trigger: measure.offsetWidth, lid: control.clientHeight, panel, list: face.offsetHeight };
 		sizes.current = next;
+
 		return (
 			next.trigger !== previous.trigger ||
 			next.lid !== previous.lid ||
@@ -635,14 +716,19 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 		const measure = measureRef.current,
 			control = controlRef.current,
 			face = listFaceRef.current;
+
 		if (read()) place(live.current.measured);
+
 		if (!measure || !control || !face || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(() => {
 			if (read()) place(live.current.measured);
 		});
+
 		observer.observe(measure);
 		observer.observe(control);
 		observer.observe(face);
+
 		return () => observer.disconnect();
 	}, [place, read]);
 
@@ -653,10 +739,14 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 			read();
 			place(true);
 		}
+
 		const target = pendingFocus.current;
 		pendingFocus.current = null;
+
 		if (target === "search") searchRef.current?.focus({ preventScroll: true });
+
 		if (target === "trigger") triggerRef.current?.focus({ preventScroll: true });
+
 		if (target === "number") {
 			const input = inputRef.current;
 			input?.focus({ preventScroll: true });
@@ -668,15 +758,20 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	const hy = useMotionValue(0),
 		hh = useMotionValue(0),
 		ho = useMotionValue(0);
+
 	const scrollIntent = useRef(false);
 	useLayoutEffect(() => {
 		const node = open && activeKey ? rowRefs.current.get(activeKey) : undefined;
+
 		if (!node) {
 			animate(ho, 0, { duration: reduced || !open ? 0 : 0.12, ease: standardEase });
+
 			return;
 		}
+
 		const top = node.offsetTop,
 			height = node.offsetHeight;
+
 		if (ho.get() < 0.05 || reduced) {
 			hy.jump(top);
 			hh.jump(height);
@@ -684,11 +779,14 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 			animate(hy, top, GLIDE);
 			animate(hh, height, GLIDE);
 		}
+
 		animate(ho, 1, { duration: reduced ? 0 : 0.12, ease: enterEase });
 		const scroller = scrollRef.current;
+
 		if (scroller && scrollIntent.current) {
 			scrollIntent.current = false;
 			const pad = 6;
+
 			if (top < scroller.scrollTop + pad) scroller.scrollTop = top - pad;
 			else if (top + height > scroller.scrollTop + scroller.clientHeight - pad)
 				scroller.scrollTop = top + height - scroller.clientHeight + pad;
@@ -698,15 +796,18 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	function openList(seed = "") {
 		if (disabled || open) return;
 		setQuery(seed);
+
 		const selectedRow = seed
 			? null
 			: (sections.flatMap((section) => section.rows).find((row) => row.entry.iso === current.iso && !row.key.startsWith("p-")) ?? null);
+
 		setActive(selectedRow?.key ?? null);
 		scrollIntent.current = true;
 		pendingFocus.current = "search";
 		setAnnouncement("");
 		setOpen(true);
 	}
+
 	const close = useCallback(
 		(focus: "trigger" | "number" | null) => {
 			pendingFocus.current = focus;
@@ -717,15 +818,18 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	function pick(entry: PhoneCountry | undefined) {
 		if (!entry) return;
+
 		if (entry.iso !== current.iso) {
 			setRoll(Math.sign((orderOf.get(entry.iso) ?? 0) - (orderOf.get(current.iso) ?? 0)) || 1);
 			const nextDigits = capDigits(entry, digits);
+
 			if (countryProp === undefined) setState({ iso: entry.iso, digits: nextDigits });
 			else setState((last) => ({ ...last, digits: nextDigits }));
 			onCountryChange?.(entry.iso);
 			emit(entry, nextDigits);
 			setAnnouncement(`${entry.name}, +${entry.dial}`);
 		}
+
 		close("number");
 	}
 
@@ -735,56 +839,68 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 		setActive(key);
 	}
 
-	function onSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+	function onSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
 		const at = rows.findIndex((row) => row.key === activeKey);
+
 		switch (event.key) {
 			case "ArrowDown":
 				event.preventDefault();
 				move(rows[Math.min(rows.length - 1, at + 1)]?.key);
+
 				return;
 			case "ArrowUp":
 				event.preventDefault();
 				move(rows[Math.max(0, at - 1)]?.key);
+
 				return;
 			case "PageDown":
 				event.preventDefault();
 				move(rows[Math.min(rows.length - 1, at + PAGE)]?.key);
+
 				return;
 			case "PageUp":
 				event.preventDefault();
 				move(rows[Math.max(0, at - PAGE)]?.key);
+
 				return;
 			case "Home":
 				if (query) return;
 				event.preventDefault();
 				move(rows[0]?.key);
+
 				return;
 			case "End":
 				if (query) return;
 				event.preventDefault();
 				move(rows[rows.length - 1]?.key);
+
 				return;
 			case "Enter":
 				event.preventDefault();
 				pick(rows[at]?.entry);
+
 				return;
 			case "Escape":
 				event.preventDefault();
 				event.stopPropagation();
 				close("trigger");
+
 				return;
 			case "Tab":
 				close(null);
+
 				return;
 		}
 	}
 
-	function onTriggerKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+	function onTriggerKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
 		if (event.key === "ArrowDown" || event.key === "ArrowUp") {
 			event.preventDefault();
 			openList();
+
 			return;
 		}
+
 		if (event.key.length === 1 && event.key !== " " && !event.metaKey && !event.ctrlKey && !event.altKey) {
 			event.preventDefault();
 			openList(event.key);
@@ -794,6 +910,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 	function onQuery(next: string) {
 		setQuery(next);
 		setActive(null);
+
 		if (scrollRef.current) scrollRef.current.scrollTop = 0;
 		const text = next.trim().toLowerCase();
 		const count = text && text !== "+" ? pool.filter((entry) => matchesQuery(entry, text)).length : pool.length;
@@ -802,22 +919,26 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 
 	useEffect(() => {
 		if (!open) return;
+
 		const down = (event: PointerEvent) => {
 			if (!rootRef.current?.contains(event.target as Node)) close(null);
 		};
+
 		document.addEventListener("pointerdown", down);
+
 		return () => document.removeEventListener("pointerdown", down);
 	}, [close, open]);
 
-	const onRootBlur = (event: ReactFocusEvent<HTMLDivElement>) => {
+	const onRootBlur = (event: React.FocusEvent<HTMLDivElement>) => {
 		const next = event.relatedTarget as Node | null;
+
 		if (open && next && !event.currentTarget.contains(next)) close(null);
 	};
 
 	const showCheck = status === "valid";
 	const invalid = !!message;
 	const describedBy = [description ? hintId : null, message ? errorId : null].filter(Boolean).join(" ") || undefined;
-	const rootStyle = { "--pi-closed-r": `${CLOSED_RADIUS}px` } as CSSProperties;
+	const rootStyle = { "--pi-closed-r": `${CLOSED_RADIUS}px` } as React.CSSProperties;
 
 	const face = (entry: PhoneCountry) => (
 		<>
@@ -975,6 +1096,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 									{sections.map((section) => {
 										const body = section.rows.map((row) => {
 											const selected = row.entry.iso === current.iso;
+
 											return (
 												<div
 													key={row.key}
@@ -1004,6 +1126,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
 												</div>
 											);
 										});
+
 										return section.label ? (
 											<div key={section.key} role="group" aria-labelledby={`${uid}-${section.key}`} className={styles.group}>
 												<div id={`${uid}-${section.key}`} className={styles.groupLabel} role="presentation">

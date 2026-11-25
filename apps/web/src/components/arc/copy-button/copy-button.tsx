@@ -1,5 +1,3 @@
-"use client";
-
 import { CircleAlert, Copy } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -8,7 +6,7 @@ import { motionTokens } from "../lib/motion-tokens";
 import { useCopyFeedback } from "../lib/use-copy-feedback";
 import styles from "./copy-button.module.css";
 
-export interface CopyButtonProps {
+export type CopyButtonProps = {
 	value: string;
 	label?: string;
 	className?: string;
@@ -16,7 +14,7 @@ export interface CopyButtonProps {
 	variant?: "outline" | "plain";
 	disabled?: boolean;
 	onCopied?: () => void;
-}
+};
 
 /** Copy feedback is quick and quiet: the old icon and word fade out fast while the new ones fade in, with no blur and no
  *  per-letter motion. The button eases to the width of the current word on a spring with no overshoot, so a long label
@@ -69,17 +67,20 @@ export function CopyButton({
 		if (iconOnly) return;
 		const read = () => setWidths(Object.fromEntries(Object.entries(measures.current).map(([key, node]) => [key, node?.offsetWidth ?? 0])));
 		read();
+
 		if (typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(read);
 		Object.values(measures.current).forEach((node) => {
 			if (node) observer.observe(node);
 		});
+
 		return () => observer.disconnect();
 	}, [label, iconOnly]);
 	const width = widths[state === "copied" ? "copied" : state === "error" ? "error" : "idle"];
 	// The first measured width applies at once; only later changes ease, so the very first copy animates too.
 	const [shown, setShown] = useState<number | undefined>(undefined);
 	const first = shown === undefined;
+
 	if (width !== undefined && width !== shown) setShown(width);
 
 	async function handleCopy() {

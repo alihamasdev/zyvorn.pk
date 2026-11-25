@@ -1,18 +1,15 @@
-"use client";
-
 import { Tooltip as TooltipPrimitive } from "@base-ui/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { ReactElement, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./tooltip.module.css";
 
-export interface TooltipProps {
-	content: ReactNode;
-	children: ReactElement;
+export type TooltipProps = {
+	content: React.ReactNode;
+	children: React.ReactElement;
 	side?: "top" | "bottom" | "left" | "right";
-}
+};
 
 const DELAY = 250;
 const SKIP_WINDOW = 300;
@@ -22,9 +19,11 @@ let warm = false;
 let openCount = 0;
 let coolTimer = 0;
 const listeners = new Set<() => void>();
+
 const warmth = {
 	subscribe(listener: () => void) {
 		listeners.add(listener);
+
 		return () => {
 			listeners.delete(listener);
 		};
@@ -42,6 +41,7 @@ const warmth = {
 	},
 	closed() {
 		openCount = Math.max(0, openCount - 1);
+
 		if (openCount) return;
 		window.clearTimeout(coolTimer);
 		coolTimer = window.setTimeout(() => warmth.set(false), SKIP_WINDOW);
@@ -56,7 +56,9 @@ function TooltipText({ text }: { text: string }) {
 	const [size, setSize] = useState<{ width: number; height: number; animate: boolean } | null>(null);
 	useLayoutEffect(() => {
 		const node = measure.current;
+
 		if (!node) return;
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return;
 			const box = entry.borderBoxSize?.[0];
@@ -65,9 +67,12 @@ function TooltipText({ text }: { text: string }) {
 			measured.current = current;
 			setSize({ width: Math.ceil(box?.inlineSize ?? node.offsetWidth), height: Math.ceil(box?.blockSize ?? node.offsetHeight), animate });
 		});
+
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, []);
+
 	return (
 		<motion.span
 			className={styles.text}
@@ -111,8 +116,10 @@ export function Tooltip({ content, children, side = "top" }: TooltipProps) {
 	useEffect(() => {
 		if (!open) return;
 		warmth.opened();
+
 		return warmth.closed;
 	}, [open]);
+
 	return (
 		<TooltipPrimitive.Provider delay={isWarm ? 0 : DELAY} closeDelay={SKIP_WINDOW}>
 			<TooltipPrimitive.Root

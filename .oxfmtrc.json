@@ -6,9 +6,10 @@
 		".agents/",
 		".turbo/",
 		".vercel/",
-		"routeTree.gen.ts",
+		"tools/",
 		"packages/backend/convex/**/_generated/**",
-		"packages/backend/convex/components/auth/schema.ts"
+		"packages/backend/convex/components/auth/schema.ts",
+		"routeTree.gen.ts"
 	],
 	"semi": true,
 	"tabWidth": 2,

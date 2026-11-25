@@ -1,15 +1,12 @@
-"use client";
-
 import { Star } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { Variants } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./rating.module.css";
 
-export interface RatingProps {
+export type RatingProps = {
 	label: string;
 	value?: number;
 	defaultValue?: number;
@@ -33,19 +30,23 @@ export interface RatingProps {
 	emptyLabel?: string;
 	/** Submits the value with a surrounding form. */
 	name?: string;
-}
+};
 
 const defaultWords = ["Poor", "Fair", "Good", "Great", "Excellent"] as const;
+
 /** spring.snappy in physical terms. Time-defined springs drop initial velocity, and a pop is nothing but velocity. */
 const snappyRoot = (2 * Math.PI) / (motionTokens.spring.snappy.visualDuration * 1.2);
+
 const popSpring = {
 	type: "spring",
 	stiffness: snappyRoot ** 2,
 	damping: 2 * (1 - motionTokens.spring.snappy.bounce) * snappyRoot,
 	mass: 1,
 } as const;
+
 /** Scale per second handed to a resting star: it peaks near 1.18, then the spring settles it back to 1. */
 const popVelocity = 9;
+
 /** Commits closer together than this pop only the chosen star, so held arrow keys stay calm. */
 const waveGap = 260;
 const still = { duration: 0 } as const;
@@ -69,6 +70,7 @@ const wordMotion: Variants = {
 
 function RollingText({ text, direction, reduced }: { text: string; direction: number; reduced: boolean }) {
 	const words = text.split(/(\s+)/);
+
 	return (
 		<span className={styles.roll}>
 			<span className={styles.srOnly}>{text}</span>
@@ -95,7 +97,7 @@ function RollingText({ text, direction, reduced }: { text: string; direction: nu
 
 const clip = (fraction: number) => `inset(0 ${Math.min(100, Math.max(0, (1 - fraction) * 100))}% 0 0)`;
 
-interface GlyphProps {
+type GlyphProps = {
 	fill: number;
 	kept: number;
 	delay: number;
@@ -103,7 +105,7 @@ interface GlyphProps {
 	pressed: boolean;
 	pop: { key: number; delay: number } | null;
 	reduced: boolean;
-}
+};
 
 /** One star in three layers: the empty outline, a faint mark of the committed value, and the live fill that sweeps left to right. */
 function StarGlyph({ fill, kept, delay, soft, pressed, pop, reduced }: GlyphProps) {
@@ -128,8 +130,10 @@ function StarGlyph({ fill, kept, delay, soft, pressed, pop, reduced }: GlyphProp
 	useEffect(() => {
 		if (popKey === undefined || targets.current.pop === popKey) return;
 		targets.current.pop = popKey;
+
 		if (!reduced) animate(scale, 1, { ...popSpring, velocity: popVelocity, delay: popDelay });
 	}, [popKey, popDelay, reduced, scale]);
+
 	return (
 		<motion.span
 			className={styles.lift}
@@ -188,6 +192,7 @@ export function Rating({
 	const displayValue = preview ?? currentValue;
 	// Remember where the shown value came from, so the fill sweeps away from it and the words roll the same way.
 	const [sweep, setSweep] = useState({ from: displayValue, to: displayValue });
+
 	if (sweep.to !== displayValue) setSweep({ from: sweep.to, to: displayValue });
 	const direction = sweep.to >= sweep.from ? 1 : -1;
 	const cells = useRef<(HTMLSpanElement | null)[]>([]);
@@ -210,13 +215,18 @@ export function Rating({
 	const commit = (next: number, time: number, { toggle = false, announce = true } = {}) => {
 		if (!interactive) return;
 		let chosen = normalize(next);
+
 		if (toggle && allowClear && chosen === currentValue) chosen = 0;
+
 		if (!allowClear) chosen = Math.max(step, chosen);
+
 		if (preview !== null) heldAt.current = preview;
 		setPreview(null);
 		setPulse({ key: time, value: chosen, wave: time - lastCommit.current > waveGap });
 		lastCommit.current = time;
+
 		if (announce) setAnnouncement(chosen === 0 ? "Rating cleared" : spokenFor(chosen));
+
 		if (chosen === currentValue) return;
 		setInternalValue(chosen);
 		onChange?.(chosen);
@@ -226,19 +236,25 @@ export function Rating({
 	const valueAt = (x: number) => {
 		for (let index = 0; index < max; index += 1) {
 			const rect = cells.current[index]?.getBoundingClientRect();
+
 			if (!rect) continue;
+
 			if (index === 0 && x < rect.left - rect.width / 2) return allowClear ? 0 : step;
+
 			if (x <= rect.right + 1 || index === max - 1) return allowHalf && x < rect.left + rect.width / 2 ? index + 0.5 : index + 1;
 		}
+
 		return currentValue;
 	};
+
 	const starOf = (next: number) => (next > 0 ? Math.ceil(next) - 1 : null);
 
-	const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+	const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
 		if (!interactive || event.button !== 0) return;
 		const at = valueAt(event.clientX);
 		const touch = event.pointerType !== "mouse";
 		gesture.current = { start: at, last: at, scrub: false, touch };
+
 		// Touch keeps following the finger once it leaves the stars; a mouse keeps its hover path.
 		if (touch) {
 			try {
@@ -246,57 +262,75 @@ export function Rating({
 			} catch {
 				/* capture is a nicety */
 			}
+
 			setPreview(at);
 		}
+
 		setPressed(starOf(at));
 	};
-	const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+
+	const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
 		if (!interactive) return;
 		const at = valueAt(event.clientX);
 		const active = gesture.current;
+
 		if (active) {
 			if (at !== active.last) {
 				active.last = at;
 				active.scrub = true;
 			}
+
 			setPressed(starOf(at));
+
 			if (active.touch || active.scrub) setPreview(at);
+
 			return;
 		}
+
 		if (event.pointerType !== "mouse") return;
+
 		if (heldAt.current === at) return;
 		heldAt.current = null;
 		setPreview(at);
 	};
-	const endGesture = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
+
+	const endGesture = (event: React.PointerEvent<HTMLDivElement>, cancelled = false) => {
 		const active = gesture.current;
 		gesture.current = null;
 		setPressed(null);
+
 		if (!active) return;
+
 		if (!cancelled && (active.touch || active.scrub)) {
 			const at = valueAt(event.clientX);
 			// The browser may still send a click for this press; the pointer already made the choice.
 			suppressClickUntil.current = event.timeStamp + 500;
 			commit(at, event.timeStamp, { toggle: !active.scrub });
 			heldAt.current = active.touch ? null : at;
+
 			// A drag that began on another star leaves focus behind; keep it on the checked radio.
 			if (active.scrub && group.current?.contains(document.activeElement))
 				radios.current[Math.max(0, Math.round(normalize(at) / step) - 1)]?.focus({ preventScroll: true });
 		}
+
 		if (active.touch) setPreview(null);
 	};
-	const onPointerLeave = (event: PointerEvent<HTMLDivElement>) => {
+
+	const onPointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
 		if (gesture.current?.touch) return;
 		gesture.current = null;
 		heldAt.current = null;
 		setPressed(null);
+
 		if (event.pointerType === "mouse") setPreview(null);
 	};
-	const onClick = (event: MouseEvent<HTMLButtonElement>, next: number) => {
+
+	const onClick = (event: React.MouseEvent<HTMLButtonElement>, next: number) => {
 		if (event.detail > 0 && event.timeStamp < suppressClickUntil.current) return;
 		commit(next, event.timeStamp, { toggle: true });
 	};
-	const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, own: number) => {
+
+	const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, own: number) => {
 		const moves: Record<string, number> = {
 			ArrowRight: currentValue + step,
 			ArrowUp: currentValue + step,
@@ -305,14 +339,19 @@ export function Rating({
 			Home: step,
 			End: max,
 		};
+
 		let next: number | undefined = moves[event.key];
 		let announce = false;
+
 		if (event.key === " " || event.key === "Enter") next = own;
+
 		if ((event.key === "Backspace" || event.key === "Delete") && allowClear) {
 			next = 0;
 			announce = true;
 		}
+
 		if (/^[1-9]$/.test(event.key) && Number(event.key) <= max) next = Number(event.key);
+
 		if (next === undefined) return;
 		event.preventDefault();
 		const chosen = next === 0 ? 0 : Math.max(step, Math.min(max, next));
@@ -322,6 +361,7 @@ export function Rating({
 
 	const tabStop = currentValue > 0 ? currentValue : step;
 	const pulsing = pulse && pulse.value === currentValue && currentValue > 0 ? pulse : null;
+
 	const radio = (next: number, half: boolean) => (
 		<button
 			key={next}
@@ -365,6 +405,7 @@ export function Rating({
 						const fill = Math.max(0, Math.min(1, displayValue - index));
 						const order = sweep.to > sweep.from ? index - Math.floor(sweep.from) : Math.ceil(sweep.from) - 1 - index;
 						const popping = pulsing && index < Math.ceil(pulsing.value) && (pulsing.wave || index === Math.ceil(pulsing.value) - 1);
+
 						return (
 							<span
 								key={`${generatedId}-${index}`}

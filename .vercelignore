@@ -10,3 +10,7 @@
 local.db
 local.db-*
 .alchemy/
+.agents/
+.vscode/
+./tools/
+./scripts/

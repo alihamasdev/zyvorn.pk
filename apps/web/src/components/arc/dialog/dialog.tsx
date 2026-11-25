@@ -1,11 +1,8 @@
-"use client";
-
 import { Dialog as DialogPrimitive } from "@base-ui/react";
 import { X } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { createContext, useCallback, useContext, useState } from "react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./dialog.module.css";
@@ -18,9 +15,10 @@ export function Dialog({
 	defaultOpen = false,
 	onOpenChange,
 	...props
-}: ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) {
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) {
 	const [uncontrolled, setUncontrolled] = useState(defaultOpen);
 	const open = openProp ?? uncontrolled;
+
 	const setOpen = useCallback(
 		(next: boolean, eventDetails: DialogPrimitive.Root.ChangeEventDetails) => {
 			if (openProp === undefined) setUncontrolled(next);
@@ -28,6 +26,7 @@ export function Dialog({
 		},
 		[openProp, onOpenChange],
 	);
+
 	return (
 		<OpenContext.Provider value={open}>
 			<DialogPrimitive.Root {...props} open={open} onOpenChange={setOpen} />
@@ -38,11 +37,11 @@ export function Dialog({
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
-export interface DialogContentProps extends Omit<ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>, "title"> {
+export type DialogContentProps = Omit<React.ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>, "title"> & {
 	title: string;
 	description?: string;
-	children: ReactNode;
-}
+	children: React.ReactNode;
+};
 
 const fade: Transition = { duration: motionTokens.duration.instant };
 const leave: Transition = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };
@@ -50,6 +49,7 @@ const leave: Transition = { duration: motionTokens.duration.fast, ease: [...moti
 /** When the title or description changes while open, the new copy rises in and the old copy leaves upward. */
 function SwapText({ text }: { text: string }) {
 	const reduced = useReducedMotion();
+
 	return (
 		<AnimatePresence mode="popLayout" initial={false}>
 			<motion.span
@@ -79,6 +79,7 @@ export function DialogContent({ title, description, children, className, ...prop
 	const open = useContext(OpenContext);
 	const reduced = useReducedMotion();
 	const classes = [styles.content, className].filter(Boolean).join(" ");
+
 	const inner = (
 		<>
 			<div className={styles.header}>
@@ -99,6 +100,7 @@ export function DialogContent({ title, description, children, className, ...prop
 			<div className={styles.body}>{children}</div>
 		</>
 	);
+
 	// Under a bare Base UI root the open state is unknown here, so CSS keyframes keyed off data-state animate the layers instead.
 	if (open === null)
 		return (
@@ -109,6 +111,7 @@ export function DialogContent({ title, description, children, className, ...prop
 				</DialogPrimitive.Popup>
 			</DialogPrimitive.Portal>
 		);
+
 	// The overlay fades while the dialog rises 8px and scales up on a spring. Closing is shorter and quieter, and starts from wherever the entrance is.
 	return (
 		<AnimatePresence>

@@ -1,6 +1,5 @@
-"use client";
-
 import { CircleAlert, LoaderCircle } from "lucide-react";
+import type { AnimationPlaybackControls, MotionValue, Transition, Variants } from "motion/react";
 import {
 	AnimatePresence,
 	animate,
@@ -11,9 +10,7 @@ import {
 	useReducedMotion,
 	useTransform,
 } from "motion/react";
-import type { AnimationPlaybackControls, MotionValue, Transition, Variants } from "motion/react";
 import { useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode, Ref } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./confirm-morph.module.css";
@@ -31,13 +28,13 @@ export type ConfirmMorphMode = "press" | "hold" | "countdown";
  * or the timeout all return it to rest.
  * Use it where a modal dialog would be heavy: deleting a project, revoking access, discarding a draft.
  */
-export interface ConfirmMorphProps {
+export type ConfirmMorphProps = {
 	/** The resting label, such as "Delete project". */
-	label: ReactNode;
+	label: React.ReactNode;
 	/** A plain icon before the resting label. */
-	icon?: ReactNode;
+	icon?: React.ReactNode;
 	/** The question shown while confirming, such as "Delete 3 files?". Defaults to the label with a question mark. */
-	prompt?: ReactNode;
+	prompt?: React.ReactNode;
 	confirmLabel?: string;
 	cancelLabel?: string;
 	/** Shown beside the spinner while `onConfirm` resolves. */
@@ -80,31 +77,38 @@ export interface ConfirmMorphProps {
 	disabled?: boolean;
 	className?: string;
 	/** Receives the root element, which also takes focus while the action is pending. */
-	ref?: Ref<HTMLDivElement>;
-}
+	ref?: React.Ref<HTMLDivElement>;
+};
 
 /** A press this soon after the question appears is the tail of the press that opened it, not an answer. */
 const ARM_MS = 280;
 const { blur } = motionTokens;
+
 type Bezier = [number, number, number, number];
+
 const enter = [...motionTokens.ease.enter] as Bezier;
 const standard = [...motionTokens.ease.standard] as Bezier;
+
 /** Duration springs restated as stiffness and damping, so a retarget mid-flight keeps the velocity it already has. */
 const physical = ({ visualDuration, bounce }: { visualDuration: number; bounce: number }): Transition => {
 	const root = (2 * Math.PI) / (visualDuration * 1.2);
+
 	return { type: "spring", stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1 };
 };
+
 /** Growing follows new content with a little life; shrinking settles without overshoot. */
 const GROW = physical(motionTokens.spring.morph),
 	SHRINK = physical(motionTokens.spring.smooth);
 
 const subscribe = () => () => {};
+
 function useReducedFlag() {
 	const hydrated = useSyncExternalStore(
 		subscribe,
 		() => true,
 		() => false,
 	);
+
 	return !!useReducedMotion() && hydrated;
 }
 
@@ -118,15 +122,18 @@ const faceVariants: Variants = {
 	shown: { opacity: 1, transition: { staggerChildren: motionTokens.stagger.item, delayChildren: 0.05 } },
 	gone: { opacity: 0, filter: `blur(${blur.subtle}px)`, transition: { duration: motionTokens.duration.instant, ease: standard } },
 };
+
 const partVariants: Variants = {
 	hidden: { opacity: 0, filter: `blur(${blur.soft}px)` },
 	shown: { opacity: 1, filter: "blur(0px)", transition: { duration: 0.26, ease: enter } },
 };
+
 const reducedFace: Variants = {
 	hidden: { opacity: 0 },
 	shown: { opacity: 1, transition: { duration: 0.14 } },
 	gone: { opacity: 0, transition: { duration: 0.1 } },
 };
+
 const reducedPart: Variants = { hidden: { opacity: 1 }, shown: { opacity: 1 } };
 
 type FaceKey = ConfirmMorphState | "counting";
@@ -141,22 +148,26 @@ function Face({
 	id: FaceKey;
 	reduced: boolean;
 	onSize: (id: FaceKey, width: number) => void;
-	children: ReactNode;
+	children: React.ReactNode;
 	labelledBy?: string;
 }) {
 	const ref = useRef<HTMLDivElement>(null);
 	const present = useIsPresent();
 	useLayoutEffect(() => {
 		const node = ref.current;
+
 		if (!node || !present) return;
 		// Fractional widths, so the spring lands exactly where the pill's natural width is and the hand back to auto is seamless.
 		const report = () => onSize(id, node.getBoundingClientRect().width);
 		report();
+
 		if (typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(report);
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, [id, onSize, present]);
+
 	return (
 		<motion.div
 			ref={ref}
@@ -175,7 +186,7 @@ function Face({
 	);
 }
 
-function Part({ reduced, className, children }: { reduced: boolean; className?: string; children: ReactNode }) {
+function Part({ reduced, className, children }: { reduced: boolean; className?: string; children: React.ReactNode }) {
 	return (
 		<motion.span className={[styles.part, className].filter(Boolean).join(" ")} variants={reduced ? reducedPart : partVariants}>
 			{children}
@@ -310,9 +321,12 @@ export function ConfirmMorph({
 	const go = useCallback(
 		(next: ConfirmMorphState) => {
 			if (next !== "confirming") setCounting(false);
+
 			if (next === live.current.state) return;
 			keepFocus();
+
 			if (next === "confirming") askedAt.current = performance.now();
+
 			if (!live.current.controlled) setInner(next);
 			live.current.state = next;
 			live.current.onStateChange?.(next);
@@ -322,8 +336,10 @@ export function ConfirmMorph({
 
 	// A controlled parent can move the state on its own; the countdown never survives that.
 	const [seenState, setSeenState] = useState(state);
+
 	if (seenState !== state) {
 		setSeenState(state);
+
 		if (state !== "confirming") setCounting(false);
 	}
 
@@ -339,31 +355,40 @@ export function ConfirmMorph({
 			setWorking(kind);
 			setCounting(false);
 			let result: void | Promise<unknown> | undefined;
+
 			try {
 				result = handler?.();
 			} catch {
 				go("error");
 				setAnnouncement(errorLabel);
+
 				return;
 			}
+
 			if (result && typeof (result as Promise<unknown>).then === "function") {
 				go("pending");
 				setAnnouncement(kind === "confirm" ? pendingLabel : undoingLabel);
+
 				try {
 					await result;
 				} catch {
 					if (token !== run.current) return;
 					go("error");
 					setAnnouncement(errorLabel);
+
 					return;
 				}
+
 				if (token !== run.current) return;
 			}
+
 			if (kind === "undo") {
 				go("idle");
 				setAnnouncement("Undone");
+
 				return;
 			}
+
 			go("done");
 			setAnnouncement(onUndo ? `${doneLabel}. ${undoLabel} is available.` : doneLabel);
 		},
@@ -375,6 +400,7 @@ export function ConfirmMorph({
 		toIdle();
 		setAnnouncement("Cancelled");
 	}, [onCancel, toIdle]);
+
 	const expire = useRef(() => {});
 	useLayoutEffect(() => {
 		expire.current = () => {
@@ -387,18 +413,23 @@ export function ConfirmMorph({
 	const width = useMotionValue<number | "auto">("auto");
 	const target = useRef(0);
 	const flight = useRef(0);
+
 	// Only the present face reports (a leaving face stops observing), so every report is the current face's width.
 	const onFaceSize = useCallback(
 		(_id: FaceKey, w: number) => {
 			if (Math.abs(w - target.current) < 0.25) return;
 			const from = target.current;
 			target.current = w;
+
 			if (!from || reduced) {
 				flight.current++;
 				width.jump("auto");
+
 				return;
 			}
+
 			const now = width.get();
+
 			if (now === "auto") width.jump(from);
 			const token = ++flight.current;
 			animate(width, w, w > (typeof now === "number" ? now : from) ? GROW : SHRINK).then(() => {
@@ -413,13 +444,17 @@ export function ConfirmMorph({
 	const clock = useRef<AnimationPlaybackControls | null>(null);
 	const holds = useRef({ hover: false, hidden: false });
 	const timeout = state === "confirming" && !counting ? confirmTimeout : state === "done" || state === "error" ? resultTimeout : 0;
+
 	const sync = useCallback(() => {
 		const control = clock.current;
+
 		if (!control) return;
 		const held = holds.current.hover || holds.current.hidden;
+
 		if (held) control.pause();
 		else control.play();
 	}, []);
+
 	useEffect(() => {
 		if (!timeout) return;
 		drain.jump(1);
@@ -432,6 +467,7 @@ export function ConfirmMorph({
 			}
 		});
 		sync();
+
 		return () => {
 			if (clock.current === control) clock.current = null;
 			control.stop();
@@ -442,7 +478,9 @@ export function ConfirmMorph({
 			holds.current.hidden = document.hidden;
 			sync();
 		};
+
 		document.addEventListener("visibilitychange", onVisibility);
+
 		return () => document.removeEventListener("visibilitychange", onVisibility);
 	}, [sync]);
 
@@ -461,6 +499,7 @@ export function ConfirmMorph({
 		control.then(() => {
 			void performRef.current("confirm");
 		});
+
 		return () => control.stop();
 	}, [counting, countdown, remaining]);
 
@@ -468,6 +507,7 @@ export function ConfirmMorph({
 	const hold = useMotionValue(0);
 	const holding = useRef<AnimationPlaybackControls | null>(null);
 	const fillClip = useTransform(hold, (value) => `inset(0 ${(1 - value) * 100}% 0 0 round 999px)`);
+
 	const startHold = () => {
 		if (holding.current) return;
 		const control = animate(hold, 1, { duration: (holdDuration / 1000) * (1 - hold.get()), ease: "linear" });
@@ -478,16 +518,20 @@ export function ConfirmMorph({
 			void perform("confirm");
 		});
 	};
+
 	const releaseHold = () => {
 		const control = holding.current;
+
 		if (!control) return;
 		holding.current = null;
 		control.stop();
+
 		if (hold.get() < 1) {
 			animate(hold, 0, reduced ? { duration: 0 } : { type: "spring", visualDuration: 0.3, bounce: 0 });
 			setAnnouncement(`Keep holding to ${confirmLabel.toLowerCase()}`);
 		}
 	};
+
 	useEffect(() => {
 		if (state !== "confirming") {
 			holding.current?.stop();
@@ -498,22 +542,28 @@ export function ConfirmMorph({
 
 	const answer = () => {
 		if (performance.now() - askedAt.current < ARM_MS) return;
+
 		if (confirmMode === "countdown") {
 			keepFocus();
 			setCounting(true);
 			setAnnouncement(`${countdownLabel ?? `${pendingLabel} in`} ${countdown} seconds`);
+
 			return;
 		}
+
 		void perform("confirm");
 	};
 
 	// An outside press answers the question with no.
 	useEffect(() => {
 		if (state !== "confirming" || !cancelOnOutsidePress) return;
+
 		const down = (event: PointerEvent) => {
 			if (!rootRef.current?.contains(event.target as Node)) cancel();
 		};
+
 		document.addEventListener("pointerdown", down);
+
 		return () => document.removeEventListener("pointerdown", down);
 	}, [cancel, cancelOnOutsidePress, state]);
 
@@ -522,13 +572,14 @@ export function ConfirmMorph({
 		if (!pendingFocus.current) return;
 		pendingFocus.current = false;
 		const root = rootRef.current;
+
 		if (!root) return;
 		const face = root.querySelector<HTMLElement>(`[data-face="${faceKey}"]`);
 		const autofocus = face?.querySelector<HTMLElement>("[data-autofocus]:not(:disabled)");
 		(autofocus ?? root).focus({ preventScroll: true });
 	}, [faceKey]);
 
-	const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+	const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		if (event.key === "Escape") {
 			if (state === "confirming") {
 				event.preventDefault();
@@ -539,24 +590,29 @@ export function ConfirmMorph({
 				event.stopPropagation();
 				toIdle();
 			}
+
 			return;
 		}
+
 		// Enter answers yes from anywhere in the question except a button of its own (Cancel keeps meaning Cancel).
 		if (event.key === "Enter" && state === "confirming" && !event.repeat && !(event.target instanceof HTMLButtonElement)) {
 			event.preventDefault();
+
 			if (counting) void perform("confirm");
 			else if (confirmMode !== "hold") answer();
 		}
 	};
 
-	const holdKeys = (event: ReactKeyboardEvent<HTMLButtonElement>, down: boolean) => {
+	const holdKeys = (event: React.KeyboardEvent<HTMLButtonElement>, down: boolean) => {
 		if (event.key !== "Enter" && event.key !== " ") return;
 		event.preventDefault();
+
 		if (down) {
 			if (!event.repeat) startHold();
 		} else releaseHold();
 	};
-	const holdPointer = (event: ReactPointerEvent<HTMLButtonElement>) => {
+
+	const holdPointer = (event: React.PointerEvent<HTMLButtonElement>) => {
 		if (event.button !== 0) return;
 		event.currentTarget.setPointerCapture?.(event.pointerId);
 		startHold();
@@ -564,6 +620,7 @@ export function ConfirmMorph({
 
 	const shownPrompt = prompt ?? <>{label}?</>;
 	const shownCountdown = countdownLabel ?? `${pendingLabel} in`;
+
 	const confirmButton =
 		confirmMode === "hold" ? (
 			<button

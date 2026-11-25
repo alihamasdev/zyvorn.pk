@@ -1,20 +1,18 @@
-"use client";
-
 import { Check, Pipette, Plus } from "lucide-react";
-import { AnimatePresence, Reorder, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { Transition } from "motion/react";
+import { AnimatePresence, Reorder, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import { TextMorph } from "../text-morph/text-morph";
 import styles from "./color-picker.module.css";
 
 export type ColorFormat = "hex" | "rgb" | "hsl" | "oklch";
-export interface ColorSwatch {
+
+export type ColorSwatch = {
 	id: string;
 	color: string;
-}
+};
 
 /**
  * A color field whose swatch grows into a full picker. Pick saturation and brightness on the area, hue and opacity on the sliders, or type a value
@@ -22,7 +20,7 @@ export interface ColorSwatch {
  * swatches can be added, applied, dragged or moved with Alt and the arrow keys, and removed with Delete. A contrast readout compares the color with
  * the background it will sit on. Arrow keys move every thumb, Shift takes bigger steps, and Escape closes the panel.
  */
-export interface ColorPickerProps {
+export type ColorPickerProps = {
 	/** Any color the picker can read: hex, rgb(), hsl(), or oklch(). */
 	value?: string;
 	defaultValue?: string;
@@ -39,70 +37,95 @@ export interface ColorPickerProps {
 	maxSwatches?: number;
 	defaultFormat?: ColorFormat;
 	className?: string;
-}
+};
 
 export type Hsva = { h: number; s: number; v: number; a: number };
+
 type Rgba = { r: number; g: number; b: number; a: number };
 
 const { spring, duration, ease, blur } = motionTokens;
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
 const round = (value: number, digits = 0) => {
 	const f = 10 ** digits;
+
 	return Math.round(value * f) / f;
 };
+
 const physical = (visualDuration: number, bounce: number): Transition => {
 	const root = (2 * Math.PI) / (visualDuration * 1.2);
+
 	return { type: "spring", stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1, restDelta: 0.0005, restSpeed: 0.005 };
 };
+
 /** Thumbs chase the pointer on a quick spring with a little life, so a click lands with a soft settle and a drag trails by a hair. */
 const thumbSpring = physical(0.26, 0);
+
 /** Under a finger or mouse drag the thumb stays glued to the pointer: a stiff spring with no bounce, so it never trails or wobbles. */
 const dragSpring = physical(0.1, 0);
+
 const openSpring = physical(spring.morph.visualDuration, 0.1),
 	closeSpring = physical(0.3, 0);
+
 const instant: Transition = { duration: 0 };
 
 /* Color math. sRGB channels are 0 to 1. */
 function hsvToRgb({ h, s, v, a }: Hsva): Rgba {
 	const f = (n: number) => {
 		const k = (n + h / 60) % 6;
+
 		return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
 	};
+
 	return { r: f(5), g: f(3), b: f(1), a };
 }
+
 function rgbToHsv({ r, g, b, a }: Rgba, hue = 0): Hsva {
 	const max = Math.max(r, g, b),
 		min = Math.min(r, g, b),
 		d = max - min;
+
 	let h = hue;
+
 	if (d > 1e-6) {
 		if (max === r) h = 60 * (((g - b) / d) % 6);
 		else if (max === g) h = 60 * ((b - r) / d + 2);
 		else h = 60 * ((r - g) / d + 4);
+
 		if (h < 0) h += 360;
 	}
+
 	return { h, s: max === 0 ? 0 : d / max, v: max, a };
 }
+
 function hslToRgb(h: number, s: number, l: number, a: number): Rgba {
 	const k = (n: number) => (n + h / 30) % 12,
 		c = s * Math.min(l, 1 - l);
+
 	const f = (n: number) => l - c * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+
 	return { r: f(0), g: f(8), b: f(4), a };
 }
+
 function rgbToHsl({ r, g, b }: Rgba, hue: number) {
 	const max = Math.max(r, g, b),
 		min = Math.min(r, g, b),
 		l = (max + min) / 2,
 		d = max - min;
+
 	const s = d < 1e-6 ? 0 : d / (1 - Math.abs(2 * l - 1));
+
 	return { h: d < 1e-6 ? hue : rgbToHsv({ r, g, b, a: 1 }).h, s, l };
 }
+
 const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 const fromLinear = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
 function rgbToOklch({ r, g, b }: Rgba, hue: number) {
 	const lr = toLinear(r),
 		lg = toLinear(g),
 		lb = toLinear(b);
+
 	const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
 	const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
 	const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
@@ -111,15 +134,20 @@ function rgbToOklch({ r, g, b }: Rgba, hue: number) {
 	const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
 	const C = Math.hypot(A, B);
 	let H = (Math.atan2(B, A) * 180) / Math.PI;
+
 	if (H < 0) H += 360;
+
 	return { l: L, c: C, h: C < 0.0005 ? hue : H };
 }
+
 function oklchToRgb(L: number, C: number, H: number, a: number): Rgba {
 	const A = C * Math.cos((H * Math.PI) / 180),
 		B = C * Math.sin((H * Math.PI) / 180);
+
 	const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
 	const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
 	const s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
+
 	return {
 		r: clamp(fromLinear(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s)),
 		g: clamp(fromLinear(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s)),
@@ -127,25 +155,35 @@ function oklchToRgb(L: number, C: number, H: number, a: number): Rgba {
 		a,
 	};
 }
+
 const byte = (c: number) => Math.round(clamp(c) * 255);
 const hex2 = (c: number) => byte(c).toString(16).padStart(2, "0").toUpperCase();
 
 export function toHex(hsva: Hsva) {
 	const { r, g, b, a } = hsvToRgb(hsva);
+
 	return `#${hex2(r)}${hex2(g)}${hex2(b)}${a < 0.999 ? hex2(a) : ""}`;
 }
+
 function format(hsva: Hsva, kind: ColorFormat) {
 	const rgb = hsvToRgb(hsva);
 	const alpha = hsva.a < 0.999 ? ` / ${Math.round(hsva.a * 100)}%` : "";
+
 	if (kind === "hex") return toHex(hsva);
+
 	if (kind === "rgb") return `rgb(${byte(rgb.r)} ${byte(rgb.g)} ${byte(rgb.b)}${alpha})`;
+
 	if (kind === "hsl") {
 		const { h, s, l } = rgbToHsl(rgb, hsva.h);
+
 		return `hsl(${Math.round(h) % 360} ${Math.round(s * 100)}% ${Math.round(l * 100)}%${alpha})`;
 	}
+
 	const { l, c, h } = rgbToOklch(rgb, hsva.h);
+
 	return `oklch(${round(l * 100, 1)}% ${round(c, 3)} ${round(h, 1) % 360}${alpha})`;
 }
+
 const readAlpha = (text?: string) =>
 	text === undefined ? 1 : text.endsWith("%") ? clamp(parseFloat(text) / 100) : clamp(parseFloat(text));
 
@@ -153,30 +191,41 @@ const readAlpha = (text?: string) =>
 export function parseColor(input: string, hue = 0): Hsva | null {
 	const text = input.trim().toLowerCase();
 	let match = /^#?([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.exec(text);
+
 	if (match) {
 		let digits = match[1]!;
+
 		if (digits.length <= 4)
 			digits = digits
 				.split("")
 				.map((d) => d + d)
 				.join("");
 		const n = (i: number) => parseInt(digits.slice(i, i + 2), 16) / 255;
+
 		return rgbToHsv({ r: n(0), g: n(2), b: n(4), a: digits.length === 8 ? n(6) : 1 }, hue);
 	}
+
 	match = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[/,]\s*([\d.]+%?))?\s*\)$/.exec(text);
+
 	if (match)
 		return rgbToHsv({ r: clamp(+match[1]! / 255), g: clamp(+match[2]! / 255), b: clamp(+match[3]! / 255), a: readAlpha(match[4]) }, hue);
 	match = /^hsla?\(\s*([\d.]+)(?:deg)?[\s,]+([\d.]+)%?[\s,]+([\d.]+)%?(?:\s*[/,]\s*([\d.]+%?))?\s*\)$/.exec(text);
+
 	if (match) {
 		const h = +match[1]! % 360;
 		const next = rgbToHsv(hslToRgb(h, clamp(+match[2]! / 100), clamp(+match[3]! / 100), readAlpha(match[4])), h);
+
 		return { ...next, h };
 	}
+
 	match = /^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:deg)?(?:\s*\/\s*([\d.]+%?))?\s*\)$/.exec(text);
+
 	if (match) {
 		const L = match[2] ? +match[1]! / 100 : +match[1]!;
+
 		return rgbToHsv(oklchToRgb(clamp(L), +match[3]!, +match[4]!, readAlpha(match[5])), hue);
 	}
+
 	return null;
 }
 
@@ -185,16 +234,20 @@ function contrast(hsva: Hsva, background: Rgba) {
 	const fg = hsvToRgb(hsva);
 	const mix = (c: number, bg: number) => c * fg.a + bg * (1 - fg.a);
 	const lum = (r: number, g: number, b: number) => 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+
 	const a = lum(mix(fg.r, background.r), mix(fg.g, background.g), mix(fg.b, background.b)),
 		b = lum(background.r, background.g, background.b);
+
 	return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
+
 const level = (ratio: number) => (ratio >= 7 ? "AAA" : ratio >= 4.5 ? "AA" : ratio >= 3 ? "AA large" : "Fails");
 
 const formats: ColorFormat[] = ["hex", "rgb", "hsl", "oklch"];
 const formatNames: Record<ColorFormat, string> = { hex: "Hex", rgb: "RGB", hsl: "HSL", oklch: "OKLCH" };
 
 const subscribe = () => () => {};
+
 function useHydrated() {
 	return useSyncExternalStore(
 		subscribe,
@@ -202,6 +255,7 @@ function useHydrated() {
 		() => false,
 	);
 }
+
 function useEyeDropper() {
 	return useSyncExternalStore(
 		subscribe,
@@ -209,6 +263,7 @@ function useEyeDropper() {
 		() => false,
 	);
 }
+
 type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
 
 /** Springs a motion value to a new target, or jumps under reduced motion. Retargeting keeps the current velocity. */
@@ -217,38 +272,44 @@ function useFollow(target: number, reduced: boolean, dragging = false) {
 	useEffect(() => {
 		if (reduced) {
 			value.jump(target);
+
 			return;
 		}
+
 		const controls = animate(value, target, dragging ? dragSpring : thumbSpring);
+
 		return () => controls.stop();
 	}, [dragging, reduced, target, value]);
+
 	return value;
 }
 
 /** Tracks a pointer drag over an element and reports its position as fractions of the element's box. */
 function usePad(onMove: (x: number, y: number) => void, onActive: (active: boolean) => void) {
 	const pointer = useRef<number | null>(null);
-	const read = (event: ReactPointerEvent<HTMLElement>) => {
+
+	const read = (event: React.PointerEvent<HTMLElement>) => {
 		const box = event.currentTarget.getBoundingClientRect();
 		onMove(clamp((event.clientX - box.left) / box.width), clamp((event.clientY - box.top) / box.height));
 	};
+
 	return {
-		onPointerDown(event: ReactPointerEvent<HTMLElement>) {
+		onPointerDown(event: React.PointerEvent<HTMLElement>) {
 			if (event.button !== 0 || pointer.current !== null) return;
 			pointer.current = event.pointerId;
 			event.currentTarget.setPointerCapture(event.pointerId);
 			onActive(true);
 			read(event);
 		},
-		onPointerMove(event: ReactPointerEvent<HTMLElement>) {
+		onPointerMove(event: React.PointerEvent<HTMLElement>) {
 			if (event.pointerId === pointer.current) read(event);
 		},
-		onPointerUp(event: ReactPointerEvent<HTMLElement>) {
+		onPointerUp(event: React.PointerEvent<HTMLElement>) {
 			if (event.pointerId !== pointer.current) return;
 			pointer.current = null;
 			onActive(false);
 		},
-		onPointerCancel(event: ReactPointerEvent<HTMLElement>) {
+		onPointerCancel(event: React.PointerEvent<HTMLElement>) {
 			if (event.pointerId !== pointer.current) return;
 			pointer.current = null;
 			onActive(false);
@@ -257,9 +318,10 @@ function usePad(onMove: (x: number, y: number) => void, onActive: (active: boole
 }
 
 /** Arrow keys step by a small amount, Shift by ten, Page keys by ten, Home and End to the ends. */
-function stepFor(event: ReactKeyboardEvent, axis: "x" | "y" | "both") {
+function stepFor(event: React.KeyboardEvent, axis: "x" | "y" | "both") {
 	const big = event.shiftKey || event.key.startsWith("Page");
 	const size = big ? 10 : 1;
+
 	const map: Record<string, [number, number]> = {
 		ArrowRight: [size, 0],
 		ArrowLeft: [-size, 0],
@@ -268,10 +330,11 @@ function stepFor(event: ReactKeyboardEvent, axis: "x" | "y" | "both") {
 		PageUp: [10, 0],
 		PageDown: [-10, 0],
 	};
+
 	return map[event.key] ?? null;
 }
 
-interface SliderProps {
+type SliderProps = {
 	label: string;
 	value: number;
 	valueText: string;
@@ -279,16 +342,18 @@ interface SliderProps {
 	unit: number;
 	onChange: (value: number) => void;
 	className?: string;
-	style?: CSSProperties;
+	style?: React.CSSProperties;
 	reduced: boolean;
 	fill: string;
 	onActive: (active: boolean) => void;
 	active: boolean;
-}
+};
+
 function Slider({ label, value, valueText, max, unit, onChange, className, style, reduced, fill, onActive, active }: SliderProps) {
 	const x = useFollow(value / max, reduced, active);
 	const left = useTransform(x, (v) => `${v * 100}%`);
 	const pad = usePad((fx) => onChange(fx * max), onActive);
+
 	return (
 		<div className={`${styles.slider} ${className}`} style={style} {...pad}>
 			<motion.div
@@ -300,15 +365,18 @@ function Slider({ label, value, valueText, max, unit, onChange, className, style
 				aria-valuemax={max}
 				aria-valuenow={Math.round(value)}
 				aria-valuetext={valueText}
-				style={{ left, "--thumb-fill": fill } as unknown as CSSProperties}
+				style={{ left, "--thumb-fill": fill } as unknown as React.CSSProperties}
 				data-active={active || undefined}
 				onKeyDown={(event) => {
 					if (event.key === "Home" || event.key === "End") {
 						event.preventDefault();
 						onChange(event.key === "Home" ? 0 : max);
+
 						return;
 					}
+
 					const step = stepFor(event, "x");
+
 					if (!step) return;
 					event.preventDefault();
 					onChange(clamp(value + step[0] * unit, 0, max));
@@ -349,13 +417,17 @@ export function ColorPicker({
 
 	const [hsva, setHsva] = useState<Hsva>(() => parseColor(value ?? defaultValue) ?? { h: 220, s: 0.8, v: 1, a: 1 });
 	const [synced, setSynced] = useState(value);
+
 	if (value !== undefined && value !== synced) {
 		setSynced(value);
+
 		if (value.toUpperCase() !== toHex(hsva)) {
 			const next = parseColor(value, hsva.h);
+
 			if (next) setHsva(next);
 		}
 	}
+
 	const [ownSwatches, setOwnSwatches] = useState<ColorSwatch[]>(defaultSwatches ?? []);
 	const swatches = swatchesProp ?? ownSwatches;
 	const [open, setOpen] = useState(false);
@@ -390,8 +462,10 @@ export function ColorPicker({
 	function commit(next: Hsva) {
 		setHsva(next);
 		const nextHex = toHex(next);
+
 		if (nextHex !== hex) onValueChange?.(nextHex);
 	}
+
 	function setSwatches(next: ColorSwatch[]) {
 		if (!swatchesProp) setOwnSwatches(next);
 		onSwatchesChange?.(next);
@@ -400,33 +474,43 @@ export function ColorPicker({
 	// The surface: one progress value grows the swatch's box into the panel's box; the content fades in behind the leading edge.
 	const progress = useMotionValue(0),
 		fade = useMotionValue(0);
+
 	const size = { W: useMotionValue(300), H: useMotionValue(420), w: useMotionValue(160), h: useMotionValue(44) };
+
 	const clipPath = useTransform(() => {
 		const q = clamp(progress.get());
+
 		return `inset(0px ${round((size.W.get() - size.w.get()) * (1 - q), 2)}px ${round((size.H.get() - size.h.get()) * (1 - q), 2)}px 0px round ${round(22 + 4 * q, 2)}px)`;
 	});
+
 	const contentOpacity = useTransform(progress, [0.35, 0.9], [0, 1]);
 	const contentY = useTransform(progress, [0, 1], [-10, 0]);
 
 	useLayoutEffect(() => {
 		if (!shown) return;
+
 		const panel = panelRef.current,
 			trigger = triggerRef.current;
+
 		if (!panel || !trigger) return;
+
 		const measure = () => {
 			size.W.set(panel.offsetWidth);
 			size.H.set(panel.offsetHeight);
 			size.w.set(trigger.offsetWidth);
 			size.h.set(trigger.offsetHeight);
 		};
+
 		measure();
 		const observer = new ResizeObserver(measure);
 		observer.observe(panel);
+
 		return () => observer.disconnect();
 	}, [shown, size.W, size.H, size.w, size.h]);
 
 	useEffect(() => {
 		if (!shown) return;
+
 		if (reduced) {
 			progress.jump(open ? 1 : progress.get());
 			const controls = animate(fade, open ? 1 : 0, { duration: duration.fast, ease: [...ease.standard] });
@@ -436,14 +520,18 @@ export function ColorPicker({
 					setShown(false);
 				}
 			});
+
 			return () => controls.stop();
 		}
+
 		fade.jump(1);
 		const controls = animate(progress, open ? 1 : 0, open ? openSpring : closeSpring);
+
 		if (!open)
 			controls.then(() => {
 				if (!openNow.current) setShown(false);
 			});
+
 		return () => controls.stop();
 	}, [fade, open, progress, reduced, shown]);
 
@@ -456,11 +544,13 @@ export function ColorPicker({
 		setShown(true);
 		setOpen(true);
 	}
+
 	function hide(returnFocus = true) {
 		openNow.current = false;
 		setOpen(false);
 		setDraft(null);
 		setInvalid(false);
+
 		if (returnFocus) triggerRef.current?.focus({ preventScroll: true });
 	}
 
@@ -468,15 +558,19 @@ export function ColorPicker({
 		if (event instanceof KeyboardEvent) {
 			if (event.key !== "Escape") return;
 			hide(!!rootRef.current?.contains(document.activeElement));
+
 			return;
 		}
+
 		if (!rootRef.current?.contains(event.target as Node)) hide(false);
 	});
+
 	useEffect(() => {
 		if (!open) return;
 		const listener = (event: Event) => dismiss(event);
 		document.addEventListener("pointerdown", listener, true);
 		document.addEventListener("keydown", listener);
+
 		return () => {
 			document.removeEventListener("pointerdown", listener, true);
 			document.removeEventListener("keydown", listener);
@@ -486,8 +580,10 @@ export function ColorPicker({
 	// The saturation and brightness area.
 	const areaX = useFollow(hsva.s, reduced, active === "area"),
 		areaY = useFollow(1 - hsva.v, reduced, active === "area");
+
 	const areaLeft = useTransform(areaX, (v) => `${v * 100}%`),
 		areaTop = useTransform(areaY, (v) => `${v * 100}%`);
+
 	const areaPad = usePad(
 		(x, y) => commit({ ...hsva, s: x, v: 1 - y }),
 		(on) => setActive(on ? "area" : null),
@@ -496,14 +592,17 @@ export function ColorPicker({
 	// Format morph: the new text mounts showing the old string, then morphs to the new one, and the live field returns once it settles.
 	useEffect(() => {
 		if (!morph || morph.phase === 1) return;
+
 		const frame = requestAnimationFrame(() =>
 			setMorph((current) => (current && current.id === morph.id ? { ...current, phase: 1 } : current)),
 		);
+
 		return () => cancelAnimationFrame(frame);
 	}, [morph]);
 	useEffect(() => {
 		if (!morph || morph.phase === 0) return;
 		const timer = window.setTimeout(() => setMorph((current) => (current?.id === morph.id ? null : current)), 620);
+
 		return () => window.clearTimeout(timer);
 	}, [morph]);
 
@@ -512,20 +611,26 @@ export function ColorPicker({
 		setKind(next);
 		setDraft(null);
 		setInvalid(false);
+
 		if (!reduced) setMorph({ id: Date.now(), from: text, to: format(hsva, next), phase: 0 });
 	}
 
 	function submitDraft() {
 		if (draft === null) return true;
 		const next = parseColor(draft, hsva.h);
+
 		if (!next) {
 			setInvalid(true);
+
 			if (!reduced) animate(fieldX, [0, -5, 4, -2, 0], { duration: 0.32, ease: [...ease.standard] });
+
 			return false;
 		}
+
 		commit(next);
 		setDraft(null);
 		setInvalid(false);
+
 		return true;
 	}
 
@@ -536,6 +641,7 @@ export function ColorPicker({
 			.open()
 			.then((result) => {
 				const next = parseColor(result.sRGBHex, hsva.h);
+
 				if (next) commit({ ...next, a: hsva.a });
 			})
 			.catch(() => {});
@@ -546,9 +652,11 @@ export function ColorPicker({
 		setSwatches([entry, ...swatches].slice(0, maxSwatches));
 		setFocusSwatch(entry.id);
 	}
-	function onSwatchKey(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+
+	function onSwatchKey(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
 		const item = swatches[index]!;
 		const move = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+
 		if (event.key === "Delete" || event.key === "Backspace") {
 			event.preventDefault();
 			const next = swatches.filter((entry) => entry.id !== item.id);
@@ -558,22 +666,29 @@ export function ColorPicker({
 			requestAnimationFrame(() =>
 				neighbor ? swatchRefs.current.get(neighbor.id)?.focus({ preventScroll: true }) : inputRef.current?.focus({ preventScroll: true }),
 			);
+
 			return;
 		}
+
 		if (!move && event.key !== "Home" && event.key !== "End") return;
 		event.preventDefault();
+
 		if (move && event.altKey) {
 			const to = index + move;
+
 			if (to < 0 || to >= swatches.length) return;
 			const next = [...swatches];
 			next.splice(index, 1);
 			next.splice(to, 0, item);
 			setSwatches(next);
 			requestAnimationFrame(() => swatchRefs.current.get(item.id)?.focus({ preventScroll: true }));
+
 			return;
 		}
+
 		const target =
 			event.key === "Home" ? 0 : event.key === "End" ? swatches.length - 1 : (index + move + swatches.length) % swatches.length;
+
 		setFocusSwatch(swatches[target]!.id);
 		swatchRefs.current.get(swatches[target]!.id)?.focus({ preventScroll: true });
 	}
@@ -583,7 +698,12 @@ export function ColorPicker({
 	const grade = level(ratio);
 	const hidden = reduced ? { opacity: 0 } : { opacity: 0, y: "0.3em", filter: `blur(${blur.subtle}px)` };
 	const swatchTab = swatches.some((entry) => entry.id === focusSwatch) ? focusSwatch : swatches[0]?.id;
-	const style = { "--picker-color": css, "--picker-opaque": opaque, "--picker-hue": pure, "--picker-bg": background } as CSSProperties;
+	const style = {
+		"--picker-color": css,
+		"--picker-opaque": opaque,
+		"--picker-hue": pure,
+		"--picker-bg": background,
+	} as React.CSSProperties;
 
 	return (
 		<div ref={rootRef} className={[styles.root, className].filter(Boolean).join(" ")} style={style}>
@@ -648,6 +768,7 @@ export function ColorPicker({
 									style={{ left: areaLeft, top: areaTop }}
 									onKeyDown={(event) => {
 										const step = stepFor(event, "both");
+
 										if (!step) return;
 										event.preventDefault();
 										commit({ ...hsva, s: clamp(hsva.s + step[0] / 100), v: clamp(hsva.v + step[1] / 100) });
@@ -709,8 +830,10 @@ export function ColorPicker({
 										onKeyDown={(event) => {
 											if (event.key === "Enter") {
 												event.preventDefault();
+
 												if (submitDraft()) event.currentTarget.select();
 											}
+
 											if (event.key === "Escape" && draft !== null) {
 												event.stopPropagation();
 												event.nativeEvent.stopImmediatePropagation();
@@ -815,6 +938,7 @@ export function ColorPicker({
 													onClick={() => {
 														if (dragged.current) return;
 														const next = parseColor(entry.color, hsva.h);
+
 														if (next) commit(next);
 													}}
 												>

@@ -1,16 +1,14 @@
-"use client";
-
 import { ChevronDown, LoaderCircle, LogOut, Monitor, Moon, Sun, SunMoon } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { PanInfo, Transition, Variants } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { CSSProperties, FocusEvent, KeyboardEvent, MouseEvent, PointerEvent, ReactNode, Ref } from "react";
 import { createPortal } from "react-dom";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./user-menu.module.css";
 
 export type UserStatus = "available" | "busy" | "away";
+
 export type ThemePreference = "light" | "dark" | "system";
 
 /** Statuses in menu order. Each one has its own dot shape as well as color: solid, barred, or hollow. */
@@ -20,25 +18,26 @@ export const userStatuses: { value: UserStatus; label: string }[] = [
 	{ value: "away", label: "Away" },
 ];
 
-const themes: { value: ThemePreference; label: string; icon: ReactNode }[] = [
+const themes: { value: ThemePreference; label: string; icon: React.ReactNode }[] = [
 	{ value: "light", label: "Light", icon: <Sun size={14} strokeWidth={1.75} aria-hidden="true" /> },
 	{ value: "dark", label: "Dark", icon: <Moon size={14} strokeWidth={1.75} aria-hidden="true" /> },
 	{ value: "system", label: "System", icon: <Monitor size={14} strokeWidth={1.75} aria-hidden="true" /> },
 ];
 
-export interface UserMenuUser {
+export type UserMenuUser = {
 	name: string;
 	email: string;
 	plan?: string;
 	avatarSrc?: string;
 	avatarSrcSet?: string;
-}
-export interface UserMenuItem {
+};
+
+export type UserMenuItem = {
 	label: string;
-	icon?: ReactNode;
+	icon?: React.ReactNode;
 	keys?: string[];
 	onSelect?: () => void;
-}
+};
 
 /**
  * The account menu behind a person's photo in an app's top bar. It holds a compact identity header, a short group of account
@@ -46,7 +45,7 @@ export interface UserMenuItem {
  * Theme and status choices keep the menu open; everything else closes it and returns focus to the trigger.
  * When `onSignOut` returns a promise, the item shows its progress and the menu closes once it settles.
  */
-export interface UserMenuProps {
+export type UserMenuProps = {
 	user: UserMenuUser;
 	/** Presence status. Passing `status` or `onStatusChange` shows the presence dot and an inline status switch. */
 	status?: UserStatus;
@@ -71,19 +70,23 @@ export interface UserMenuProps {
 	/** Renders the desktop panel in a portal on the body. Pass false to keep it inside the trigger's wrapper. */
 	portal?: boolean;
 	/** The trigger button, for returning focus after the menu is swapped out. */
-	ref?: Ref<HTMLButtonElement>;
+	ref?: React.Ref<HTMLButtonElement>;
 	className?: string;
-}
+};
 
 type Highlight = { top: number; height: number; tone?: string; glide: boolean };
+
 type OpenReason = "first" | "last" | "pointer" | null;
 
 const compactQuery = "(max-width: 639px)";
+
 const subscribeCompact = (change: () => void) => {
 	const query = window.matchMedia(compactQuery);
 	query.addEventListener("change", change);
+
 	return () => query.removeEventListener("change", change);
 };
+
 const subscribeNothing = () => () => {};
 const statusLabel = (status: UserStatus) => userStatuses.find((option) => option.value === status)?.label ?? status;
 const enter = [...motionTokens.ease.enter] as [number, number, number, number];
@@ -107,16 +110,19 @@ const panelMotion: Variants = {
 	},
 	exit: { opacity: 0, scale: 0.97, transition: { duration: motionTokens.duration.instant, ease: exitEase } },
 };
+
 const sheetMotion: Variants = {
 	closed: { y: "100%" },
 	open: { y: 0, transition: { ...motionTokens.spring.smooth, visualDuration: 0.36, delayChildren: 0.06, staggerChildren: 0.02 } },
 	exit: { y: "100%", transition: { duration: 0.22, ease: exitEase } },
 };
+
 const stillMotion: Variants = {
 	closed: { opacity: 0 },
 	open: { opacity: 1, transition: { duration: motionTokens.duration.instant } },
 	exit: { opacity: 0, transition: { duration: motionTokens.duration.instant } },
 };
+
 const rowMotion: Variants = { closed: { opacity: 0, y: 3 }, open: { opacity: 1, y: 0, transition: { duration: 0.2, ease: enter } } };
 
 /** A presence mark that morphs between statuses: the color crossfades while a hole opens for away and a bar slides in for busy. */
@@ -126,6 +132,7 @@ export function PresenceDot({ status, className }: { status: UserStatus | "offli
 
 function Portrait({ user }: { user: UserMenuUser }) {
 	const [failed, setFailed] = useState<string>();
+
 	if (!user.avatarSrc || failed === user.avatarSrc) {
 		const initials = user.name
 			.trim()
@@ -133,8 +140,10 @@ function Portrait({ user }: { user: UserMenuUser }) {
 			.slice(0, 2)
 			.map((part) => part[0]?.toUpperCase())
 			.join("");
+
 		return <span className={`${styles.portrait} ${styles.initials}`}>{initials}</span>;
 	}
+
 	// eslint-disable-next-line @next/next/no-img-element -- registry components stay framework agnostic; pass optimized URLs as avatarSrc and avatarSrcSet.
 	return (
 		<img
@@ -207,9 +216,9 @@ function Segmented<T extends string>({
 	variants,
 }: {
 	label: string;
-	icon: ReactNode;
+	icon: React.ReactNode;
 	value: T;
-	options: { value: T; label: string; icon: ReactNode }[];
+	options: { value: T; label: string; icon: React.ReactNode }[];
 	onChange: (value: T) => void;
 	variants?: Variants;
 }) {
@@ -217,6 +226,7 @@ function Segmented<T extends string>({
 		0,
 		options.findIndex((option) => option.value === value),
 	);
+
 	return (
 		<motion.div className={styles.row} data-stop="group" data-label={label} variants={variants}>
 			<span className={styles.icon} aria-hidden="true">
@@ -229,7 +239,7 @@ function Segmented<T extends string>({
 				className={styles.segments}
 				role="group"
 				aria-label={label}
-				style={{ "--index": index, "--count": options.length } as CSSProperties}
+				style={{ "--index": index, "--count": options.length } as React.CSSProperties}
 			>
 				<span className={styles.thumb} aria-hidden="true" />
 				{options.map((option) => (
@@ -253,12 +263,15 @@ function Segmented<T extends string>({
 }
 
 const getStops = (root: HTMLElement | null) => Array.from(root?.querySelectorAll<HTMLElement>("[data-stop]") ?? []);
+
 function focusStop(stop: HTMLElement | undefined) {
 	if (!stop) return;
+
 	const target =
 		stop.dataset.stop === "group"
 			? (stop.querySelector<HTMLElement>('[aria-checked="true"]') ?? stop.querySelector<HTMLElement>("button"))
 			: stop;
+
 	target?.focus({ preventScroll: true });
 }
 
@@ -287,16 +300,19 @@ export function UserMenu({
 	const menuId = `${id}-menu`;
 	const triggerId = `${id}-trigger`;
 	const reduced = !!useReducedMotion();
+
 	const hydrated = useSyncExternalStore(
 		subscribeNothing,
 		() => true,
 		() => false,
 	);
+
 	const compact = useSyncExternalStore(
 		subscribeCompact,
 		() => window.matchMedia(compactQuery).matches,
 		() => false,
 	);
+
 	const [innerOpen, setInnerOpen] = useState(defaultOpen);
 	const [innerStatus, setInnerStatus] = useState(defaultStatus);
 	const [innerTheme, setInnerTheme] = useState(defaultTheme);
@@ -320,6 +336,7 @@ export function UserMenu({
 	useEffect(() => {
 		mounted.current = true;
 		const current = typed.current;
+
 		return () => {
 			mounted.current = false;
 			window.clearTimeout(current.timer);
@@ -328,19 +345,23 @@ export function UserMenu({
 
 	function setTriggerRef(node: HTMLButtonElement | null) {
 		triggerRef.current = node;
+
 		if (typeof ref === "function") ref(node);
 		else if (ref) (ref as { current: HTMLButtonElement | null }).current = node;
 	}
 
 	function setOpen(next: boolean, why: OpenReason = null) {
 		reason.current = next ? why : null;
+
 		if (next) setSigningOut(pending.current);
 		setHighlight(null);
 		setInnerOpen(next);
 		onOpenChange?.(next);
 	}
+
 	function close(returnFocus: boolean) {
 		setOpen(false);
+
 		if (returnFocus) triggerRef.current?.focus({ preventScroll: true });
 	}
 
@@ -349,27 +370,36 @@ export function UserMenu({
 		if (!open) return;
 		const why = reason.current;
 		reason.current = null;
+
 		if (!why) return;
+
 		const frame = requestAnimationFrame(() => {
 			const stops = getStops(listRef.current);
+
 			if (why === "first") focusStop(stops[0]);
 			else if (why === "last") focusStop(stops.at(-1));
 			else surfaceRef.current?.focus({ preventScroll: true });
 		});
+
 		return () => cancelAnimationFrame(frame);
 	}, [open, sheet]);
 
 	// The panel is placed against the trigger and scales from the avatar's center, flipping above when there is no room below.
 	useLayoutEffect(() => {
 		if (!open || sheet) return;
+
 		const place = () => {
 			const panel = surfaceRef.current,
 				trigger = triggerRef.current;
+
 			if (!panel || !trigger) return;
 			const rect = trigger.getBoundingClientRect();
+
 			const width = panel.offsetWidth,
 				height = panel.offsetHeight;
+
 			let left: number, top: number;
+
 			if (inline) {
 				const root = rootRef.current?.getBoundingClientRect();
 				left = (root?.left ?? 0) + panel.offsetLeft;
@@ -382,15 +412,19 @@ export function UserMenu({
 				panel.style.left = `${left}px`;
 				panel.style.top = `${top}px`;
 			}
+
 			const faceCenter = rect.left + Math.min(rect.width, 40) / 2;
 			const originX = align === "end" && rect.width > 40 ? rect.right - 20 - left : faceCenter - left;
 			panel.style.setProperty("--origin-x", `${Math.min(Math.max(0, originX), width)}px`);
 			panel.style.setProperty("--origin-y", top < rect.top ? `${height}px` : "0px");
 		};
+
 		place();
+
 		if (inline) return;
 		window.addEventListener("resize", place);
 		window.addEventListener("scroll", place, true);
+
 		return () => {
 			window.removeEventListener("resize", place);
 			window.removeEventListener("scroll", place, true);
@@ -400,15 +434,19 @@ export function UserMenu({
 	// Outside presses close the panel. The sheet has its own scrim.
 	useEffect(() => {
 		if (!open || sheet) return;
+
 		const onPointerDown = (event: globalThis.PointerEvent) => {
 			const target = event.target as Node;
+
 			if (surfaceRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
 			reason.current = null;
 			setHighlight(null);
 			setInnerOpen(false);
 			onOpenChange?.(false);
 		};
+
 		document.addEventListener("pointerdown", onPointerDown, true);
+
 		return () => document.removeEventListener("pointerdown", onPointerDown, true);
 	}, [open, sheet, onOpenChange]);
 
@@ -418,6 +456,7 @@ export function UserMenu({
 		const root = document.documentElement;
 		const previous = root.style.overflow;
 		root.style.overflow = "hidden";
+
 		return () => {
 			root.style.overflow = previous;
 		};
@@ -427,6 +466,7 @@ export function UserMenu({
 		setInnerStatus(value);
 		onStatusChange?.(value);
 	}
+
 	function changeTheme(value: ThemePreference) {
 		setInnerTheme(value);
 		onThemeChange?.(value);
@@ -435,57 +475,72 @@ export function UserMenu({
 	function signOut() {
 		if (pending.current) return;
 		const result = onSignOut?.();
+
 		if (!result || typeof result.then !== "function") {
 			close(true);
+
 			return;
 		}
+
 		// Async sign out keeps the menu open with its progress on the item, then closes once it settles.
 		pending.current = true;
 		setSigningOut(true);
+
 		const done = () => {
 			pending.current = false;
+
 			if (mounted.current) close(false);
 		};
+
 		result.then(done, done);
 	}
 
-	function onListFocus(event: FocusEvent<HTMLDivElement>) {
+	function onListFocus(event: React.FocusEvent<HTMLDivElement>) {
 		const stop = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>("[data-stop]") : null;
+
 		if (!stop) {
 			setHighlight(null);
+
 			return;
 		}
+
 		setHighlight((current) => ({ top: stop.offsetTop, height: stop.offsetHeight, tone: stop.dataset.tone, glide: current !== null }));
 	}
 
 	// Focus follows a mouse or pen, so the keyboard carries on from wherever the pointer left the highlight.
-	function onItemPointerMove(event: PointerEvent<HTMLElement>) {
+	function onItemPointerMove(event: React.PointerEvent<HTMLElement>) {
 		if (event.pointerType === "touch") return;
+
 		if (document.activeElement !== event.currentTarget) event.currentTarget.focus({ preventScroll: true });
 	}
+
 	// The inline switches are not rows, so the pointer over them releases the highlight instead of dragging it along.
-	function onListPointerMove(event: PointerEvent<HTMLElement>) {
+	function onListPointerMove(event: React.PointerEvent<HTMLElement>) {
 		if (event.pointerType === "touch" || !highlight) return;
 		const group = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>('[data-stop="group"]') : null;
+
 		if (!group || group.contains(document.activeElement)) return;
 		setHighlight(null);
 		surfaceRef.current?.focus({ preventScroll: true });
 	}
-	function onListPointerLeave(event: PointerEvent<HTMLElement>) {
+
+	function onListPointerLeave(event: React.PointerEvent<HTMLElement>) {
 		if (event.pointerType === "touch") return;
 		setHighlight(null);
 		surfaceRef.current?.focus({ preventScroll: true });
 	}
 
-	function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+	function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
 		const stops = getStops(listRef.current);
 		const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		const current = active?.closest<HTMLElement>("[data-stop]") ?? null;
 		const index = current ? stops.indexOf(current) : -1;
+
 		const step = (to: HTMLElement | undefined) => {
 			event.preventDefault();
 			focusStop(to);
 		};
+
 		switch (event.key) {
 			case "ArrowDown":
 				return step(stops[(index + 1) % stops.length]);
@@ -498,22 +553,27 @@ export function UserMenu({
 			case "Escape":
 			case "Tab":
 				event.preventDefault();
+
 				return close(true);
 			case "ArrowLeft":
 			case "ArrowRight": {
 				if (current?.dataset.stop !== "group") return;
 				event.preventDefault();
 				const segments = Array.from(current.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'));
+
 				const at = Math.max(
 					0,
 					segments.findIndex((segment) => segment.getAttribute("aria-checked") === "true"),
 				);
+
 				const next = segments[(at + (event.key === "ArrowRight" ? 1 : -1) + segments.length) % segments.length];
 				next?.focus({ preventScroll: true });
 				next?.click();
+
 				return;
 			}
 		}
+
 		if (event.key.length !== 1 || event.ctrlKey || event.metaKey || event.altKey || event.key === " ") return;
 		// Typeahead: letters jump to the next row whose label starts with what was typed.
 		const memory = typed.current;
@@ -525,17 +585,21 @@ export function UserMenu({
 		const ordered = [...stops.slice(index + 1), ...stops.slice(0, index + 1)];
 		const search = memory.text.length > 1 && current?.dataset.label?.toLowerCase().startsWith(memory.text) ? [current] : ordered;
 		const match = search.find((stop) => stop.dataset.label?.toLowerCase().startsWith(memory.text));
+
 		if (match) step(match);
 	}
 
-	function onTriggerClick(event: MouseEvent<HTMLButtonElement>) {
+	function onTriggerClick(event: React.MouseEvent<HTMLButtonElement>) {
 		if (open) {
 			close(false);
+
 			return;
 		}
+
 		setOpen(true, event.detail === 0 ? "first" : "pointer");
 	}
-	function onTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+
+	function onTriggerKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
 		if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 		event.preventDefault();
 		setOpen(true, event.key === "ArrowDown" ? "first" : "last");

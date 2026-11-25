@@ -1,19 +1,16 @@
-"use client";
-
 import { Select as SelectPrimitive } from "@base-ui/react";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type Variants } from "motion/react";
 import { forwardRef, useId, useState } from "react";
-import type { ComponentPropsWithoutRef } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./select.module.css";
 
-export interface SelectProps extends Omit<
-	ComponentPropsWithoutRef<typeof SelectPrimitive.Root>,
+export type SelectProps = Omit<
+	React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>,
 	"children" | "defaultValue" | "value" | "onValueChange"
-> {
+> & {
 	label: string;
 	description?: string;
 	placeholder?: string;
@@ -23,7 +20,7 @@ export interface SelectProps extends Omit<
 	defaultValue?: string;
 	onValueChange?: (value: string) => void;
 	options: { value: string; label: string; disabled?: boolean }[];
-}
+};
 
 /** The shown value rolls in the direction of the list: a later option rises from below, an earlier one drops from above. */
 const valueRoll: Variants = {
@@ -41,6 +38,7 @@ const valueRoll: Variants = {
 		transition: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] },
 	}),
 };
+
 /** Reduced motion keeps a short crossfade; the resting state matches valueRoll so server and client markup agree. */
 const valueFade: Variants = {
 	enter: { opacity: 0 },
@@ -74,6 +72,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 	const shown = currentValue ? (options[index]?.label ?? "") : placeholder;
 	const [previousIndex, setPreviousIndex] = useState(index);
 	const [direction, setDirection] = useState(1);
+
 	if (previousIndex !== index) {
 		setPreviousIndex(index);
 		setDirection(index > previousIndex ? 1 : -1);
@@ -88,6 +87,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 				disabled={disabled}
 				onValueChange={(next) => {
 					const stringVal = String(next ?? "");
+
 					if (value === undefined) setUncontrolledValue(stringVal);
 					onValueChange?.(stringVal);
 				}}

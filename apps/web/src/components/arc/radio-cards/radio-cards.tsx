@@ -1,33 +1,30 @@
-"use client";
-
-import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
+import { animate, motion, useMotionValue, useReducedMotion } from "motion/react";
 import { forwardRef, useCallback, useId, useImperativeHandle, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { CSSProperties, HTMLAttributes, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./radio-cards.module.css";
 
-export interface RadioCardOption {
+export type RadioCardOption = {
 	value: string;
-	label: ReactNode;
+	label: React.ReactNode;
 	/** One or two short lines under the label. */
-	description?: ReactNode;
+	description?: React.ReactNode;
 	/** A price, estimate, or other value. Sits at the end of a list row, or under the text in a grid card. */
-	meta?: ReactNode;
+	meta?: React.ReactNode;
 	/** Plain decorative icon beside the label. */
-	icon?: ReactNode;
+	icon?: React.ReactNode;
 	disabled?: boolean;
 	/** Short reason shown in place of the description when the option is disabled. */
-	disabledReason?: ReactNode;
-}
+	disabledReason?: React.ReactNode;
+};
 
 /**
  * Selectable option cards for choices that need more than a label: plans, shipping speeds, regions. One selection ring
  * glides from card to card on a spring, so the eye follows the change. Behaves as a native radio group: one tab stop,
  * arrow keys move and select, and a hidden input carries the value in forms.
  */
-export interface RadioCardsProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "defaultValue"> {
+export type RadioCardsProps = Omit<React.HTMLAttributes<HTMLDivElement>, "onChange" | "defaultValue"> & {
 	options: RadioCardOption[];
 	value?: string | null;
 	defaultValue?: string | null;
@@ -40,23 +37,29 @@ export interface RadioCardsProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
 	name?: string;
 	required?: boolean;
 	disabled?: boolean;
-}
+};
 
 type Bezier = [number, number, number, number];
+
 const standard = [...motionTokens.ease.standard] as Bezier;
+
 const physical = (visualDuration: number, bounce: number): Transition => {
 	const root = (2 * Math.PI) / (visualDuration * 1.2);
+
 	return { type: "spring", stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1 };
 };
+
 const GLIDE = physical(0.42, 0);
 
 const subscribe = () => () => {};
+
 function useReducedFlag() {
 	const hydrated = useSyncExternalStore(
 		subscribe,
 		() => true,
 		() => false,
 	);
+
 	return !!useReducedMotion() && hydrated;
 }
 
@@ -89,6 +92,7 @@ export const RadioCards = forwardRef<HTMLDivElement, RadioCardsProps>(function R
 
 	const select = (next: string) => {
 		if (next === selected) return;
+
 		if (value === undefined) setInternal(next);
 		onValueChange?.(next);
 	};
@@ -99,28 +103,37 @@ export const RadioCards = forwardRef<HTMLDivElement, RadioCardsProps>(function R
 		w = useMotionValue(0),
 		h = useMotionValue(0),
 		o = useMotionValue(0);
+
 	const placed = useRef(false);
+
 	const place = useCallback(
 		(spring: boolean) => {
 			const node = selectedIndex < 0 ? null : rootRef.current?.querySelector<HTMLElement>(`[data-card="${selectedIndex}"]`);
+
 			if (!node) {
 				o.set(0);
 				placed.current = false;
+
 				return;
 			}
+
 			const box: [number, number, number, number] = [node.offsetLeft, node.offsetTop, node.offsetWidth, node.offsetHeight];
+
 			if (!spring || !placed.current || reduced) {
 				x.jump(box[0]);
 				y.jump(box[1]);
 				w.jump(box[2]);
 				h.jump(box[3]);
+
 				if (!placed.current && !reduced && spring) {
 					o.jump(0);
 					animate(o, 1, { duration: motionTokens.duration.fast, ease: standard });
 				} else o.jump(1);
 				placed.current = true;
+
 				return;
 			}
+
 			animate(x, box[0], GLIDE);
 			animate(y, box[1], GLIDE);
 			animate(w, box[2], GLIDE);
@@ -138,35 +151,47 @@ export const RadioCards = forwardRef<HTMLDivElement, RadioCardsProps>(function R
 	// A resize only snaps the ring to the new layout; it never replays the glide.
 	useLayoutEffect(() => {
 		const root = rootRef.current;
+
 		if (!root || typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(() => placeRef.current(false));
 		observer.observe(root);
+
 		return () => observer.disconnect();
 	}, []);
 
 	const cards = () => Array.from(rootRef.current?.querySelectorAll<HTMLElement>("[data-card]") ?? []);
-	const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>, index: number) => {
+
+	const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, index: number) => {
 		const step =
 			event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+
 		if (event.key === " " || event.key === "Enter") {
 			event.preventDefault();
+
 			if (usable(options[index]!)) select(options[index]!.value);
+
 			return;
 		}
+
 		if (!step && event.key !== "Home" && event.key !== "End") return;
 		event.preventDefault();
 		const count = options.length;
+
 		const rtl =
 			step && (event.key === "ArrowLeft" || event.key === "ArrowRight") && getComputedStyle(event.currentTarget).direction === "rtl"
 				? -1
 				: 1;
+
 		let at = event.key === "Home" ? -1 : event.key === "End" ? count : index;
 		const dir = event.key === "Home" ? 1 : event.key === "End" ? -1 : step * rtl;
+
 		for (let tries = 0; tries < count; tries++) {
 			at = (at + dir + count) % count;
+
 			if (usable(options[at]!)) {
 				cards()[at]?.focus();
 				select(options[at]!.value);
+
 				return;
 			}
 		}
@@ -180,16 +205,19 @@ export const RadioCards = forwardRef<HTMLDivElement, RadioCardsProps>(function R
 			aria-required={required || undefined}
 			className={[styles.root, className].filter(Boolean).join(" ")}
 			data-layout={layout}
-			style={{ "--min-column": `${minColumnWidth}px`, ...style } as CSSProperties}
+			style={{ "--min-column": `${minColumnWidth}px`, ...style } as React.CSSProperties}
 			{...rest}
 		>
 			<motion.span className={styles.ring} style={{ x, y, width: w, height: h, opacity: o }} aria-hidden="true" />
 			{options.map((option, index) => {
 				const checked = index === selectedIndex,
 					off = !usable(option);
+
 				const labelId = `${uid}-${index}-label`,
 					descriptionId = `${uid}-${index}-description`;
+
 				const description = off && option.disabledReason ? option.disabledReason : option.description;
+
 				return (
 					<div
 						key={option.value}

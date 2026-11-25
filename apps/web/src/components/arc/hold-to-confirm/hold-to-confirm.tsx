@@ -1,10 +1,7 @@
-"use client";
-
 import { Trash2 } from "lucide-react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import type { AnimationPlaybackControls, MotionValue, TargetAndTransition } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
-import type { ButtonHTMLAttributes, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./hold-to-confirm.module.css";
@@ -14,10 +11,10 @@ import styles from "./hold-to-confirm.module.css";
  * linear timeline; letting go early rewinds it on a spring, and finishing morphs the label and icon into a done state. Space and Enter can be held too.
  * Prefer a regular confirmation dialog when people need to read consequences first; use this when the consequence is already on screen.
  */
-export interface HoldToConfirmProps extends Omit<
-	ButtonHTMLAttributes<HTMLButtonElement>,
+export type HoldToConfirmProps = Omit<
+	React.ButtonHTMLAttributes<HTMLButtonElement>,
 	"children" | "onClick" | "onDrag" | "onDragEnd" | "onDragStart" | "onAnimationStart" | "onAnimationEnd"
-> {
+> & {
 	/** The instruction and the action, for example “Hold to delete project”. */
 	label: string;
 	/** Shown once the hold completes, for example “Deleted”. */
@@ -26,29 +23,32 @@ export interface HoldToConfirmProps extends Omit<
 	onConfirm: () => void;
 	/** Hold length in milliseconds. */
 	duration?: number;
-	icon?: ReactNode;
+	icon?: React.ReactNode;
 	/** `accent` (default) fills with the selected accent; `danger` is for an irreversible action; `neutral` fills with the foreground. */
 	tone?: "accent" | "danger" | "neutral";
 	/** Controls the done state. Set it back to false to reset the button; leave it undefined to let the button keep its own state. */
 	confirmed?: boolean;
 	/** Reports when a hold starts and ends, for surrounding hints such as “Keep holding”. */
 	onHoldChange?: (holding: boolean) => void;
-}
+};
 
 const enter = [...motionTokens.ease.enter] as [number, number, number, number];
 const standard = [...motionTokens.ease.standard] as [number, number, number, number];
 const rest: TargetAndTransition = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
 const textIn: TargetAndTransition = { opacity: 0, y: "0.3em", filter: `blur(${motionTokens.blur.soft}px)` };
+
 const textOut: TargetAndTransition = {
 	opacity: 0,
 	y: "-0.3em",
 	filter: `blur(${motionTokens.blur.subtle}px)`,
 	transition: { duration: motionTokens.duration.fast, ease: standard },
 };
+
 const iconIn: TargetAndTransition = { opacity: 0, scale: 0.6, filter: `blur(${motionTokens.blur.subtle}px)` };
 const iconOut: TargetAndTransition = { ...iconIn, transition: { duration: motionTokens.duration.fast, ease: standard } };
 const fadeIn: TargetAndTransition = { opacity: 0 };
 const fadeOut: TargetAndTransition = { opacity: 0, transition: { duration: motionTokens.duration.instant } };
+
 /** Scale rides the spring; opacity and blur tween so the blur never overshoots below zero. */
 const iconEnter = {
 	...motionTokens.spring.snappy,
@@ -81,7 +81,7 @@ function DrawnCheck({ reduced }: { reduced: boolean }) {
 }
 
 type FaceProps = {
-	icon: ReactNode;
+	icon: React.ReactNode;
 	text: string;
 	done: boolean;
 	width: MotionValue<number | "auto">;
@@ -138,6 +138,7 @@ function useLabelWidth(reduced: boolean) {
 		if (!node || typeof ResizeObserver === "undefined") return;
 		let lastText: string | null = null;
 		let sizing: AnimationPlaybackControls | null = null;
+
 		const observer = new ResizeObserver(([entry]) => {
 			// Layout width, not the painted box: the done label is measured while the pressed button is still scaled down.
 			const next = entry?.borderBoxSize?.[0]?.inlineSize ?? node.offsetWidth;
@@ -145,15 +146,19 @@ function useLabelWidth(reduced: boolean) {
 			const morph = lastText !== null && lastText !== text && !reduced && typeof width.get() === "number";
 			lastText = text;
 			sizing?.stop();
+
 			if (morph) sizing = animate(width, next, motionTokens.spring.morph);
 			else width.jump(next);
 		});
+
 		observer.observe(node);
+
 		return () => {
 			observer.disconnect();
 			sizing?.stop();
 		};
 	}, [node, reduced, width]);
+
 	return [width, setNode] as const;
 }
 
@@ -190,16 +195,20 @@ export function HoldToConfirm({
 
 	function pressTo(pressed: boolean) {
 		press.current?.stop();
+
 		if (reduced) {
 			scale.jump(1);
+
 			return;
 		}
+
 		const depth = (button.current?.offsetWidth ?? 0) > 220 ? 0.985 : 0.97;
 		press.current = animate(scale, pressed ? depth : 1, motionTokens.spring.snappy);
 	}
 
 	function rewind() {
 		fill.current?.stop();
+
 		if (reduced) progress.jump(0);
 		else fill.current = animate(progress, 0, { ...motionTokens.spring.smooth, velocity: 0 });
 	}
@@ -214,6 +223,7 @@ export function HoldToConfirm({
 	function complete() {
 		if (!source.current) return;
 		stopHolding();
+
 		if (pointerType.current === "touch") navigator.vibrate?.(12);
 		setOwnDone(true);
 		setCompletions((count) => count + 1);
@@ -241,11 +251,14 @@ export function HoldToConfirm({
 	const syncFill = useEffectEvent(() => {
 		if (done && progress.get() < 1 && !source.current) {
 			fill.current?.stop();
+
 			if (reduced) progress.jump(1);
 			else fill.current = animate(progress, 1, motionTokens.spring.smooth);
 		}
+
 		if (!done && progress.get() > 0 && !source.current) rewind();
 	});
+
 	useEffect(() => {
 		syncFill();
 	}, [done, completions]);
@@ -257,17 +270,20 @@ export function HoldToConfirm({
 		[],
 	);
 
-	function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+	function onPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
 		if (!event.isPrimary || event.button !== 0) return;
 		pointerType.current = event.pointerType;
 		event.currentTarget.setPointerCapture(event.pointerId);
 		begin("pointer");
 	}
-	function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+
+	function onPointerMove(event: React.PointerEvent<HTMLButtonElement>) {
 		if (source.current !== "pointer") return;
+
 		// Sliding well off the button cancels, the way a native press does.
 		const box = event.currentTarget.getBoundingClientRect(),
 			slack = 24;
+
 		if (
 			event.clientX < box.left - slack ||
 			event.clientX > box.right + slack ||
@@ -276,14 +292,18 @@ export function HoldToConfirm({
 		)
 			release();
 	}
-	function onKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+
+	function onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
 		if (event.key !== " " && event.key !== "Enter") return;
 		event.preventDefault();
+
 		if (!event.repeat) begin("key");
 	}
-	function onKeyUp(event: ReactKeyboardEvent<HTMLButtonElement>) {
+
+	function onKeyUp(event: React.KeyboardEvent<HTMLButtonElement>) {
 		if (event.key !== " " && event.key !== "Enter") return;
 		event.preventDefault();
+
 		if (source.current === "key") release();
 	}
 

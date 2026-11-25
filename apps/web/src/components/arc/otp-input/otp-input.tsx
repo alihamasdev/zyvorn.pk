@@ -1,14 +1,11 @@
-"use client";
-
-import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
 import type { Transition } from "motion/react";
+import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
-import type { ClipboardEvent, KeyboardEvent, ChangeEvent, FocusEvent } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./otp-input.module.css";
 
-export interface OtpInputProps {
+export type OtpInputProps = {
 	length?: number;
 	value?: string;
 	onChange?: (value: string) => void;
@@ -19,12 +16,13 @@ export interface OtpInputProps {
 	disabled?: boolean;
 	inputMode?: "numeric" | "text";
 	className?: string;
-}
+};
 
 /** Changed words rise in and unblur while unchanged words hold still. Assistive tech reads the plain copy. */
 function MotionText({ text }: { text: string }) {
 	const reduced = useReducedMotion();
 	const words = text.split(" ");
+
 	return (
 		<>
 			<span className={styles.srOnly}>{text}</span>
@@ -77,11 +75,14 @@ function MessageRow({ id, text, className, alert }: { id?: string; text: string;
 	const [height, setHeight] = useState<number | "auto">("auto");
 	useEffect(() => {
 		const node = copyRef.current;
+
 		if (!node || typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(([entry]) => setHeight(entry?.borderBoxSize?.[0]?.blockSize ?? node.offsetHeight));
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, []);
+
 	return (
 		<motion.span
 			className={styles.messageSlot}
@@ -137,6 +138,7 @@ export function OtpInput({
 	const [ring, setRing] = useState({ x: 0, width: 0, shown: false, glide: false });
 	// A paste fills several slots in one update; those digits land as a short left to right wave.
 	const [fill, setFill] = useState({ value, wave: false });
+
 	if (fill.value !== value)
 		setFill({
 			value,
@@ -151,9 +153,12 @@ export function OtpInput({
 	// Slots shrink at narrow widths; keep the ring on the focused slot when the row resizes.
 	useEffect(() => {
 		const row = scope.current;
+
 		if (!row || typeof ResizeObserver === "undefined") return;
+
 		const observer = new ResizeObserver(() => {
 			const slot = (row.contains(document.activeElement) ? document.activeElement?.parentElement : null) as HTMLElement | null;
+
 			if (slot)
 				setRing((current) =>
 					current.x === slot.offsetLeft && current.width === slot.offsetWidth
@@ -161,7 +166,9 @@ export function OtpInput({
 						: { ...current, x: slot.offsetLeft, width: slot.offsetWidth, glide: false },
 				);
 		});
+
 		observer.observe(row);
+
 		return () => observer.disconnect();
 	}, [scope]);
 
@@ -177,13 +184,16 @@ export function OtpInput({
 		const clean = sanitize(raw).slice(-1);
 		next[index] = clean;
 		onChange?.(next.join(""));
+
 		if (clean && index < length - 1) focusAt(index + 1);
 	};
 
-	const handleChange = (index: number, event: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
 		const raw = sanitize(event.target.value);
+
 		if (raw.length <= 1) {
 			updateAt(index, raw);
+
 			return;
 		}
 
@@ -197,9 +207,11 @@ export function OtpInput({
 		onChange?.(next.join(""));
 		focusAt(Math.min(index + raw.length, length - 1));
 	};
-	const handlePaste = (index: number, event: ClipboardEvent<HTMLInputElement>) => {
+
+	const handlePaste = (index: number, event: React.ClipboardEvent<HTMLInputElement>) => {
 		event.preventDefault();
 		const pasted = sanitize(event.clipboardData.getData("text")).slice(0, length - index);
+
 		if (!pasted) return;
 		const next = values.slice();
 		pasted.split("").forEach((character, offset) => {
@@ -209,15 +221,17 @@ export function OtpInput({
 		focusAt(Math.min(index + pasted.length, length - 1));
 	};
 
-	const handleKeyDown = (index: number, event: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (event.key === "ArrowLeft") {
 			event.preventDefault();
 			focusAt(index - 1);
 		}
+
 		if (event.key === "ArrowRight") {
 			event.preventDefault();
 			focusAt(index + 1);
 		}
+
 		if (event.key === "Backspace" && !values[index] && index > 0) {
 			event.preventDefault();
 			const next = values.slice();
@@ -225,19 +239,23 @@ export function OtpInput({
 			onChange?.(next.join(""));
 			focusAt(index - 1);
 		}
+
 		if (event.key === "Delete" && values[index]) {
 			const next = values.slice();
 			next[index] = "";
 			onChange?.(next.join(""));
 		}
 	};
-	const handleFocus = (event: FocusEvent<HTMLInputElement>) => {
+
+	const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
 		const slot = event.currentTarget.parentElement as HTMLElement;
 		setRing((current) => ({ x: slot.offsetLeft, width: slot.offsetWidth, shown: true, glide: current.shown }));
 	};
-	const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+
+	const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
 		if (!scope.current?.contains(event.relatedTarget as Node | null)) setRing((current) => ({ ...current, shown: false, glide: false }));
 	};
+
 	const glyphTransition = (index: number): Transition =>
 		reduced
 			? { duration: motionTokens.duration.instant }

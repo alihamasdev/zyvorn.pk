@@ -16,6 +16,7 @@ const LIGHT_THEME = {
 	...DefaultTheme,
 	colors: NAV_THEME.light,
 };
+
 const DARK_THEME = {
 	...DarkTheme,
 	colors: NAV_THEME.dark,

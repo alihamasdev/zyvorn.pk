@@ -1,18 +1,20 @@
-"use client";
 import { ChevronLeft as NavArrowLeft, ChevronRight as NavArrowRight } from "lucide-react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, type Variants } from "motion/react";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./pagination.module.css";
-export interface PaginationProps {
+
+export type PaginationProps = {
 	page: number;
 	pageCount: number;
 	onPageChange: (page: number) => void;
 	label?: string;
-}
+};
+
 /** When the five page window shifts, numbers travel like a belt: each one moves by the same number of slots. */
 const slot = 1000 / 9; // One button plus the gap (36px + 4px), as a percentage of the button width.
+
 const slide: Variants = {
 	enter: (shift: number) => ({ opacity: 0, x: `${slot * shift}%` }),
 	center: { opacity: 1, x: "0%" },
@@ -25,6 +27,7 @@ const slide: Variants = {
 		},
 	}),
 };
+
 export function Pagination({ page, pageCount, onPageChange, label = "Pagination" }: PaginationProps) {
 	const reduced = useReducedMotion() ?? false;
 	const navRef = useRef<HTMLElement>(null);
@@ -35,10 +38,12 @@ export function Pagination({ page, pageCount, onPageChange, label = "Pagination"
 	const start = safePageCount > 0 ? Math.max(1, Math.min(safePageCount - 4, currentPage - 2)) : 1;
 	const [previousStart, setPreviousStart] = useState(start);
 	const [shift, setShift] = useState(0);
+
 	if (previousStart !== start) {
 		setShift(start - previousStart);
 		setPreviousStart(start);
 	}
+
 	const visible = Array.from({ length: Math.min(safePageCount, 5) }, (_, index) => start + index);
 
 	// One mark travels to the current page's final slot. Until it has measured once (and during server render),
@@ -46,33 +51,44 @@ export function Pagination({ page, pageCount, onPageChange, label = "Pagination"
 	useLayoutEffect(() => {
 		const nav = navRef.current;
 		const current = nav?.querySelector<HTMLElement>("[aria-current='page']");
+
 		if (!nav || !current) return;
+
 		const place = (instant: boolean) => {
 			const x = current.offsetLeft,
 				y = current.offsetTop;
+
 			if (instant || reduced) {
 				markX.jump(x);
 				markY.jump(y);
+
 				return;
 			}
+
 			animate(markX, x, motionTokens.spring.morph);
 			animate(markY, y, motionTokens.spring.morph);
 		};
+
 		place(!("markReady" in nav.dataset));
 		nav.dataset.markReady = "";
 		let size = `${nav.offsetWidth}x${nav.offsetHeight}`;
+
 		const observer = new ResizeObserver(() => {
 			const next = `${nav.offsetWidth}x${nav.offsetHeight}`;
+
 			if (next !== size) {
 				size = next;
 				place(true);
 			}
 		});
+
 		observer.observe(nav);
+
 		return () => observer.disconnect();
 	}, [currentPage, start, safePageCount, reduced, markX, markY]);
 
 	if (!safePageCount) return <nav className={styles.nav} aria-label={label} />;
+
 	return (
 		<nav ref={navRef} className={styles.nav} aria-label={label}>
 			<button

@@ -1,29 +1,28 @@
-"use client";
-
-import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion } from "motion/react";
 import type { TargetAndTransition, Variants } from "motion/react";
+import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion } from "motion/react";
 import { forwardRef, isValidElement, useCallback, useEffect, useLayoutEffect, useRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode, Ref, RefObject } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./button.module.css";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+
 export type ButtonSize = "sm" | "md" | "lg";
 
-export interface ButtonProps extends Omit<
-	ButtonHTMLAttributes<HTMLButtonElement>,
+export type ButtonProps = Omit<
+	React.ButtonHTMLAttributes<HTMLButtonElement>,
 	"onDrag" | "onDragEnd" | "onDragStart" | "onAnimationStart"
-> {
+> & {
 	variant?: ButtonVariant;
 	size?: ButtonSize;
 	loading?: boolean;
-}
+};
 
 /** Icon buttons press a little deeper, wide buttons a little less, so every size reads as the same push. */
 const pressVariants: Variants = {
-	pressed: (button: RefObject<HTMLButtonElement | null>) => {
+	pressed: (button: React.RefObject<HTMLButtonElement | null>) => {
 		const width = button.current?.offsetWidth ?? 0;
+
 		return {
 			scale: width > 220 ? 0.985 : width && width <= 48 ? 0.96 : 0.97,
 			transition: { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] },
@@ -32,6 +31,7 @@ const pressVariants: Variants = {
 };
 
 const rest: TargetAndTransition = { opacity: 1, y: 0, scale: 1 };
+
 /** One clean crossfade: the new label rises 2px as it fades in, the outgoing one fades out faster. No blur. */
 const textIn: TargetAndTransition = { opacity: 0, y: 2 };
 const textOut: TargetAndTransition = { opacity: 0, transition: { duration: 0.1, ease: [...motionTokens.ease.standard] } };
@@ -39,6 +39,7 @@ const iconIn: TargetAndTransition = { opacity: 0, scale: 0.85 };
 const iconOut: TargetAndTransition = { opacity: 0, transition: { duration: 0.1, ease: [...motionTokens.ease.standard] } };
 const fadeIn: TargetAndTransition = { ...rest, opacity: 0 };
 const fadeOut: TargetAndTransition = { opacity: 0, transition: { duration: motionTokens.duration.instant } };
+
 /** Scale rides the spring; opacity tweens. */
 const iconEnter = {
 	...motionTokens.spring.snappy,
@@ -46,21 +47,27 @@ const iconEnter = {
 } as const;
 
 /** A key for the label content: text plus element names, so a new label or icon crossfades while prop-only updates stay in place. */
-function labelKey(node: ReactNode): string {
+function labelKey(node: React.ReactNode): string {
 	if (node == null || typeof node === "boolean") return "";
+
 	if (typeof node === "string" || typeof node === "number" || typeof node === "bigint") return String(node);
+
 	if (Array.isArray(node)) return node.map(labelKey).join("");
+
 	if (!isValidElement(node)) return "";
 	const type = node.type as string | { displayName?: string; name?: string };
-	return `<${typeof type === "string" ? type : (type?.displayName ?? type?.name ?? "")}>${labelKey((node.props as { children?: ReactNode }).children)}`;
+
+	return `<${typeof type === "string" ? type : (type?.displayName ?? type?.name ?? "")}>${labelKey((node.props as { children?: React.ReactNode }).children)}`;
 }
 
 /** Springs the slot to the natural width of the incoming label when it changes, so a new label never snaps the button's size.
  *  The outgoing label is popped out of flow at once, so it never holds the old width. Other resizes (a late web font, a parent reflow) jump straight to the new width, so nothing wobbles on first paint. */
-function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, reduced: boolean) {
+function useMorphWidth(content: React.RefObject<HTMLElement | null>, key: string, reduced: boolean) {
 	const width = useMotionValue<number | "auto">("auto");
+
 	const lastKey = useRef(key),
 		armedUntil = useRef(0);
+
 	useLayoutEffect(() => {
 		if (lastKey.current === key) return;
 		lastKey.current = key;
@@ -69,17 +76,22 @@ function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, redu
 	useEffect(() => {
 		const node = content.current,
 			slot = node?.parentElement;
+
 		if (!node || !slot || typeof ResizeObserver === "undefined") return;
 		let measured = false;
+
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return;
 			const next = entry.contentRect.width;
+
 			if (!next || !measured || reduced || performance.now() > armedUntil.current) {
 				measured = next > 0;
 				width.jump(next || "auto");
 				delete slot.dataset.morphing;
+
 				return;
 			}
+
 			slot.dataset.morphing = "";
 			animate(width, next, {
 				...motionTokens.spring.morph,
@@ -88,9 +100,12 @@ function useMorphWidth(content: RefObject<HTMLElement | null>, key: string, redu
 				},
 			});
 		});
+
 		observer.observe(node);
+
 		return () => observer.disconnect();
 	}, [content, reduced, width]);
+
 	return width;
 }
 
@@ -100,12 +115,13 @@ function LabelPhase({
 	reduced,
 	ref,
 }: {
-	children: ReactNode;
+	children: React.ReactNode;
 	icon: boolean;
 	reduced: boolean;
-	ref?: Ref<HTMLSpanElement>;
+	ref?: React.Ref<HTMLSpanElement>;
 }) {
 	const present = useIsPresent();
+
 	return (
 		<motion.span
 			ref={ref}
@@ -136,21 +152,26 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 	const contentRef = useRef<HTMLSpanElement>(null);
 	const key = labelKey(children);
 	const width = useMorphWidth(contentRef, key, reduceMotion);
+
 	const setRefs = useCallback(
 		(node: HTMLButtonElement | null) => {
 			buttonRef.current = node;
+
 			if (typeof ref === "function") ref(node);
 			else if (ref) ref.current = node;
 		},
 		[ref],
 	);
+
 	// A trigger that anchors a menu, popover, or dialog keeps its rect still while pressed, so the layer never measures a scaled anchor.
 	// Radix triggers (asChild) pass aria-haspopup or data-state through; the stylesheet repeats the guard.
 	const popup = props["aria-haspopup"];
+
 	const anchorsLayer =
 		(popup !== undefined && popup !== false && popup !== "false") ||
 		props.role === "combobox" ||
 		(props as Record<string, unknown>)["data-state"] !== undefined;
+
 	const inert = disabled || loading || props["aria-disabled"] === true || props["aria-disabled"] === "true";
 	const classes = [styles.button, styles[variant], styles[size], className].filter(Boolean).join(" ");
 

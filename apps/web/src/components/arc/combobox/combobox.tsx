@@ -1,21 +1,18 @@
-"use client";
-
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { animate, AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from "react";
-import type { InputHTMLAttributes, KeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./combobox.module.css";
 
-export interface ComboboxOption {
+export type ComboboxOption = {
 	value: string;
 	label: string;
 	disabled?: boolean;
 	keywords?: string[];
-}
+};
 
-export interface ComboboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "placeholder"> {
+export type ComboboxProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "placeholder"> & {
 	label: string;
 	options: ComboboxOption[];
 	value?: string;
@@ -25,19 +22,22 @@ export interface ComboboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 	placeholder?: string;
 	emptyMessage?: string;
 	className?: string;
-}
+};
 
 /** Follows the listbox height with a critically damped spring, so filtering never snaps the menu. */
-function AutoHeight({ children, reduceMotion }: { children: ReactNode; reduceMotion: boolean | null }) {
+function AutoHeight({ children, reduceMotion }: { children: React.ReactNode; reduceMotion: boolean | null }) {
 	const innerRef = useRef<HTMLDivElement>(null);
 	const [height, setHeight] = useState<number | "auto">("auto");
 	useEffect(() => {
 		const inner = innerRef.current;
+
 		if (!inner) return;
 		const observer = new ResizeObserver(() => setHeight(inner.offsetHeight));
 		observer.observe(inner);
+
 		return () => observer.disconnect();
 	}, []);
+
 	return (
 		<motion.div
 			className={styles.autoHeight}
@@ -92,7 +92,9 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		if (settledValue.current === selectedValue) return;
 		settledValue.current = selectedValue;
 		const input = inputRef.current;
+
 		if (!input || reduceMotion || (selectedValue && open)) return;
+
 		const controls = selectedValue
 			? animate(
 					input,
@@ -100,12 +102,15 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 					{ duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] },
 				)
 			: animate(input, { opacity: [0, 1] }, { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.enter] });
+
 		return () => controls.complete();
 	}, [selectedValue, reduceMotion, open]);
 
 	const filteredOptions = useMemo(() => {
 		const normalizedQuery = query.trim().toLocaleLowerCase();
+
 		if (!normalizedQuery) return options;
+
 		return options.filter((option) =>
 			[option.label, ...(option.keywords ?? [])].some((term) => term.toLocaleLowerCase().includes(normalizedQuery)),
 		);
@@ -113,6 +118,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 
 	const enabledIndices = filteredOptions.reduce<number[]>((indices, option, index) => {
 		if (!option.disabled) indices.push(index);
+
 		return indices;
 	}, []);
 
@@ -121,9 +127,11 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		const activeOption = activeIndex >= 0 ? filteredOptions[activeIndex] : undefined;
 		const option = activeOption ? optionRefs.current[activeOption.value] : null;
 		const listbox = option?.parentElement;
+
 		if (option && listbox) {
 			const top = option.offsetTop;
 			const bottom = top + option.offsetHeight;
+
 			if (top < listbox.scrollTop) listbox.scrollTop = top;
 			else if (bottom > listbox.scrollTop + listbox.clientHeight) listbox.scrollTop = bottom - listbox.clientHeight;
 		}
@@ -136,7 +144,9 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 				setQuery("");
 			}
 		};
+
 		document.addEventListener("pointerdown", handlePointerDown);
+
 		return () => document.removeEventListener("pointerdown", handlePointerDown);
 	}, []);
 
@@ -149,7 +159,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		inputRef.current?.focus();
 	};
 
-	const clear = (event: ReactMouseEvent<HTMLButtonElement>) => {
+	const clear = (event: React.MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
 		setUncontrolledValue("");
 		onValueChange?.("");
@@ -165,33 +175,45 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		setActiveIndex(-1);
 	};
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (disabled) return;
+
 		if (event.key === "ArrowDown" || event.key === "ArrowUp") {
 			event.preventDefault();
+
 			if (!open) {
 				openMenu();
+
 				return;
 			}
+
 			if (!enabledIndices.length) return;
 			const currentPosition = enabledIndices.indexOf(activeIndex);
+
 			const nextPosition =
 				event.key === "ArrowDown"
 					? (currentPosition + 1) % enabledIndices.length
 					: (currentPosition - 1 + enabledIndices.length) % enabledIndices.length;
+
 			setActiveIndex(enabledIndices[nextPosition]!);
+
 			return;
 		}
+
 		if (event.key === "Enter" && open && activeIndex >= 0) {
 			event.preventDefault();
 			const option = filteredOptions[activeIndex];
+
 			if (option) choose(option);
+
 			return;
 		}
+
 		if (event.key === "Escape" && open) {
 			event.preventDefault();
 			setOpen(false);
 			setQuery("");
+
 			return;
 		}
 	};
