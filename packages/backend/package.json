@@ -24,7 +24,7 @@
 	"devDependencies": {
 		"@types/node": "catalog:",
 		"@zyvorn/config": "workspace:*",
-		"auth": "^1.7.19",
+		"auth": "^1.7.28",
 		"typescript": "catalog:"
 	}
 }
